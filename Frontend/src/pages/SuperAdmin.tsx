@@ -33,11 +33,14 @@ function SuperInner() {
       {tab === 'overview' && analytics && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="card p-3"><div className="text-xs text-[var(--muted)]">Total platform events</div><div className="text-xl font-bold">{analytics.total_events}</div></div>
-          <div className="card p-3"><div className="text-xs text-[var(--muted)]">Registered accounts</div><div className="text-xl font-bold">{users.length}</div></div>
+          <div className="card p-3"><div className="text-xs text-[var(--muted)]">Registered accounts (confirmed)</div><div className="text-xl font-bold">{users.length}</div></div>
+          {analytics && <div className="card p-3"><div className="text-xs text-[var(--muted)]">Recent registrations (30d)</div><div className="text-xl font-bold">{analytics.recent_registrations_30d}</div></div>}
+          {analytics && <div className="card p-3"><div className="text-xs text-[var(--muted)]">Active users estimate (login-based)</div><div className="text-xl font-bold">{analytics.active_users_estimate_30d}</div></div>}
+          {analytics && <div className="card p-3"><div className="text-xs text-[var(--muted)]">Active sessions estimate</div><div className="text-xl font-bold">{analytics.active_sessions_estimate}</div></div>}
           <div className="card p-3"><div className="text-xs text-[var(--muted)]">Audit entries</div><div className="text-xl font-bold">{audit.length}</div></div>
           <div className="card p-3"><div className="text-xs text-[var(--muted)]">Security events</div><div className="text-xl font-bold">{security.length}</div></div>
           {mediaHealth && <div className="card p-3"><div className="text-xs text-[var(--muted)]">Platform media assets</div><div className="text-xl font-bold">{mediaHealth.total_assets}</div></div>}
-          <div className="col-span-full text-xs text-[var(--muted)]">Metrics are genuine measured platform data. Empty states shown when no data collected.</div>
+          <div className="col-span-full text-xs text-[var(--muted)]">Registered accounts and login-based estimates are genuine platform data. Anonymous visitor analytics are only recorded when tracked events exist. Simulated workspace data is never included.</div>
         </div>
       )}
 

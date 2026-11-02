@@ -170,20 +170,24 @@ class DemoBookingViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
         date = data.get("date")
         time = data.get("time")
         service = data.get("service")
-        self._validate_booking(ws, service, date, time)
-        booking = serializer.save(workspace=ws)
-        DemoNotification.objects.create(workspace=ws, recipient_type="admin", title="New booking", message=f"{booking.service_name} on {booking.date}")
+        with transaction.atomic():
+            # lock existing bookings for this workspace/date to prevent races
+            DemoBooking.objects.select_for_update().filter(workspace=ws, date=date).exists()
+            self._validate_booking(ws, service, date, time)
+            booking = serializer.save(workspace=ws)
+            DemoNotification.objects.create(workspace=ws, recipient_type="admin", title="New booking", message=f"{booking.service_name} on {booking.date}")
 
     def perform_update(self, serializer):
         ws = self.get_workspace()
         instance = serializer.instance
-        data = {**instance.__dict__, **serializer.validated_data}
         date = serializer.validated_data.get("date", instance.date)
         time = serializer.validated_data.get("time", instance.time)
         service = serializer.validated_data.get("service", instance.service)
-        self._validate_booking(ws, service, date, time, exclude_id=instance.id)
-        booking = serializer.save()
-        DemoNotification.objects.create(workspace=ws, recipient_type="admin", title="Booking updated", message=f"Booking {booking.id} updated")
+        with transaction.atomic():
+            DemoBooking.objects.select_for_update().filter(workspace=ws, date=date).exists()
+            self._validate_booking(ws, service, date, time, exclude_id=instance.id)
+            booking = serializer.save()
+            DemoNotification.objects.create(workspace=ws, recipient_type="admin", title="Booking updated", message=f"Booking {booking.id} updated")
 
 
 

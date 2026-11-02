@@ -12,6 +12,7 @@ export default function WebsiteBuilder() {
   const [sections, setSections] = useState<Section[]>([]);
   const [published, setPublished] = useState(false);
   const [revisions, setRevisions] = useState<any[]>([]);
+  const [previewRevision, setPreviewRevision] = useState<any>(null);
   const [preview, setPreview] = useState(false);
   const [device, setDevice] = useState<'desktop'|'tablet'|'mobile'>('desktop');
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -92,12 +93,21 @@ export default function WebsiteBuilder() {
         <h3 className="font-semibold mb-2">Revisions</h3>
         <ul className="text-xs space-y-1">
           {revisions.map(r => (
-            <li key={r.id} className="flex justify-between">
+            <li key={r.id} className="flex justify-between gap-2">
               <span>{new Date(r.created_at).toLocaleString()} — {r.title}</span>
-              <button className="text-xs" onClick={async()=>{ await api.post(`/demo/page-revisions/${r.id}/restore/`); const p = await api.get(`/demo/pages/${pageId}/`); setTitle(p.data.title); setSlug(p.data.slug); setSections(JSON.parse(p.data.content||'[]')); setPublished(p.data.is_published); const rv = await api.get(`/demo/page-revisions/?page=${pageId}`); setRevisions(rv.data.results||rv.data); }}>Restore</button>
+              <div className="flex gap-1">
+                <button className="text-xs" onClick={()=>setPreviewRevision(r)}>Preview</button>
+                <button className="text-xs" onClick={async()=>{ if(!confirm('Restore this revision?')) return; await api.post(`/demo/page-revisions/${r.id}/restore/`); const p = await api.get(`/demo/pages/${pageId}/`); setTitle(p.data.title); setSlug(p.data.slug); setSections(JSON.parse(p.data.content||'[]')); setPublished(p.data.is_published); const rv = await api.get(`/demo/page-revisions/?page=${pageId}`); setRevisions(rv.data.results||rv.data); }}>Restore</button>
+              </div>
             </li>
           ))}
         </ul>
+        {previewRevision && (
+          <div className="card p-2 mt-2">
+            <div className="flex justify-between"><span className="text-xs font-semibold">Preview revision</span><button className="text-xs" onClick={()=>setPreviewRevision(null)}>Close</button></div>
+            {(() => { let secs: any[] = []; try { secs = JSON.parse(previewRevision.content || '[]'); } catch {} return secs.map((s:any) => <div key={s.id}>{s.type}: {s.content}</div>); })()}
+          </div>
+        )}
       </div>
       <p className="text-xs text-[var(--muted)]">Published: {String(published)}. Content is sanitized (text only) and workspace-scoped.</p>
     </div>

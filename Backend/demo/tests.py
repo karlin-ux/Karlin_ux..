@@ -170,3 +170,4 @@ class BookingConcurrencyTests(TestCase):
         # reschedule b2 to conflict with b1
         r = self.c.patch(f"/api/demo/bookings/{b2}/", {"date": d, "time": "09:00:00", "status": "rescheduled"}, content_type="application/json")
         self.assertEqual(r.status_code, 400)
+
