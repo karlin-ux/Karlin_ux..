@@ -61,6 +61,7 @@ class CustomerProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="customer_profile")
     display_name = models.CharField(max_length=120, blank=True)
     preferences = models.JSONField(default=dict, blank=True)
+    profile_picture = models.ForeignKey("media.MediaAsset", on_delete=models.SET_NULL, null=True, blank=True, related_name="profile_pictures")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

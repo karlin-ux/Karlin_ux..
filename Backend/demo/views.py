@@ -1,19 +1,22 @@
 from django.db.models import Count, Sum
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, permissions, status, serializers
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
+from django.db import transaction
+from django.utils import timezone
+from decimal import Decimal
 
 from accounts.models import Workspace
 from .models import (
     DemoAnalyticsEvent, DemoApplication, DemoAuditLog, DemoBooking, DemoCustomer,
-    DemoManager, DemoMediaAsset, DemoNotification, DemoOrder, DemoPage, DemoProduct,
-    DemoRole,
+    DemoManager, DemoMediaAsset, DemoNotification, DemoOrder, DemoOrderItem, DemoOrderStatusEvent, DemoPage, DemoProduct,
+    DemoRole, DemoService,
 )
 from .serializers import (
-    DemoAnalyticsEventSerializer, DemoApplicationSerializer, DemoAuditLogSerializer,
+    DemoAnalyticsEventSerializer, DemoApplicationCustomerSerializer, DemoApplicationSerializer, DemoAuditLogSerializer,
     DemoBookingSerializer, DemoCustomerSerializer, DemoManagerSerializer,
     DemoMediaAssetSerializer, DemoNotificationSerializer, DemoOrderSerializer,
-    DemoPageSerializer, DemoProductSerializer, DemoRoleSerializer,
+    DemoPageSerializer, DemoProductSerializer, DemoRoleSerializer, DemoServiceSerializer,
 )
 
 
@@ -64,10 +67,43 @@ class DemoProductViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
     queryset = DemoProduct.objects.all()
     serializer_class = DemoProductSerializer
 
+    def _validate_media(self, ws, data):
+        from media.models import MediaAsset
+        for field in ("primary_image",):
+            val = data.get(field)
+            if val is not None and val.workspace_id != ws.id:
+                raise serializers.ValidationError({field: "Media must belong to the same workspace."})
+        gallery = data.get("gallery")
+        if gallery is not None:
+            for m in gallery:
+                if m.workspace_id != ws.id:
+                    raise serializers.ValidationError({"gallery": "Media must belong to the same workspace."})
+
+    def perform_create(self, serializer):
+        ws = self.get_workspace()
+        self._validate_media(ws, serializer.validated_data)
+        serializer.save(workspace=ws)
+
+    def perform_update(self, serializer):
+        ws = self.get_workspace()
+        self._validate_media(ws, serializer.validated_data)
+        serializer.save()
+
+
+class DemoServiceViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
+    queryset = DemoService.objects.all()
+    serializer_class = DemoServiceSerializer
+
 
 class DemoOrderViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
     queryset = DemoOrder.objects.all()
     serializer_class = DemoOrderSerializer
+
+    def perform_create(self, serializer):
+        order = serializer.save(workspace=self.get_workspace())
+        DemoOrderStatusEvent.objects.create(order=order, status=order.status, note="Created")
+        DemoNotification.objects.create(workspace=order.workspace, recipient_type="admin", title="New order", message=f"Order {order.id} created")
+
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -80,6 +116,22 @@ class DemoOrderViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
 class DemoBookingViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
     queryset = DemoBooking.objects.all()
     serializer_class = DemoBookingSerializer
+
+    def perform_create(self, serializer):
+        import datetime
+        ws = self.get_workspace()
+        data = serializer.validated_data
+        date = data.get("date")
+        time = data.get("time")
+        if date < timezone.now().date():
+            raise serializers.ValidationError({"date": "Cannot book in the past."})
+        # conflict check
+        qs = DemoBooking.objects.filter(workspace=ws, date=date, time=time).exclude(status="cancelled")
+        if qs.exists():
+            raise serializers.ValidationError({"time": "Time slot already booked."})
+        booking = serializer.save(workspace=ws)
+        DemoNotification.objects.create(workspace=ws, recipient_type="admin", title="New booking", message=f"{booking.service_name} on {booking.date}")
+
 
 
 class DemoApplicationViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
@@ -164,3 +216,66 @@ def demo_analytics_summary(request):
         "by_type": list(events.values("event_type").annotate(count=Count("id"))),
         "simulated": True,
     })
+
+
+@api_view(["POST"])
+@permission_classes([permissions.IsAuthenticated])
+def checkout(request):
+    ws = _user_workspace(request.user)
+    if ws is None:
+        return Response({"detail": "No workspace."}, status=403)
+    items = request.data.get("items", [])
+    if not isinstance(items, list) or not items:
+        return Response({"detail": "No items."}, status=400)
+    delivery_option = request.data.get("delivery_option", "collection")
+    delivery_details = request.data.get("delivery_details", "") or ""
+    customer_name = request.data.get("customer_name", "") or ""
+    customer_email = request.data.get("customer_email", "") or request.user.email
+
+    try:
+        with transaction.atomic():
+            order = DemoOrder.objects.create(
+                workspace=ws,
+                status="new",
+                payment_status="unpaid",
+                total=Decimal("0.00"),
+                internal_notes=f"Customer: {customer_name} <{customer_email}>. Delivery: {delivery_option}. {delivery_details}",
+            )
+            total = Decimal("0.00")
+            for it in items:
+                pid = it.get("product_id")
+                qty = int(it.get("quantity", 1))
+                if qty < 1:
+                    raise ValueError("Invalid quantity.")
+                product = DemoProduct.objects.select_for_update().get(id=pid, workspace=ws)
+                if not product.is_active or not product.is_published:
+                    raise ValueError(f"Product unavailable: {product.name}")
+                if product.stock < qty:
+                    raise ValueError(f"Insufficient stock: {product.name}")
+                unit_price = product.price
+                DemoOrderItem.objects.create(
+                    order=order, product=product, product_name=product.name,
+                    quantity=qty, unit_price=unit_price,
+                )
+                total += unit_price * qty
+                product.stock -= qty
+                product.save()
+            order.total = total
+            order.save()
+            DemoOrderStatusEvent.objects.create(order=order, status="new", note="Checkout")
+            DemoNotification.objects.create(workspace=ws, recipient_type="admin", title="New order", message=f"Order {order.id} placed")
+            # customer notification
+            DemoNotification.objects.create(workspace=ws, recipient_type="customer", title="Order confirmed", message=f"Your order {order.id} is confirmed (simulated).")
+    except DemoProduct.DoesNotExist:
+        return Response({"detail": "Product not found."}, status=400)
+    except ValueError as e:
+        return Response({"detail": str(e)}, status=400)
+    except Exception as e:
+        return Response({"detail": "Checkout failed."}, status=400)
+
+    return Response(DemoOrderSerializer(order).data, status=status.HTTP_201_CREATED)
+
+
+class CustomerApplicationViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
+    queryset = DemoApplication.objects.all()
+    serializer_class = DemoApplicationCustomerSerializer

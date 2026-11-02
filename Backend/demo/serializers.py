@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import (
     DemoAnalyticsEvent, DemoApplication, DemoAuditLog, DemoBooking, DemoCustomer,
     DemoManager, DemoMediaAsset, DemoNotification, DemoOrder, DemoOrderItem,
-    DemoPage, DemoProduct, DemoRole,
+    DemoOrderStatusEvent, DemoPage, DemoProduct, DemoRole, DemoService,
 )
 
 
@@ -26,6 +26,14 @@ class DemoOrderItemSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+
+class DemoServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DemoService
+        fields = "__all__"
+        read_only_fields = ["workspace", "created_at", "updated_at"]
+
+
 class DemoOrderSerializer(serializers.ModelSerializer):
     items = DemoOrderItemSerializer(many=True, read_only=True)
 
@@ -33,6 +41,14 @@ class DemoOrderSerializer(serializers.ModelSerializer):
         model = DemoOrder
         fields = "__all__"
         read_only_fields = ["workspace", "order_date"]
+
+
+
+class DemoOrderStatusEventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DemoOrderStatusEvent
+        fields = "__all__"
+        read_only_fields = ["created_at"]
 
 
 class DemoBookingSerializer(serializers.ModelSerializer):
@@ -96,3 +112,9 @@ class DemoAnalyticsEventSerializer(serializers.ModelSerializer):
         model = DemoAnalyticsEvent
         fields = "__all__"
         read_only_fields = ["workspace", "created_at"]
+
+class DemoApplicationCustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DemoApplication
+        fields = ["id", "application_type", "applicant_name", "applicant_email", "subject", "message", "status", "created_at", "updated_at"]
+        read_only_fields = ["id", "status", "created_at", "updated_at"]

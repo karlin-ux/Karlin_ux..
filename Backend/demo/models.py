@@ -42,11 +42,34 @@ class DemoProduct(WorkspaceOwned):
     tags = models.JSONField(default=list, blank=True)
     is_featured = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    is_published = models.BooleanField(default=True)
     image = models.CharField(max_length=255, blank=True)  # storage path
     variations = models.JSONField(default=list, blank=True)
+    primary_image = models.ForeignKey("media.MediaAsset", on_delete=models.SET_NULL, null=True, blank=True, related_name="product_primary")
+    gallery = models.ManyToManyField("media.MediaAsset", blank=True, related_name="product_gallery")
 
     class Meta:
         ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.name
+
+
+
+class DemoService(models.Model):
+    workspace = models.ForeignKey("accounts.Workspace", on_delete=models.CASCADE, related_name="demo_services")
+    name = models.CharField(max_length=160)
+    description = models.TextField(blank=True)
+    duration_minutes = models.PositiveIntegerField(default=30)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    is_active = models.BooleanField(default=True)
+    image = models.ForeignKey("media.MediaAsset", on_delete=models.SET_NULL, null=True, blank=True, related_name="service_images")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+        unique_together = ("workspace", "name")
 
     def __str__(self):
         return self.name
@@ -88,6 +111,7 @@ class DemoBooking(WorkspaceOwned):
         ("pending", "Pending"), ("confirmed", "Confirmed"),
         ("rescheduled", "Rescheduled"), ("cancelled", "Cancelled"), ("completed", "Completed"),
     ]
+    service = models.ForeignKey(DemoService, on_delete=models.SET_NULL, null=True, blank=True, related_name="bookings")
     service_name = models.CharField(max_length=160)
     customer = models.ForeignKey(DemoCustomer, on_delete=models.SET_NULL, null=True, blank=True, related_name="bookings")
     customer_name = models.CharField(max_length=120, blank=True)
@@ -123,6 +147,7 @@ class DemoApplication(WorkspaceOwned):
     assigned_to = models.CharField(max_length=120, blank=True)
     internal_notes = models.TextField(blank=True)
     attachment = models.CharField(max_length=255, blank=True)
+    attachments = models.ManyToManyField("media.MediaAsset", blank=True, related_name="application_attachments")
 
     class Meta:
         ordering = ["-created_at"]
@@ -230,3 +255,12 @@ class DemoAnalyticsEvent(models.Model):
     class Meta:
         ordering = ["-created_at"]
         indexes = [models.Index(fields=["workspace", "-created_at"])]
+
+class DemoOrderStatusEvent(models.Model):
+    order = models.ForeignKey(DemoOrder, on_delete=models.CASCADE, related_name="status_events")
+    status = models.CharField(max_length=20)
+    note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]

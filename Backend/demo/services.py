@@ -44,9 +44,13 @@ def seed_workspace(workspace):
             description="A demonstration product.",
             price=Decimal(str(random.choice([9.99, 19.99, 29.99, 49.99, 99.99]))),
             stock=random.randint(0, 50), category=random.choice(["Hardware", "Software", "Service"]),
-            is_featured=(i < 3), is_active=True,
+            is_featured=(i < 3), is_active=True, is_published=True,
         )
         products.append(p)
+    # services
+    for svc in ["Consultation", "Demo Session", "Support Call"]:
+        DemoService.objects.create(workspace=workspace, name=svc, description="Demo service.", duration_minutes=30, price=Decimal("50.00"), is_active=True)
+
     # orders
     for i in range(6):
         c = random.choice(customers)
