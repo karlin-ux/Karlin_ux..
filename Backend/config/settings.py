@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "demo",
     "platform_admin",
     "audit",
+    "contact",
 ]
 
 MIDDLEWARE = [
@@ -136,7 +137,8 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": "60/min",
         "user": "300/min",
-        "login": "5/min",
+        "login": "10/min",
+        "contact": "20/hour",
     },
 }
 
@@ -171,8 +173,15 @@ CSP_FRAME_ANCESTORS = ("'none'",)
 # Custom user model
 AUTH_USER_MODEL = "accounts.User"
 
-# Email (console for dev)
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# Email
+EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587") or 587)
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", default=True)
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@karlin.local")
+CONTACT_RECIPIENT_EMAIL = os.environ.get("CONTACT_RECIPIENT_EMAIL", "yourheinskarl@gmail.com")
 
 # Logging
 LOGGING = {
