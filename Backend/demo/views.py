@@ -10,13 +10,13 @@ from accounts.models import Workspace
 from .models import (
     DemoAnalyticsEvent, DemoApplication, DemoAuditLog, DemoBooking, DemoCustomer,
     DemoManager, DemoMediaAsset, DemoNotification, DemoOrder, DemoOrderItem, DemoOrderStatusEvent, DemoPage, DemoProduct,
-    DemoRole, DemoService,
+    DemoRole, DemoService, DemoCart, DemoCartItem,
 )
 from .serializers import (
     DemoAnalyticsEventSerializer, DemoApplicationCustomerSerializer, DemoApplicationSerializer, DemoAuditLogSerializer,
     DemoBookingSerializer, DemoCustomerSerializer, DemoManagerSerializer,
     DemoMediaAssetSerializer, DemoNotificationSerializer, DemoOrderSerializer,
-    DemoPageSerializer, DemoProductSerializer, DemoRoleSerializer, DemoServiceSerializer,
+    DemoPageSerializer, DemoProductSerializer, DemoRoleSerializer, DemoServiceSerializer, DemoCartSerializer, DemoCartItemSerializer,
 )
 
 
@@ -224,7 +224,11 @@ def checkout(request):
     ws = _user_workspace(request.user)
     if ws is None:
         return Response({"detail": "No workspace."}, status=403)
-    items = request.data.get("items", [])
+    if request.data.get("use_cart"):
+        cart = _get_cart(ws)
+        items = [{"product_id": str(i.product.id), "quantity": i.quantity} for i in cart.items.all()]
+    else:
+        items = request.data.get("items", [])
     if not isinstance(items, list) or not items:
         return Response({"detail": "No items."}, status=400)
     delivery_option = request.data.get("delivery_option", "collection")
@@ -273,9 +277,101 @@ def checkout(request):
     except Exception as e:
         return Response({"detail": "Checkout failed."}, status=400)
 
+    if request.data.get("use_cart"):
+        _get_cart(ws).items.all().delete()
     return Response(DemoOrderSerializer(order).data, status=status.HTTP_201_CREATED)
 
 
 class CustomerApplicationViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
     queryset = DemoApplication.objects.all()
     serializer_class = DemoApplicationCustomerSerializer
+
+
+def _get_cart(ws):
+    cart, _ = DemoCart.objects.get_or_create(workspace=ws)
+    return cart
+
+
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def get_cart(request):
+    ws = _user_workspace(request.user)
+    if ws is None:
+        return Response({"detail": "No workspace."}, status=403)
+    cart = _get_cart(ws)
+    return Response(DemoCartSerializer(cart).data)
+
+
+@api_view(["POST"])
+@permission_classes([permissions.IsAuthenticated])
+def add_to_cart(request):
+    ws = _user_workspace(request.user)
+    if ws is None:
+        return Response({"detail": "No workspace."}, status=403)
+    pid = request.data.get("product_id")
+    qty = int(request.data.get("quantity", 1))
+    if qty < 1:
+        return Response({"detail": "Invalid quantity."}, status=400)
+    try:
+        product = DemoProduct.objects.get(id=pid, workspace=ws)
+    except DemoProduct.DoesNotExist:
+        return Response({"detail": "Product not found."}, status=404)
+    if not product.is_active or not product.is_published:
+        return Response({"detail": "Product unavailable."}, status=400)
+    if product.stock < qty:
+        return Response({"detail": "Insufficient stock."}, status=400)
+    cart = _get_cart(ws)
+    item, created = DemoCartItem.objects.get_or_create(cart=cart, product=product, defaults={"quantity": qty})
+    if not created:
+        item.quantity += qty
+        if item.quantity > product.stock:
+            return Response({"detail": "Insufficient stock."}, status=400)
+        item.save()
+    return Response(DemoCartSerializer(cart).data)
+
+
+@api_view(["PATCH"])
+@permission_classes([permissions.IsAuthenticated])
+def update_cart_item(request, pk):
+    ws = _user_workspace(request.user)
+    if ws is None:
+        return Response({"detail": "No workspace."}, status=403)
+    try:
+        item = DemoCartItem.objects.get(id=pk, cart__workspace=ws)
+    except DemoCartItem.DoesNotExist:
+        return Response({"detail": "Not found."}, status=404)
+    qty = int(request.data.get("quantity", item.quantity))
+    if qty < 1:
+        item.delete()
+        cart = _get_cart(ws)
+        return Response(DemoCartSerializer(cart).data)
+    if qty > item.product.stock:
+        return Response({"detail": "Insufficient stock."}, status=400)
+    item.quantity = qty
+    item.save()
+    cart = _get_cart(ws)
+    return Response(DemoCartSerializer(cart).data)
+
+
+@api_view(["DELETE"])
+@permission_classes([permissions.IsAuthenticated])
+def remove_cart_item(request, pk):
+    ws = _user_workspace(request.user)
+    if ws is None:
+        return Response({"detail": "No workspace."}, status=403)
+    DemoCartItem.objects.filter(id=pk, cart__workspace=ws).delete()
+    cart = _get_cart(ws)
+    return Response(DemoCartSerializer(cart).data)
+
+
+@api_view(["POST"])
+@permission_classes([permissions.IsAuthenticated])
+def clear_cart(request):
+    ws = _user_workspace(request.user)
+    if ws is None:
+        return Response({"detail": "No workspace."}, status=403)
+    cart = _get_cart(ws)
+    cart.items.all().delete()
+    return Response(DemoCartSerializer(cart).data)
+
+

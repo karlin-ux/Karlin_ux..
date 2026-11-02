@@ -1,6 +1,9 @@
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { useTheme } from '../auth/ThemeContext';
+import CommandPalette from '../components/CommandPalette';
+import Assistant from '../components/Assistant';
+import VoiceNav from '../components/VoiceNav';
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -41,6 +44,9 @@ export default function Layout() {
       <main className="max-w-7xl mx-auto px-4 py-6">
         <Outlet />
       </main>
+      <CommandPalette />
+      <Assistant />
+      <VoiceNav />
     </div>
   );
 }

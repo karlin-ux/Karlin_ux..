@@ -264,3 +264,24 @@ class DemoOrderStatusEvent(models.Model):
 
     class Meta:
         ordering = ["created_at"]
+
+
+class DemoCart(models.Model):
+    workspace = models.OneToOneField("accounts.Workspace", on_delete=models.CASCADE, related_name="cart")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Cart({self.workspace_id})"
+
+
+class DemoCartItem(models.Model):
+    cart = models.ForeignKey(DemoCart, on_delete=models.CASCADE, related_name="items")
+    product = models.ForeignKey(DemoProduct, on_delete=models.CASCADE, related_name="cart_items")
+    quantity = models.PositiveIntegerField(default=1)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("cart", "product")
+
+    def __str__(self):
+        return f"{self.product.name} x{self.quantity}"

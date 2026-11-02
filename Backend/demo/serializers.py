@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import (
-    DemoAnalyticsEvent, DemoApplication, DemoAuditLog, DemoBooking, DemoCustomer,
+    DemoAnalyticsEvent, DemoApplication, DemoAuditLog, DemoBooking, DemoCart, DemoCartItem, DemoCustomer,
     DemoManager, DemoMediaAsset, DemoNotification, DemoOrder, DemoOrderItem,
     DemoOrderStatusEvent, DemoPage, DemoProduct, DemoRole, DemoService,
 )
@@ -116,5 +116,30 @@ class DemoAnalyticsEventSerializer(serializers.ModelSerializer):
 class DemoApplicationCustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = DemoApplication
-        fields = ["id", "application_type", "applicant_name", "applicant_email", "subject", "message", "status", "created_at", "updated_at"]
+        fields = ["id", "application_type", "applicant_name", "applicant_email", "subject", "message", "status", "attachments", "created_at", "updated_at"]
         read_only_fields = ["id", "status", "created_at", "updated_at"]
+
+
+class DemoCartItemSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source="product.name", read_only=True)
+    unit_price = serializers.DecimalField(source="product.price", max_digits=10, decimal_places=2, read_only=True)
+    line_total = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DemoCartItem
+        fields = ["id", "product", "product_name", "unit_price", "quantity", "line_total"]
+
+    def get_line_total(self, obj):
+        return str(obj.product.price * obj.quantity)
+
+
+class DemoCartSerializer(serializers.ModelSerializer):
+    items = DemoCartItemSerializer(many=True, read_only=True)
+    total = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DemoCart
+        fields = ["id", "items", "total", "updated_at"]
+
+    def get_total(self, obj):
+        return str(sum((i.product.price * i.quantity for i in obj.items.all()), __import__("decimal").Decimal("0")))

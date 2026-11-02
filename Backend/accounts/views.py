@@ -8,7 +8,7 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from .models import User, Workspace
-from .serializers import RegisterSerializer, UserSerializer, WorkspaceSerializer
+from .serializers import CustomerProfileSerializer, RegisterSerializer, UserSerializer, WorkspaceSerializer
 
 
 class CsrfView(APIView):
@@ -73,6 +73,40 @@ class MeView(APIView):
         data["workspaces"] = WorkspaceSerializer(workspaces, many=True).data
         return Response(data)
 
+
+
+class UpdateProfileView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def patch(self, request):
+        profile = request.user.customer_profile
+        data = request.data
+        if "display_name" in data:
+            profile.display_name = data.get("display_name", "")
+        if "preferences" in data:
+            profile.preferences = data.get("preferences", {}) or {}
+        if "profile_picture" in data:
+            from media.models import MediaAsset
+            pid = data.get("profile_picture")
+            if pid:
+                try:
+                    asset = MediaAsset.objects.get(id=pid, workspace__owner=request.user)
+                    profile.profile_picture = asset
+                except MediaAsset.DoesNotExist:
+                    return Response({"detail": "Media not found."}, status=400)
+            else:
+                profile.profile_picture = None
+        profile.save()
+        return Response(CustomerProfileSerializer(profile).data)
+
+
+class AccountDeletionRequestView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        from platform_admin.models import PlatformNotification
+        PlatformNotification.objects.create(title="Account deletion requested", message=f"User {request.user.email} requested account deletion.", level="warning")
+        return Response({"detail": "Deletion request recorded."})
 
 class ChangePasswordView(APIView):
     permission_classes = [permissions.IsAuthenticated]

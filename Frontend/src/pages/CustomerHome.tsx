@@ -9,9 +9,7 @@ export default function CustomerHome() {
   const [orders, setOrders] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
-  const [cart, setCart] = useState<{product: Product; qty: number}[]>(() => {
-    try { return JSON.parse(localStorage.getItem('cart') || '[]'); } catch { return []; }
-  });
+  const [cart, setCart] = useState<any>(null);
   const [q, setQ] = useState('');
   const [category, setCategory] = useState('');
   const [sort, setSort] = useState('name');
@@ -19,11 +17,13 @@ export default function CustomerHome() {
   const [tab, setTab] = useState('catalogue');
   const [bookingForm, setBookingForm] = useState({ service_name: '', service: '', date: '', time: '10:00', customer_name: '', customer_email: '' });
   const [appForm, setAppForm] = useState({ application_type: 'enquiry', applicant_name: '', applicant_email: '', subject: '', message: '' });
+  const [attachmentIds, setAttachmentIds] = useState<string[]>([]);
   const [checkoutInfo, setCheckoutInfo] = useState({ customer_name: '', delivery_option: 'collection', delivery_details: '' });
   const [status, setStatus] = useState('');
 
   useEffect(() => { localStorage.setItem('cart', JSON.stringify(cart)); }, [cart]);
 
+  async function loadCart() { try { const c = await api.get('/demo/cart/'); setCart(c.data); } catch {} }
   async function load() {
     const p = await api.get('/demo/products/');
     setProducts((p.data.results || p.data).filter((x: any) => x.is_published !== false));
@@ -36,24 +36,28 @@ export default function CustomerHome() {
     const n = await api.get('/demo/notifications/');
     setNotifications((n.data.results || n.data).filter((x: any) => x.recipient_type === 'customer'));
   }
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); loadCart(); const t=setInterval(()=>{load();loadCart();},30000); return ()=>clearInterval(t); }, []);
 
-  function addToCart(p: Product) { setCart(c => {
-    const ex = c.find(x => x.product.id === p.id);
-    if (ex) return c.map(x => x.product.id === p.id ? { ...x, qty: x.qty + 1 } : x);
-    return [...c, { product: p, qty: 1 }];
-  }); }
+  async function addToCart(p: Product) {
+    await api.post('/demo/cart/add/', { product_id: p.id, quantity: 1 });
+    loadCart();
+  }
 
-  function updateQty(id: string, qty: number) {
-    if (qty < 1) { setCart(c => c.filter(x => x.product.id !== id)); return; }
-    setCart(c => c.map(x => x.product.id === id ? { ...x, qty } : x));
+  async function updateQty(id: string, qty: number) {
+    // find cart item id
+    const item = cart?.items?.find((i: any) => i.product === id || i.product?.id === id);
+    if (!item) return;
+    if (qty < 1) { await api.delete(`/demo/cart/item/${item.id}/delete/`); }
+    else { await api.patch(`/demo/cart/item/${item.id}/`, { quantity: qty }); }
+    loadCart();
   }
 
   const filtered = products
     .filter(p => (!q || p.name.toLowerCase().includes(q.toLowerCase())) && (!category || p.category === category))
     .sort((a, b) => sort === 'price' ? Number(a.price) - Number(b.price) : a.name.localeCompare(b.name));
 
-  const cartTotal = cart.reduce((s, c) => s + Number(c.product.price) * c.qty, 0);
+  const cartItems = cart?.items || [];
+  const cartTotal = cartItems.reduce((s: number, c: any) => s + Number(c.unit_price) * c.quantity, 0);
 
   async function submitBooking(e: any) {
     e.preventDefault();
@@ -71,12 +75,23 @@ export default function CustomerHome() {
     } catch (e: any) { setStatus(e?.response?.data?.detail || JSON.stringify(e?.response?.data) || 'Booking failed.'); }
   }
 
+  async function uploadAttachment(e: any) {
+    const files = e.target.files;
+    if (!files) return;
+    for (const f of Array.from(files) as File[]) {
+      const fd = new FormData();
+      fd.append('file', f);
+      try { const r = await api.post('/media/upload/', fd, { headers: { 'Content-Type': 'multipart/form-data' } }); setAttachmentIds(ids => [...ids, r.data.id]); }
+      catch (err: any) { setStatus(err?.response?.data?.detail || 'Upload failed'); }
+    }
+  }
   async function submitApplication(e: any) {
     e.preventDefault();
     try {
-      await api.post('/demo/customer-applications/', appForm);
+      await api.post('/demo/customer-applications/', { ...appForm, attachments: attachmentIds });
       setStatus('Application submitted.');
       setAppForm({ application_type: 'enquiry', applicant_name: '', applicant_email: '', subject: '', message: '' });
+      setAttachmentIds([]);
       load();
     } catch (e: any) { setStatus(e?.response?.data?.detail || JSON.stringify(e?.response?.data) || 'Application failed.'); }
   }
@@ -86,7 +101,7 @@ export default function CustomerHome() {
     if (cart.length === 0) { setStatus('Cart is empty.'); return; }
     try {
       const r = await api.post('/demo/checkout/', {
-        items: cart.map(c => ({ product_id: c.product.id, quantity: c.qty })),
+        use_cart: true,
         customer_name: checkoutInfo.customer_name,
         delivery_option: checkoutInfo.delivery_option,
         delivery_details: checkoutInfo.delivery_details,
@@ -164,18 +179,18 @@ export default function CustomerHome() {
       {tab === 'cart' && (
         <div className="card p-4">
           <h2 className="text-xl font-semibold mb-3">Cart</h2>
-          {cart.length === 0 && <p className="text-[var(--muted)]">Empty.</p>}
+          {cartItems.length === 0 && <p className="text-[var(--muted)]">Empty.</p>}
           <ul className="space-y-2">
-            {cart.map(c => (
-              <li key={c.product.id} className="flex items-center gap-3">
-                <span className="flex-1">{c.product.name}</span>
-                <input type="number" min={1} className="input w-16" value={c.qty} onChange={e=>updateQty(c.product.id, Number(e.target.value))} />
-                <span>${(Number(c.product.price)*c.qty).toFixed(2)}</span>
-                <button className="text-red-400 text-xs" onClick={()=>updateQty(c.product.id, 0)}>Remove</button>
+            {cartItems.map((c: any) => (
+              <li key={c.id} className="flex items-center gap-3">
+                <span className="flex-1">{c.product_name}</span>
+                <input type="number" min={1} className="input w-16" value={c.quantity} onChange={e=>updateQty(c.product, Number(e.target.value))} />
+                <span>${(Number(c.unit_price)*c.quantity).toFixed(2)}</span>
+                <button className="text-red-400 text-xs" onClick={()=>updateQty(c.product, 0)}>Remove</button>
               </li>
             ))}
           </ul>
-          {cart.length > 0 && <p className="mt-3 font-bold">Subtotal: ${cartTotal.toFixed(2)}</p>}
+          {cartItems.length > 0 && <p className="mt-3 font-bold">Subtotal: ${cartTotal.toFixed(2)}</p>}
         </div>
       )}
 
@@ -229,6 +244,17 @@ export default function CustomerHome() {
             </form>
           </div>
           <div className="card p-4">
+            <h2 className="text-xl font-semibold mb-3">Calendar</h2>
+            <div className="grid grid-cols-7 gap-1 text-xs">
+              {Array.from({length: 30}, (_,i) => {
+                const d = new Date(); d.setDate(d.getDate() + i);
+                const iso = d.toISOString().slice(0,10);
+                const has = bookings.some(b => b.date === iso);
+                return <div key={iso} className={`p-2 rounded ${has?'bg-[var(--accent)] text-white':'bg-[var(--surface-2)]'}`}>{d.getDate()}</div>;
+              })}
+            </div>
+          </div>
+          <div className="card p-4">
             <h2 className="text-xl font-semibold mb-3">My bookings</h2>
             <ul className="space-y-2 text-sm">
               {bookings.map(b => (
@@ -257,6 +283,8 @@ export default function CustomerHome() {
               <input className="input" type="email" placeholder="Email" value={appForm.applicant_email} onChange={e=>setAppForm({...appForm, applicant_email: e.target.value})} required />
               <input className="input" placeholder="Subject" value={appForm.subject} onChange={e=>setAppForm({...appForm, subject: e.target.value})} />
               <textarea className="input" placeholder="Message" rows={4} value={appForm.message} onChange={e=>setAppForm({...appForm, message: e.target.value})} required />
+              <input type="file" multiple onChange={uploadAttachment} />
+              {attachmentIds.length > 0 && <p className="text-xs">{attachmentIds.length} attachment(s)</p>}
               <button className="btn" type="submit">Submit</button>
             </form>
           </div>
@@ -285,9 +313,18 @@ export default function CustomerHome() {
       )}
 
       {tab === 'account' && (
-        <div className="card p-4">
+        <div className="card p-4 space-y-3">
           <h2 className="text-xl font-semibold mb-3">Account</h2>
-          <p className="text-sm text-[var(--muted)]">Profile and preferences can be managed via API. Use sign out to end session.</p>
+          <form onSubmit={async (e)=>{e.preventDefault(); try { await api.patch('/auth/profile/', { display_name: (e.target as any).display_name.value }); setStatus('Profile updated.'); } catch { setStatus('Update failed.'); } }} className="space-y-2">
+            <input name="display_name" className="input" placeholder="Display name" />
+            <button className="btn text-xs" type="submit">Update profile</button>
+          </form>
+          <form onSubmit={async (e)=>{e.preventDefault(); const f=e.target as any; try { await api.post('/auth/change-password/', { old_password: f.old.value, new_password: f.new.value }); setStatus('Password changed.'); } catch { setStatus('Password change failed.'); } }} className="space-y-2">
+            <input name="old" type="password" className="input" placeholder="Old password" />
+            <input name="new" type="password" className="input" placeholder="New password" />
+            <button className="btn text-xs" type="submit">Change password</button>
+          </form>
+          <button className="btn text-xs" style={{background:'#dc2626'}} onClick={async ()=>{ await api.post('/auth/request-deletion/'); setStatus('Deletion requested.'); }}>Request account deletion</button>
         </div>
       )}
     </div>

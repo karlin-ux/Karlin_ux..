@@ -12,6 +12,9 @@ import Register from './pages/Register';
 import CustomerHome from './pages/CustomerHome';
 import AdminDashboard from './pages/AdminDashboard';
 import MediaLibrary from './pages/MediaLibrary';
+import ProductViewer3D from './pages/ProductViewer3D';
+import WebsiteBuilder from './pages/WebsiteBuilder';
+import Reports from './pages/Reports';
 import SuperAdmin from './pages/SuperAdmin';
 
 export default function App() {
@@ -30,6 +33,9 @@ export default function App() {
           <Route path="/customer/*" element={<CustomerHome />} />
           <Route path="/admin/*" element={<AdminDashboard />} />
           <Route path="/media" element={<RequireAuth><MediaLibrary /></RequireAuth>} />
+          <Route path="/3d" element={<ProductViewer3D />} />
+          <Route path="/builder" element={<RequireAuth><WebsiteBuilder /></RequireAuth>} />
+          <Route path="/reports" element={<RequireAuth><Reports /></RequireAuth>} />
           <Route path="/superadmin/*" element={<SuperAdmin />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Route>

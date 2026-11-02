@@ -24,4 +24,9 @@ urlpatterns = [
     path("dashboard/", views.demo_dashboard),
     path("analytics-summary/", views.demo_analytics_summary),
     path("checkout/", views.checkout),
+    path("cart/", views.get_cart),
+    path("cart/add/", views.add_to_cart),
+    path("cart/clear/", views.clear_cart),
+    path("cart/item/<uuid:pk>/", views.update_cart_item),
+    path("cart/item/<uuid:pk>/delete/", views.remove_cart_item),
 ]
