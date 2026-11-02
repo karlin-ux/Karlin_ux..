@@ -47,6 +47,7 @@ class DemoProduct(WorkspaceOwned):
     variations = models.JSONField(default=list, blank=True)
     primary_image = models.ForeignKey("media.MediaAsset", on_delete=models.SET_NULL, null=True, blank=True, related_name="product_primary")
     gallery = models.ManyToManyField("media.MediaAsset", blank=True, related_name="product_gallery")
+    model_3d = models.ForeignKey("media.MediaAsset", on_delete=models.SET_NULL, null=True, blank=True, related_name="product_models")
 
     class Meta:
         ordering = ["-created_at"]

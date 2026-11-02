@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 export default function ProductViewer3D() {
   const mount = useRef<HTMLDivElement>(null);
+  const [search] = useSearchParams();
   const [modelUrl, setModelUrl] = useState<string | null>(null);
   const [error, setError] = useState('');
+  useEffect(() => { const m = search.get('model'); if (m) setModelUrl(`/api/media/${m}/file/`); }, [search]);
 
   useEffect(() => {
     let renderer: any;

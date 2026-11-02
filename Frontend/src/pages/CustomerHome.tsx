@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 
-interface Product { id: string; name: string; description: string; price: string; stock: number; category: string; is_published: boolean; is_featured: boolean; primary_image?: any; }
+interface Product { id: string; name: string; description: string; price: string; stock: number; category: string; is_published: boolean; is_featured: boolean; primary_image?: any; model_3d?: any; }
 
 export default function CustomerHome() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -155,6 +155,7 @@ export default function CustomerHome() {
                   <p className="text-sm text-[var(--muted)]">{p.description}</p>
                   <p className="mt-1 font-bold">${p.price} {p.stock <= 0 && <span className="text-red-400 text-xs">(Out of stock)</span>}</p>
                   <button className="btn text-xs mt-2" disabled={p.stock <= 0} onClick={()=>addToCart(p)}>Add to cart</button>
+                  {p.model_3d && <a className="btn text-xs mt-2 ml-2" href={`/3d?model=${p.model_3d}`}>View 3D</a>}
                 </div>
               ))}
             </div>

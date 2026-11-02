@@ -11,6 +11,7 @@ export default function WebsiteBuilder() {
   const [slug, setSlug] = useState('new-page');
   const [sections, setSections] = useState<Section[]>([]);
   const [published, setPublished] = useState(false);
+  const [revisions, setRevisions] = useState<any[]>([]);
   const [preview, setPreview] = useState(false);
   const [device, setDevice] = useState<'desktop'|'tablet'|'mobile'>('desktop');
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -43,6 +44,7 @@ export default function WebsiteBuilder() {
     setPublished(!draft);
     const r = await api.get('/demo/pages/');
     setPages(r.data.results || r.data);
+    if (pageId) { const rv = await api.get(`/demo/page-revisions/?page=${pageId}`); setRevisions(rv.data.results || rv.data); }
   }
 
   return (
@@ -86,6 +88,17 @@ export default function WebsiteBuilder() {
           ))}
         </div>
       )}
+      <div className="card p-3">
+        <h3 className="font-semibold mb-2">Revisions</h3>
+        <ul className="text-xs space-y-1">
+          {revisions.map(r => (
+            <li key={r.id} className="flex justify-between">
+              <span>{new Date(r.created_at).toLocaleString()} — {r.title}</span>
+              <button className="text-xs" onClick={async()=>{ await api.post(`/demo/page-revisions/${r.id}/restore/`); const p = await api.get(`/demo/pages/${pageId}/`); setTitle(p.data.title); setSlug(p.data.slug); setSections(JSON.parse(p.data.content||'[]')); setPublished(p.data.is_published); const rv = await api.get(`/demo/page-revisions/?page=${pageId}`); setRevisions(rv.data.results||rv.data); }}>Restore</button>
+            </li>
+          ))}
+        </ul>
+      </div>
       <p className="text-xs text-[var(--muted)]">Published: {String(published)}. Content is sanitized (text only) and workspace-scoped.</p>
     </div>
   );

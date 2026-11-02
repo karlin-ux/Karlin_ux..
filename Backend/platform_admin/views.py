@@ -79,6 +79,8 @@ class PlatformAnalyticsSummaryView(generics.GenericAPIView):
         now = timezone.now()
         recent_regs = User.objects.filter(date_joined__gte=now - timedelta(days=30)).count() if False else User.objects.filter(created_at__gte=now - timedelta(days=30)).count()
         active_est = User.objects.filter(last_login__gte=now - timedelta(days=30)).count()
+        from django.contrib.sessions.models import Session
+        active_sessions = Session.objects.filter(expire_date__gte=now).count()
         return Response({
             "total_events": events.count(),
             "by_type": by_type,
@@ -86,6 +88,7 @@ class PlatformAnalyticsSummaryView(generics.GenericAPIView):
             "registered_accounts": User.objects.count(),
             "recent_registrations_30d": recent_regs,
             "active_users_estimate_30d": active_est,
+            "active_sessions_estimate": active_sessions,
             "active_users_note": "Estimate based on users with last_login within 30 days. Not anonymous visitor tracking.",
             "measured": True,
         })

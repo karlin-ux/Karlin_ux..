@@ -43,6 +43,7 @@ def _safe_extension(filename: str) -> str:
         ".jpg", ".jpeg", ".png", ".gif", ".webp",
         ".pdf", ".txt", ".csv", ".md",
         ".mp4", ".webm", ".mov",
+        ".glb", ".gltf",
     }
     if ext not in allowed:
         ext = ""

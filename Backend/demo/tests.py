@@ -141,3 +141,32 @@ class PageRevisionTests(TestCase):
         revs = r2.json().get("results", [])
         for rev in revs:
             self.assertNotEqual(rev.get("page"), pid)
+
+
+class BookingConcurrencyTests(TestCase):
+    def setUp(self):
+        self.c = Client(enforce_csrf_checks=False)
+        self.c.post("/api/auth/register/", {"email": "bc@b.com", "password": "TestPass123!", "password_confirm": "TestPass123!"}, content_type="application/json")
+        r = self.c.post("/api/demo/services/", {"name": "Svc2", "duration_minutes": 30, "operating_start": "09:00", "operating_end": "12:00", "slot_interval_minutes": 30, "is_active": True}, content_type="application/json")
+        self.service_id = r.json()["id"]
+
+    def test_cancelled_slot_released(self):
+        import datetime
+        d = (datetime.date.today() + datetime.timedelta(days=1)).isoformat()
+        r1 = self.c.post("/api/demo/bookings/", {"service": self.service_id, "service_name": "Svc2", "date": d, "time": "09:00:00"}, content_type="application/json")
+        bid = r1.json()["id"]
+        self.c.patch(f"/api/demo/bookings/{bid}/", {"status": "cancelled"}, content_type="application/json")
+        r2 = self.c.post("/api/demo/bookings/", {"service": self.service_id, "service_name": "Svc2", "date": d, "time": "09:00:00"}, content_type="application/json")
+        self.assertEqual(r2.status_code, 201)
+
+    def test_reschedule_conflict_rejected(self):
+        import datetime
+        d = (datetime.date.today() + datetime.timedelta(days=1)).isoformat()
+        d2 = (datetime.date.today() + datetime.timedelta(days=2)).isoformat()
+        r1 = self.c.post("/api/demo/bookings/", {"service": self.service_id, "service_name": "Svc2", "date": d, "time": "09:00:00"}, content_type="application/json")
+        b1 = r1.json()["id"]
+        r2 = self.c.post("/api/demo/bookings/", {"service": self.service_id, "service_name": "Svc2", "date": d2, "time": "10:00:00"}, content_type="application/json")
+        b2 = r2.json()["id"]
+        # reschedule b2 to conflict with b1
+        r = self.c.patch(f"/api/demo/bookings/{b2}/", {"date": d, "time": "09:00:00", "status": "rescheduled"}, content_type="application/json")
+        self.assertEqual(r.status_code, 400)

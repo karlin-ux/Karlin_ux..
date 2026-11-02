@@ -7,6 +7,7 @@ ALLOWED_EXTENSIONS = {
     ".jpg", ".jpeg", ".png", ".gif", ".webp",
     ".pdf", ".txt", ".csv", ".md",
     ".mp4", ".webm", ".mov",
+    ".glb", ".gltf",
 }
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
@@ -57,4 +58,6 @@ def category_for_extension(ext: str) -> str:
         return "video"
     if ext in {".pdf", ".txt", ".csv", ".md"}:
         return "document"
+    if ext in {".glb", ".gltf"}:
+        return "model"
     return "other"

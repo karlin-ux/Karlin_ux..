@@ -12,7 +12,7 @@ function AdminInner() {
   const [managers, setManagers] = useState<any[]>([]);
   const [mediaAssets, setMediaAssets] = useState<any[]>([]);
   const [tab, setTab] = useState('dashboard');
-  const [productForm, setProductForm] = useState({ name: '', description: '', price: '', stock: '', category: '', is_published: true, is_featured: false, primary_image: '', gallery: [] as string[] });
+  const [productForm, setProductForm] = useState({ name: '', description: '', price: '', stock: '', category: '', is_published: true, is_featured: false, primary_image: '', gallery: [] as string[], model_3d: '' });
   const [editingProduct, setEditingProduct] = useState<any>(null);
 
   async function load() {
@@ -44,7 +44,7 @@ function AdminInner() {
     const payload = { ...productForm, price: Number(productForm.price), stock: Number(productForm.stock), primary_image: productForm.primary_image || null, gallery: productForm.gallery };
     if (editingProduct) await api.patch(`/demo/products/${editingProduct.id}/`, payload);
     else await api.post('/demo/products/', payload);
-    setProductForm({ name: '', description: '', price: '', stock: '', category: '', is_published: true, is_featured: false, primary_image: '', gallery: [] });
+    setProductForm({ name: '', description: '', price: '', stock: '', category: '', is_published: true, is_featured: false, primary_image: '', gallery: [], model_3d: '' });
     setEditingProduct(null);
     load();
   }
@@ -108,6 +108,12 @@ function AdminInner() {
                 {mediaAssets.filter(m=>m.category==='image').map(m => <option key={m.id} value={m.id}>{m.original_filename}</option>)}
               </select>
             </label>
+            <label className="text-xs">3D model
+              <select className="input" value={productForm.model_3d} onChange={e=>setProductForm({...productForm, model_3d: e.target.value})}>
+                <option value="">None</option>
+                {mediaAssets.filter(m=>m.category==='model').map(m => <option key={m.id} value={m.id}>{m.original_filename}</option>)}
+              </select>
+            </label>
             <label className="flex items-center gap-2"><input type="checkbox" checked={productForm.is_published} onChange={e=>setProductForm({...productForm, is_published: e.target.checked})} /> Published</label>
             <label className="flex items-center gap-2"><input type="checkbox" checked={productForm.is_featured} onChange={e=>setProductForm({...productForm, is_featured: e.target.checked})} /> Featured</label>
             <button className="btn" type="submit">{editingProduct ? 'Update' : 'Create'} product</button>
@@ -120,7 +126,7 @@ function AdminInner() {
                   <tr key={p.id} className="border-t border-[var(--border)]">
                     <td>{p.name}</td><td>${p.price}</td><td>{p.stock}</td><td>{p.is_published?'Yes':'No'}</td>
                     <td className="space-x-2">
-                      <button className="text-xs" onClick={()=>{setEditingProduct(p); setProductForm({name:p.name, description:p.description||'', price:p.price, stock:p.stock, category:p.category||'', is_published:p.is_published, is_featured:p.is_featured, primary_image: p.primary_image || '', gallery: p.gallery || []});}}>Edit</button>
+                      <button className="text-xs" onClick={()=>{setEditingProduct(p); setProductForm({name:p.name, description:p.description||'', price:p.price, stock:p.stock, category:p.category||'', is_published:p.is_published, is_featured:p.is_featured, primary_image: p.primary_image || '', gallery: p.gallery || [], model_3d: p.model_3d || ''});}}>Edit</button>
                       <button className="text-xs text-red-400" onClick={()=>deleteProduct(p.id)}>Delete</button>
                     </td>
                   </tr>

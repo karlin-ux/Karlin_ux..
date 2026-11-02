@@ -52,8 +52,14 @@ class MediaPermissionTests(TestCase):
         r3 = self.c2.get(f"/api/media/{asset_id}/file/")
         self.assertIn(r3.status_code, (404, 403))
 
-    def test_model_file_rejected(self):
-        f = SimpleUploadedFile("model.glb", b"glTF", content_type="model/gltf-binary")
+    def test_model_file_accepted(self):
+        f = SimpleUploadedFile("model.glb", b"glTF binary data", content_type="model/gltf-binary")
+        r = self.c1.post("/api/media/upload/", {"file": f})
+        self.assertEqual(r.status_code, 201)
+        self.assertEqual(r.json()["category"], "model")
+
+    def test_invalid_model_rejected(self):
+        f = SimpleUploadedFile("model.glb", b"not a gltf", content_type="model/gltf-binary")
         r = self.c1.post("/api/media/upload/", {"file": f})
         self.assertEqual(r.status_code, 400)
 

@@ -446,4 +446,25 @@ class DemoPageRevisionViewSet(WorkspaceScopedMixin, viewsets.ReadOnlyModelViewSe
         ws = self.get_workspace()
         if ws is None:
             return DemoPageRevision.objects.none()
-        return DemoPageRevision.objects.filter(page__workspace=ws)
+        qs = DemoPageRevision.objects.filter(page__workspace=ws)
+        page = self.request.query_params.get("page")
+        if page:
+            qs = qs.filter(page_id=page)
+        return qs
+
+    @action(detail=True, methods=["post"], url_path="restore")
+    def restore(self, request, pk=None):
+        rev = self.get_object()
+        page = rev.page
+        if page.workspace != self.get_workspace():
+            return Response({"detail": "Forbidden."}, status=403)
+        # create new revision from current before restore
+        DemoPageRevision.objects.create(page=page, title=page.title, content=page.content, is_published=page.is_published, created_by=request.user)
+        # restore
+        page.title = rev.title
+        page.content = rev.content
+        page.is_published = rev.is_published
+        page.save()
+        # new revision for restored state
+        DemoPageRevision.objects.create(page=page, title=page.title, content=page.content, is_published=page.is_published, created_by=request.user)
+        return Response(DemoPageSerializer(page).data)

@@ -10,11 +10,13 @@ class MediaAsset(models.Model):
     CATEGORY_IMAGE = "image"
     CATEGORY_DOCUMENT = "document"
     CATEGORY_VIDEO = "video"
+    CATEGORY_MODEL = "model"
     CATEGORY_OTHER = "other"
     CATEGORY_CHOICES = [
         (CATEGORY_IMAGE, "Image"),
         (CATEGORY_DOCUMENT, "Document"),
         (CATEGORY_VIDEO, "Video"),
+        (CATEGORY_MODEL, "Model"),
         (CATEGORY_OTHER, "Other"),
     ]
 

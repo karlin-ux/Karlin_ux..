@@ -80,10 +80,26 @@ class MediaAssetViewSet(viewsets.ModelViewSet):
             ext = validate_extension(original_name)
         except Exception as e:
             return Response({"detail": str(e)}, status=400)
+        category = category_for_extension(ext)
         try:
             validate_file_size(upload.size)
         except Exception as e:
             return Response({"detail": str(e)}, status=400)
+
+        # model content validation
+        if category == "model":
+            head = upload.read(8)
+            upload.seek(0)
+            if ext == ".glb" and not head.startswith(b"glTF"):
+                return Response({"detail": "Invalid GLB file."}, status=400)
+            if ext == ".gltf":
+                try:
+                    import json as _json
+                    data = upload.read(4096)
+                    upload.seek(0)
+                    _json.loads(data.split(b"\x00")[0] or b"{}")
+                except Exception:
+                    return Response({"detail": "Invalid GLTF file."}, status=400)
 
         category = category_for_extension(ext)
 
