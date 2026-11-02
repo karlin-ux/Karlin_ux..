@@ -13,6 +13,7 @@ router.register(r"applications", views.DemoApplicationViewSet, basename="demo-ap
 router.register(r"customer-applications", views.CustomerApplicationViewSet, basename="customer-applications")
 router.register(r"notifications", views.DemoNotificationViewSet, basename="demo-notifications")
 router.register(r"pages", views.DemoPageViewSet, basename="demo-pages")
+router.register(r"page-revisions", views.DemoPageRevisionViewSet, basename="demo-page-revisions")
 router.register(r"media", views.DemoMediaAssetViewSet, basename="demo-media")
 router.register(r"roles", views.DemoRoleViewSet, basename="demo-roles")
 router.register(r"managers", views.DemoManagerViewSet, basename="demo-managers")

@@ -12,6 +12,7 @@ export default function WebsiteBuilder() {
   const [sections, setSections] = useState<Section[]>([]);
   const [published, setPublished] = useState(false);
   const [preview, setPreview] = useState(false);
+  const [device, setDevice] = useState<'desktop'|'tablet'|'mobile'>('desktop');
   const [dragIndex, setDragIndex] = useState<number | null>(null);
 
   useEffect(() => { api.get('/demo/pages/').then(r => setPages(r.data.results || r.data)); }, []);
@@ -54,13 +55,14 @@ export default function WebsiteBuilder() {
         <button className="btn text-xs" onClick={()=>addSection('text')}>+ Text</button>
         <button className="btn text-xs" onClick={()=>addSection('image')}>+ Image</button>
         <button className="btn text-xs" onClick={()=>addSection('button')}>+ Button</button>
+        <select className="input max-w-xs" value={device} onChange={e=>setDevice(e.target.value as any)}><option value="desktop">Desktop</option><option value="tablet">Tablet</option><option value="mobile">Mobile</option></select>
         <button className="btn text-xs" onClick={()=>setPreview(p=>!p)}>{preview?'Edit':'Preview'}</button>
         <button className="btn text-xs" onClick={()=>save(true)}>Save draft</button>
         <button className="btn text-xs" onClick={()=>save(false)}>Publish</button>
       </div>
 
       {preview ? (
-        <div className="card p-4">
+        <div className="card p-4 mx-auto" style={{width: device==='mobile'?'375px':device==='tablet'?'768px':'100%'}}>
           {sections.map(s => (
             <div key={s.id} className="mb-3">
               {s.type === 'heading' && <h2 className="text-2xl font-bold">{s.content}</h2>}

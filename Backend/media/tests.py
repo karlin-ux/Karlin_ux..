@@ -52,6 +52,11 @@ class MediaPermissionTests(TestCase):
         r3 = self.c2.get(f"/api/media/{asset_id}/file/")
         self.assertIn(r3.status_code, (404, 403))
 
+    def test_model_file_rejected(self):
+        f = SimpleUploadedFile("model.glb", b"glTF", content_type="model/gltf-binary")
+        r = self.c1.post("/api/media/upload/", {"file": f})
+        self.assertEqual(r.status_code, 400)
+
     def test_unsupported_extension_rejected(self):
         f = SimpleUploadedFile("evil.exe", b"MZ...", content_type="application/octet-stream")
         r = self.c1.post("/api/media/upload/", {"file": f})

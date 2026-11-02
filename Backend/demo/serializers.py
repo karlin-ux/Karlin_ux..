@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import (
     DemoAnalyticsEvent, DemoApplication, DemoAuditLog, DemoBooking, DemoCart, DemoCartItem, DemoCustomer,
     DemoManager, DemoMediaAsset, DemoNotification, DemoOrder, DemoOrderItem,
-    DemoOrderStatusEvent, DemoPage, DemoProduct, DemoRole, DemoService,
+    DemoOrderStatusEvent, DemoPage, DemoPageRevision, DemoProduct, DemoRole, DemoService,
 )
 
 
@@ -143,3 +143,10 @@ class DemoCartSerializer(serializers.ModelSerializer):
 
     def get_total(self, obj):
         return str(sum((i.product.price * i.quantity for i in obj.items.all()), __import__("decimal").Decimal("0")))
+
+
+class DemoPageRevisionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DemoPageRevision
+        fields = "__all__"
+        read_only_fields = ["id", "created_at"]

@@ -61,6 +61,10 @@ class DemoService(models.Model):
     name = models.CharField(max_length=160)
     description = models.TextField(blank=True)
     duration_minutes = models.PositiveIntegerField(default=30)
+    operating_start = models.TimeField(default="09:00")
+    operating_end = models.TimeField(default="17:00")
+    slot_interval_minutes = models.PositiveIntegerField(default=30)
+    unavailable_dates = models.JSONField(default=list, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     is_active = models.BooleanField(default=True)
     image = models.ForeignKey("media.MediaAsset", on_delete=models.SET_NULL, null=True, blank=True, related_name="service_images")
@@ -285,3 +289,18 @@ class DemoCartItem(models.Model):
 
     def __str__(self):
         return f"{self.product.name} x{self.quantity}"
+
+
+class DemoPageRevision(models.Model):
+    page = models.ForeignKey(DemoPage, on_delete=models.CASCADE, related_name="revisions")
+    title = models.CharField(max_length=200)
+    content = models.TextField(blank=True)
+    is_published = models.BooleanField(default=False)
+    created_by = models.ForeignKey("accounts.User", on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Revision {self.id} of {self.page_id}"

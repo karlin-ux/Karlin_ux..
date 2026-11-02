@@ -71,14 +71,22 @@ class PlatformAnalyticsSummaryView(generics.GenericAPIView):
     permission_classes = [IsSuperAdmin]
 
     def get(self, request):
+        from django.utils import timezone
+        from datetime import timedelta
         events = PlatformAnalyticsEvent.objects.all()
-        today_count = events.count()
         by_type = list(events.values("event_type").annotate(count=Count("id")))
         top_pages = list(events.values("path").annotate(count=Count("id")).order_by("-count")[:10])
+        now = timezone.now()
+        recent_regs = User.objects.filter(date_joined__gte=now - timedelta(days=30)).count() if False else User.objects.filter(created_at__gte=now - timedelta(days=30)).count()
+        active_est = User.objects.filter(last_login__gte=now - timedelta(days=30)).count()
         return Response({
             "total_events": events.count(),
             "by_type": by_type,
             "top_pages": top_pages,
+            "registered_accounts": User.objects.count(),
+            "recent_registrations_30d": recent_regs,
+            "active_users_estimate_30d": active_est,
+            "active_users_note": "Estimate based on users with last_login within 30 days. Not anonymous visitor tracking.",
             "measured": True,
         })
 

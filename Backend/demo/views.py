@@ -9,14 +9,14 @@ from decimal import Decimal
 from accounts.models import Workspace
 from .models import (
     DemoAnalyticsEvent, DemoApplication, DemoAuditLog, DemoBooking, DemoCustomer,
-    DemoManager, DemoMediaAsset, DemoNotification, DemoOrder, DemoOrderItem, DemoOrderStatusEvent, DemoPage, DemoProduct,
+    DemoManager, DemoMediaAsset, DemoNotification, DemoOrder, DemoOrderItem, DemoOrderStatusEvent, DemoPage, DemoPageRevision, DemoProduct,
     DemoRole, DemoService, DemoCart, DemoCartItem,
 )
 from .serializers import (
     DemoAnalyticsEventSerializer, DemoApplicationCustomerSerializer, DemoApplicationSerializer, DemoAuditLogSerializer,
     DemoBookingSerializer, DemoCustomerSerializer, DemoManagerSerializer,
     DemoMediaAssetSerializer, DemoNotificationSerializer, DemoOrderSerializer,
-    DemoPageSerializer, DemoProductSerializer, DemoRoleSerializer, DemoServiceSerializer, DemoCartSerializer, DemoCartItemSerializer,
+    DemoPageSerializer, DemoPageRevisionSerializer, DemoProductSerializer, DemoRoleSerializer, DemoServiceSerializer, DemoCartSerializer, DemoCartItemSerializer,
 )
 
 
@@ -117,20 +117,73 @@ class DemoBookingViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
     queryset = DemoBooking.objects.all()
     serializer_class = DemoBookingSerializer
 
+    def _validate_booking(self, ws, service, date, time, exclude_id=None):
+        import datetime as dt
+        if date < timezone.now().date():
+            raise serializers.ValidationError({"date": "Cannot book in the past."})
+        # service availability
+        dur = 30
+        operating_start = None
+        operating_end = None
+        interval = 30
+        unavailable = []
+        if service is not None:
+            dur = service.duration_minutes or 30
+            operating_start = service.operating_start
+            operating_end = service.operating_end
+            interval = service.slot_interval_minutes or 30
+            unavailable = service.unavailable_dates or []
+        if str(date) in [str(x) for x in unavailable]:
+            raise serializers.ValidationError({"date": "Date unavailable."})
+        # operating hours
+        if operating_start and operating_end:
+            if time < operating_start or time >= operating_end:
+                raise serializers.ValidationError({"time": "Outside operating hours."})
+        # slot alignment
+        base = dt.datetime.combine(date, operating_start or dt.time(0,0))
+        if operating_start:
+            delta = (dt.datetime.combine(date, time) - base).total_seconds() / 60.0
+            if int(delta) % interval != 0:
+                raise serializers.ValidationError({"time": "Invalid slot interval."})
+        # end time
+        end_dt = dt.datetime.combine(date, time) + dt.timedelta(minutes=dur)
+        if operating_end and end_dt.time() > operating_end:
+            raise serializers.ValidationError({"time": "Booking exceeds operating hours."})
+        # overlap check
+        qs = DemoBooking.objects.filter(workspace=ws, date=date).exclude(status="cancelled")
+        if exclude_id:
+            qs = qs.exclude(id=exclude_id)
+        for b in qs:
+            b_dur = 30
+            if b.service is not None:
+                b_dur = b.service.duration_minutes or 30
+            b_start = dt.datetime.combine(b.date, b.time)
+            b_end = b_start + dt.timedelta(minutes=b_dur)
+            req_start = dt.datetime.combine(date, time)
+            req_end = req_start + dt.timedelta(minutes=dur)
+            if req_start < b_end and b_start < req_end:
+                raise serializers.ValidationError({"time": "Time slot overlaps an existing booking."})
+
     def perform_create(self, serializer):
-        import datetime
         ws = self.get_workspace()
         data = serializer.validated_data
         date = data.get("date")
         time = data.get("time")
-        if date < timezone.now().date():
-            raise serializers.ValidationError({"date": "Cannot book in the past."})
-        # conflict check
-        qs = DemoBooking.objects.filter(workspace=ws, date=date, time=time).exclude(status="cancelled")
-        if qs.exists():
-            raise serializers.ValidationError({"time": "Time slot already booked."})
+        service = data.get("service")
+        self._validate_booking(ws, service, date, time)
         booking = serializer.save(workspace=ws)
         DemoNotification.objects.create(workspace=ws, recipient_type="admin", title="New booking", message=f"{booking.service_name} on {booking.date}")
+
+    def perform_update(self, serializer):
+        ws = self.get_workspace()
+        instance = serializer.instance
+        data = {**instance.__dict__, **serializer.validated_data}
+        date = serializer.validated_data.get("date", instance.date)
+        time = serializer.validated_data.get("time", instance.time)
+        service = serializer.validated_data.get("service", instance.service)
+        self._validate_booking(ws, service, date, time, exclude_id=instance.id)
+        booking = serializer.save()
+        DemoNotification.objects.create(workspace=ws, recipient_type="admin", title="Booking updated", message=f"Booking {booking.id} updated")
 
 
 
@@ -154,6 +207,14 @@ class DemoNotificationViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
 class DemoPageViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
     queryset = DemoPage.objects.all()
     serializer_class = DemoPageSerializer
+
+    def perform_create(self, serializer):
+        page = serializer.save(workspace=self.get_workspace())
+        DemoPageRevision.objects.create(page=page, title=page.title, content=page.content, is_published=page.is_published, created_by=self.request.user)
+
+    def perform_update(self, serializer):
+        page = serializer.save()
+        DemoPageRevision.objects.create(page=page, title=page.title, content=page.content, is_published=page.is_published, created_by=self.request.user)
 
 
 class DemoMediaAssetViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
@@ -375,3 +436,14 @@ def clear_cart(request):
     return Response(DemoCartSerializer(cart).data)
 
 
+
+
+class DemoPageRevisionViewSet(WorkspaceScopedMixin, viewsets.ReadOnlyModelViewSet):
+    queryset = DemoPageRevision.objects.all()
+    serializer_class = DemoPageRevisionSerializer
+
+    def get_queryset(self):
+        ws = self.get_workspace()
+        if ws is None:
+            return DemoPageRevision.objects.none()
+        return DemoPageRevision.objects.filter(page__workspace=ws)

@@ -78,3 +78,66 @@ class PageDraftPrivacyTests(TestCase):
         r = self.c.post("/api/demo/pages/", {"title": "Draft", "slug": "draft", "content": "secret", "is_published": False}, content_type="application/json")
         self.assertEqual(r.status_code, 201)
         self.assertFalse(r.json()["is_published"])
+
+
+class BookingAvailabilityTests(TestCase):
+    def setUp(self):
+        self.c = Client(enforce_csrf_checks=False)
+        self.c.post("/api/auth/register/", {"email": "ba@b.com", "password": "TestPass123!", "password_confirm": "TestPass123!"}, content_type="application/json")
+        # create service with operating hours
+        r = self.c.post("/api/demo/services/", {"name": "Svc", "duration_minutes": 30, "operating_start": "09:00", "operating_end": "12:00", "slot_interval_minutes": 30, "is_active": True}, content_type="application/json")
+        self.service_id = r.json()["id"]
+
+    def test_outside_hours_rejected(self):
+        import datetime
+        d = (datetime.date.today() + datetime.timedelta(days=1)).isoformat()
+        r = self.c.post("/api/demo/bookings/", {"service": self.service_id, "service_name": "Svc", "date": d, "time": "13:00:00"}, content_type="application/json")
+        self.assertEqual(r.status_code, 400)
+
+    def test_invalid_slot_rejected(self):
+        import datetime
+        d = (datetime.date.today() + datetime.timedelta(days=1)).isoformat()
+        r = self.c.post("/api/demo/bookings/", {"service": self.service_id, "service_name": "Svc", "date": d, "time": "09:15:00"}, content_type="application/json")
+        self.assertEqual(r.status_code, 400)
+
+    def test_overlap_rejected(self):
+        import datetime
+        d = (datetime.date.today() + datetime.timedelta(days=1)).isoformat()
+        r1 = self.c.post("/api/demo/bookings/", {"service": self.service_id, "service_name": "Svc", "date": d, "time": "09:00:00"}, content_type="application/json")
+        self.assertEqual(r1.status_code, 201)
+        r2 = self.c.post("/api/demo/bookings/", {"service": self.service_id, "service_name": "Svc", "date": d, "time": "09:15:00"}, content_type="application/json")
+        self.assertEqual(r2.status_code, 400)
+
+    def test_unavailable_date_rejected(self):
+        import datetime
+        d = (datetime.date.today() + datetime.timedelta(days=1)).isoformat()
+        # mark unavailable
+        self.c.patch(f"/api/demo/services/{self.service_id}/", {"unavailable_dates": [d]}, content_type="application/json")
+        r = self.c.post("/api/demo/bookings/", {"service": self.service_id, "service_name": "Svc", "date": d, "time": "09:00:00"}, content_type="application/json")
+        self.assertEqual(r.status_code, 400)
+
+
+class PageRevisionTests(TestCase):
+    def setUp(self):
+        self.c = Client(enforce_csrf_checks=False)
+        self.c.post("/api/auth/register/", {"email": "rv@b.com", "password": "TestPass123!", "password_confirm": "TestPass123!"}, content_type="application/json")
+
+    def test_revision_created_on_update(self):
+        r = self.c.post("/api/demo/pages/", {"title": "P", "slug": "p", "content": "v1", "is_published": False}, content_type="application/json")
+        pid = r.json()["id"]
+        self.c.patch(f"/api/demo/pages/{pid}/", {"content": "v2"}, content_type="application/json")
+        r2 = self.c.get("/api/demo/page-revisions/")
+        revs = r2.json().get("results", [])
+        self.assertGreaterEqual(len(revs), 1)
+
+    def test_cross_workspace_revision_denied(self):
+        r = self.c.post("/api/demo/pages/", {"title": "P", "slug": "p", "content": "v1", "is_published": False}, content_type="application/json")
+        pid = r.json()["id"]
+        # second user
+        c2 = Client(enforce_csrf_checks=False)
+        c2.post("/api/auth/register/", {"email": "rv2@b.com", "password": "TestPass123!", "password_confirm": "TestPass123!"}, content_type="application/json")
+        r2 = c2.get(f"/api/demo/page-revisions/")
+        # should not include first user's page revisions
+        revs = r2.json().get("results", [])
+        for rev in revs:
+            self.assertNotEqual(rev.get("page"), pid)
