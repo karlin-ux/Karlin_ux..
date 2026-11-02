@@ -38,7 +38,7 @@ services:
     depends_on:
       db: { condition: service_healthy }
     volumes:
-      - karlin_media:/app/media
+      - karlin_uploads:/app/uploads
       - karlin_static:/app/staticfiles
     networks: [karlin]
 
@@ -58,7 +58,7 @@ services:
 
 volumes:
   karlin_pgdata:
-  karlin_media:
+  karlin_uploads:
   karlin_static:
   karlin_caddy_data:
   karlin_caddy_config:

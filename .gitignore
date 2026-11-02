@@ -35,8 +35,8 @@ dist/
 *.log
 backups/
 *.csv
-media/
 uploads/
+Backend/uploads/
 
 # Build artifacts
 staticfiles/
