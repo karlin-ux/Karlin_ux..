@@ -1,0 +1,67 @@
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-karlin_ux}
+      POSTGRES_USER: ${POSTGRES_USER:-karlin_ux}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+    volumes:
+      - karlin_pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [karlin]
+
+  web:
+    build:
+      context: .
+      dockerfile: Backend/Dockerfile
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?set}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-False}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}
+      DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS:-https://localhost:8443}
+      POSTGRES_DB: ${POSTGRES_DB:-karlin_ux}
+      POSTGRES_USER: ${POSTGRES_USER:-karlin_ux}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      RUN_MIGRATIONS: "true"
+      COLLECT_STATIC: "true"
+      SEED_SHOWCASE: "true"
+      DJANGO_SECURE_COOKIES: "true"
+      DJANGO_SECURE_SSL_REDIRECT: "true"
+      DJANGO_SECURE_HSTS_SECONDS: "31536000"
+    expose: ["8000"]
+    depends_on:
+      db: { condition: service_healthy }
+    volumes:
+      - karlin_media:/app/media
+      - karlin_static:/app/staticfiles
+    networks: [karlin]
+
+  proxy:
+    image: caddy:2.10-alpine
+    depends_on: [web]
+    ports:
+      - "127.0.0.1:${HTTP_PORT:-8080}:80"
+      - "127.0.0.1:${HTTPS_PORT:-8443}:443"
+    environment:
+      HTTPS_PUBLIC_PORT: ${HTTPS_PORT:-8443}
+    volumes:
+      - ./Backend/docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - karlin_caddy_data:/data
+      - karlin_caddy_config:/config
+    networks: [karlin]
+
+volumes:
+  karlin_pgdata:
+  karlin_media:
+  karlin_static:
+  karlin_caddy_data:
+  karlin_caddy_config:
+
+networks:
+  karlin:

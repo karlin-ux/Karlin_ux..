@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0b1020;
+  --surface: #121a33;
+  --surface-2: #1a2347;
+  --text: #e8ecf4;
+  --muted: #9aa6c7;
+  --accent: #6c8cff;
+  --accent-2: #a78bfa;
+  --border: rgba(255,255,255,0.08);
+}
+
+.light {
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --surface-2: #eef2f8;
+  --text: #1a2033;
+  --muted: #5b647a;
+  --accent: #4f6df5;
+  --accent-2: #7c3aed;
+  --border: rgba(0,0,0,0.08);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.btn {
+  background: var(--accent);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+}
+.btn:hover { opacity: 0.9; }
+
+.input {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  width: 100%;
+}

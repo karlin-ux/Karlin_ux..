@@ -1,0 +1,50 @@
+# Environment
+.env
+.env.*
+!.env.example
+.env.docker
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.venv/
+.venv-tools/
+*.sqlite3
+*.db
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Secrets / keys
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.jks
+
+# Data dumps / backups / logs
+*.dump
+*.sql
+*.bak
+*.log
+backups/
+*.csv
+media/
+uploads/
+
+# Build artifacts
+staticfiles/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OS
+.DS_Store
+Thumbs.db
