@@ -2,7 +2,7 @@ from django.db.models import Count, Sum
 from rest_framework import viewsets, permissions, status, serializers
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.utils import timezone
 from decimal import Decimal
 
@@ -170,12 +170,14 @@ class DemoBookingViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
         date = data.get("date")
         time = data.get("time")
         service = data.get("service")
-        with transaction.atomic():
-            # lock existing bookings for this workspace/date to prevent races
-            DemoBooking.objects.select_for_update().filter(workspace=ws, date=date).exists()
-            self._validate_booking(ws, service, date, time)
-            booking = serializer.save(workspace=ws)
-            DemoNotification.objects.create(workspace=ws, recipient_type="admin", title="New booking", message=f"{booking.service_name} on {booking.date}")
+        try:
+            with transaction.atomic():
+                DemoBooking.objects.select_for_update().filter(workspace=ws, date=date).exists()
+                self._validate_booking(ws, service, date, time)
+                booking = serializer.save(workspace=ws)
+                DemoNotification.objects.create(workspace=ws, recipient_type="admin", title="New booking", message=f"{booking.service_name} on {booking.date}")
+        except IntegrityError:
+            raise serializers.ValidationError({"time": "Time slot already booked."})
 
     def perform_update(self, serializer):
         ws = self.get_workspace()
@@ -183,11 +185,14 @@ class DemoBookingViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
         date = serializer.validated_data.get("date", instance.date)
         time = serializer.validated_data.get("time", instance.time)
         service = serializer.validated_data.get("service", instance.service)
-        with transaction.atomic():
-            DemoBooking.objects.select_for_update().filter(workspace=ws, date=date).exists()
-            self._validate_booking(ws, service, date, time, exclude_id=instance.id)
-            booking = serializer.save()
-            DemoNotification.objects.create(workspace=ws, recipient_type="admin", title="Booking updated", message=f"Booking {booking.id} updated")
+        try:
+            with transaction.atomic():
+                DemoBooking.objects.select_for_update().filter(workspace=ws, date=date).exists()
+                self._validate_booking(ws, service, date, time, exclude_id=instance.id)
+                booking = serializer.save()
+                DemoNotification.objects.create(workspace=ws, recipient_type="admin", title="Booking updated", message=f"Booking {booking.id} updated")
+        except IntegrityError:
+            raise serializers.ValidationError({"time": "Time slot already booked."})
 
 
 

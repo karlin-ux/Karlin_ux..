@@ -1,6 +1,7 @@
 import uuid
 
 from django.db import models
+from django.db.models import Q
 from django.conf import settings
 
 User = settings.AUTH_USER_MODEL
@@ -129,6 +130,13 @@ class DemoBooking(WorkspaceOwned):
     class Meta:
         ordering = ["-date", "-time"]
         indexes = [models.Index(fields=["workspace", "date"])]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["workspace", "service", "date", "time"],
+                condition=~Q(status="cancelled"),
+                name="unique_booking_slot_noncancelled",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.service_name} {self.date} {self.time}"

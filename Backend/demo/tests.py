@@ -171,3 +171,35 @@ class BookingConcurrencyTests(TestCase):
         r = self.c.patch(f"/api/demo/bookings/{b2}/", {"date": d, "time": "09:00:00", "status": "rescheduled"}, content_type="application/json")
         self.assertEqual(r.status_code, 400)
 
+
+
+from django.test import TransactionTestCase
+
+class GenuineConcurrencyTests(TransactionTestCase):
+    def setUp(self):
+        self.c = Client(enforce_csrf_checks=False)
+        self.c.post("/api/auth/register/", {"email": "gcc@b.com", "password": "TestPass123!", "password_confirm": "TestPass123!"}, content_type="application/json")
+        r = self.c.post("/api/demo/services/", {"name": "SvcG", "duration_minutes": 30, "operating_start": "09:00", "operating_end": "12:00", "slot_interval_minutes": 30, "is_active": True}, content_type="application/json")
+        self.service_id = r.json()["id"]
+
+    def test_concurrent_same_slot(self):
+        import datetime, threading
+        from django.db import connections
+        d = (datetime.date.today() + datetime.timedelta(days=1)).isoformat()
+        results = []
+        barrier = threading.Barrier(2)
+
+        def worker():
+            from django.test.client import Client as C
+            cl = C(enforce_csrf_checks=False)
+            cl.post("/api/auth/login/", {"email": "gcc@b.com", "password": "TestPass123!"}, content_type="application/json")
+            barrier.wait()
+            r = cl.post("/api/demo/bookings/", {"service": self.service_id, "service_name": "SvcG", "date": d, "time": "09:00:00"}, content_type="application/json")
+            results.append(r.status_code)
+            connections.close_all()
+
+        t1 = threading.Thread(target=worker)
+        t2 = threading.Thread(target=worker)
+        t1.start(); t2.start(); t1.join(); t2.join()
+        self.assertIn(201, results)
+        self.assertTrue(results.count(201) == 1, f"Expected one success, got {results}")
