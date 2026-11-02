@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './layout/Layout';
+import { RequireAuth } from './components/Protected';
 import Home from './pages/Home';
 import Explore from './pages/Explore';
 import Projects from './pages/Projects';
@@ -10,6 +11,7 @@ import SignIn from './pages/SignIn';
 import Register from './pages/Register';
 import CustomerHome from './pages/CustomerHome';
 import AdminDashboard from './pages/AdminDashboard';
+import MediaLibrary from './pages/MediaLibrary';
 import SuperAdmin from './pages/SuperAdmin';
 
 export default function App() {
@@ -27,6 +29,7 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/customer/*" element={<CustomerHome />} />
           <Route path="/admin/*" element={<AdminDashboard />} />
+          <Route path="/media" element={<RequireAuth><MediaLibrary /></RequireAuth>} />
           <Route path="/superadmin/*" element={<SuperAdmin />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Route>

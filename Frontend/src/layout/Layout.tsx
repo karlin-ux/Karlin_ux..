@@ -15,6 +15,7 @@ export default function Layout() {
             <Link to="/explore">Explore</Link>
             <Link to="/customer">Customer</Link>
             {user && <Link to="/admin">Admin</Link>}
+            {user && <Link to="/media">Media</Link>}
             {user?.is_superadmin && <Link to="/superadmin">Super Admin</Link>}
             <Link to="/projects">Projects</Link>
             <Link to="/technologies">Technologies</Link>

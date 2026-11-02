@@ -10,6 +10,7 @@ urlpatterns = [
     path("api/demo/", include("demo.urls")),
     path("api/platform/", include("platform_admin.urls")),
     path("api/contact/", include("contact.urls")),
+    path("api/media/", include("media.urls")),
 ]
 
 if settings.DEBUG:

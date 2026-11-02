@@ -123,6 +123,27 @@ class PlatformHealthView(generics.GenericAPIView):
         })
 
 
+class PlatformMediaHealthView(generics.GenericAPIView):
+    permission_classes = [IsSuperAdmin]
+
+    def get(self, request):
+        from media.models import MediaAsset, MediaProcessingJob, WorkspaceStorageUsage
+        from django.db.models import Sum
+        assets = MediaAsset.objects.all()
+        jobs = MediaProcessingJob.objects.all()
+        storage = WorkspaceStorageUsage.objects.all().aggregate(s=Sum("total_bytes"))["s"] or 0
+        return Response({
+            "total_assets": assets.count(),
+            "total_storage_bytes": storage,
+            "image_count": assets.filter(category="image").count(),
+            "document_count": assets.filter(category="document").count(),
+            "video_count": assets.filter(category="video").count(),
+            "processing_failures": jobs.filter(status="failed").count(),
+            "upload_failures": jobs.filter(status="failed").count(),
+            "measured": True,
+        })
+
+
 class TrackEventView(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
 

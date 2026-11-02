@@ -14,5 +14,6 @@ urlpatterns = [
     path("security-events/", views.SecurityEventView.as_view()),
     path("notifications/", views.PlatformNotificationView.as_view()),
     path("health/", views.PlatformHealthView.as_view()),
+    path("media-health/", views.PlatformMediaHealthView.as_view()),
     path("track/", views.TrackEventView.as_view()),
 ]

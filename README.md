@@ -56,3 +56,17 @@ See `docker-compose.yml` and `Backend/Dockerfile`.
 - Workspace Admin data is simulated and isolated per user.
 - Super Admin sees genuine platform data only.
 - Real and simulated data are never mixed.
+## Media management (Phase 2)
+
+- Uploads are stored privately under `MEDIA_ROOT/private/workspaces/<workspace_id>/`.
+- Files are served only through authenticated endpoints (`/api/media/<id>/file/`).
+- Supported types: images (jpg, jpeg, png, gif, webp), documents (pdf, txt, csv, md), videos (mp4, webm, mov).
+- Max upload size: 10 MB (configurable via `MEDIA_MAX_UPLOAD_SIZE`).
+- Image processing generates thumbnail, preview, optimized and original variants; EXIF stripped.
+- Editing creates a new `edited` variant; original preserved.
+- Workspace storage usage: `/api/media/storage/`.
+- Platform media health (Super Admin): `/api/platform/media-health/`.
+
+### Environment variables (media)
+- `MEDIA_MAX_UPLOAD_SIZE` (bytes, default 10485760)
+- `MEDIA_ROOT` (default `Backend/media`)

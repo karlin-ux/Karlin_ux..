@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "platform_admin",
     "audit",
     "contact",
+    "media",
 ]
 
 MIDDLEWARE = [
@@ -137,8 +138,8 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": "60/min",
         "user": "300/min",
-        "login": "10/min",
-        "contact": "20/hour",
+        "login": "100/min",
+        "contact": "100/hour",
     },
 }
 
