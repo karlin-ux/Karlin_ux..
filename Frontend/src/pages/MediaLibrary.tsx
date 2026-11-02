@@ -161,6 +161,11 @@ function ImageEditor({ asset, onClose, onSaved }: { asset: Asset; onClose: ()=>v
   const [brightness, setBrightness] = useState(1);
   const [contrast, setContrast] = useState(1);
   const [saturation, setSaturation] = useState(1);
+  const [text, setText] = useState('');
+  const [textSize, setTextSize] = useState(24);
+  const [textColor, setTextColor] = useState('#ffffff');
+  const [textX, setTextX] = useState(50);
+  const [textY, setTextY] = useState(50);
   const [resizeW, setResizeW] = useState(asset.width || 0);
   const [resizeH, setResizeH] = useState(asset.height || 0);
   const [saving, setSaving] = useState(false);
@@ -192,8 +197,14 @@ function ImageEditor({ asset, onClose, onSaved }: { asset: Asset; onClose: ()=>v
     ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
     // draw image scaled
     ctx.drawImage(img, -outW/2, -outH/2, outW, outH);
+    if (text) {
+      ctx.fillStyle = textColor;
+      ctx.font = `${textSize}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(text, (textX/100)*outW, (textY/100)*outH);
+    }
     ctx.restore();
-  }, [img, rotation, flipH, flipV, brightness, contrast, saturation, resizeW, resizeH]);
+  }, [img, rotation, flipH, flipV, brightness, contrast, saturation, resizeW, resizeH, text, textSize, textColor, textX, textY]);
 
   async function save() {
     const canvas = canvasRef.current;
@@ -231,6 +242,16 @@ function ImageEditor({ asset, onClose, onSaved }: { asset: Asset; onClose: ()=>v
           <label>Saturation <input type="range" min={0} max={2} step={0.1} value={saturation} onChange={e=>setSaturation(Number(e.target.value))} /></label>
           <label>Width <input className="input" type="number" value={resizeW} onChange={e=>setResizeW(Number(e.target.value))} /></label>
           <label>Height <input className="input" type="number" value={resizeH} onChange={e=>setResizeH(Number(e.target.value))} /></label>
+          <label>Aspect ratio
+            <select className="input" onChange={e=>{const v=e.target.value; if(v==='1:1'){setResizeW(Math.min(resizeW,resizeH));setResizeH(Math.min(resizeW,resizeH));} if(v==='16:9'){setResizeH(Math.round(resizeW*9/16));} if(v==='4:3'){setResizeH(Math.round(resizeW*3/4));}}}>
+              <option value="">Custom</option><option value="1:1">1:1</option><option value="16:9">16:9</option><option value="4:3">4:3</option>
+            </select>
+          </label>
+          <label>Text overlay <input className="input" value={text} onChange={e=>setText(e.target.value)} /></label>
+          <label>Text size <input className="input" type="number" value={textSize} onChange={e=>setTextSize(Number(e.target.value))} /></label>
+          <label>Text color <input className="input" type="color" value={textColor} onChange={e=>setTextColor(e.target.value)} /></label>
+          <label>Text X % <input className="input" type="number" value={textX} onChange={e=>setTextX(Number(e.target.value))} /></label>
+          <label>Text Y % <input className="input" type="number" value={textY} onChange={e=>setTextY(Number(e.target.value))} /></label>
         </div>
         <div className="flex gap-2 mt-4">
           <button className="btn" onClick={save} disabled={saving}>{saving?'Saving…':'Save as new variant'}</button>

@@ -93,6 +93,20 @@ class MediaPermissionTests(TestCase):
         r2 = self.c2.get("/api/media/storage/")
         self.assertEqual(r2.json()["asset_count"], 0)
 
+    def test_original_preserved_after_edit(self):
+        img = make_image_bytes()
+        f = SimpleUploadedFile("t.png", img, content_type="image/png")
+        r = self.c1.post("/api/media/upload/", {"file": f})
+        aid = r.json()["id"]
+        orig_variants = [v for v in r.json()["variants"] if v["variant_type"] == "original"]
+        self.assertEqual(len(orig_variants), 1)
+        img2 = make_image_bytes(size=(5, 5))
+        f2 = SimpleUploadedFile("edited.jpg", img2, content_type="image/jpeg")
+        self.c1.post(f"/api/media/{aid}/edit/", {"file": f2})
+        r2 = self.c1.get(f"/api/media/{aid}/")
+        orig_after = [v for v in r2.json()["variants"] if v["variant_type"] == "original"]
+        self.assertEqual(len(orig_after), 1)
+
     def test_edit_creates_variant(self):
         img = make_image_bytes()
         f = SimpleUploadedFile("t.png", img, content_type="image/png")

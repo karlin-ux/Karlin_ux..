@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 
-interface Section { id: string; type: 'heading'|'text'|'image'|'button'; content: string; }
+interface Section { id: string; type: 'heading'|'text'|'image'|'button'; content: string; settings?: any; }
 
 export default function WebsiteBuilder() {
   const [pages, setPages] = useState<any[]>([]);
@@ -12,6 +12,7 @@ export default function WebsiteBuilder() {
   const [sections, setSections] = useState<Section[]>([]);
   const [published, setPublished] = useState(false);
   const [preview, setPreview] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
 
   useEffect(() => { api.get('/demo/pages/').then(r => setPages(r.data.results || r.data)); }, []);
 
@@ -28,6 +29,7 @@ export default function WebsiteBuilder() {
     });
   }
   function update(id: string, content: string) { setSections(s => s.map(x => x.id === id ? { ...x, content } : x)); }
+  function updateSettings(id: string, settings: any) { setSections(s => s.map(x => x.id === id ? { ...x, settings: { ...(x as any).settings, ...settings } } : x)); }
   function remove(id: string) { setSections(s => s.filter(x => x.id !== id)); }
 
   async function save(draft: boolean) {
@@ -71,9 +73,10 @@ export default function WebsiteBuilder() {
       ) : (
         <div className="space-y-2">
           {sections.map((s, i) => (
-            <div key={s.id} className="card p-3 flex items-center gap-2">
+            <div key={s.id} className="card p-3 flex items-center gap-2" draggable onDragStart={()=>setDragIndex(i)} onDragOver={e=>e.preventDefault()} onDrop={()=>{ if(dragIndex===null||dragIndex===i) return; setSections(arr=>{ const a=[...arr]; const [m]=a.splice(dragIndex,1); a.splice(i,0,m); return a;}); setDragIndex(null); }}>
               <span className="text-xs text-[var(--muted)]">{s.type}</span>
               <input className="input flex-1" value={s.content} onChange={e=>update(s.id, e.target.value)} />
+              <input className="input w-20" type="number" placeholder="size" onChange={e=>updateSettings(s.id, {fontSize: e.target.value})} />
               <button className="text-xs" onClick={()=>move(i,-1)}>↑</button>
               <button className="text-xs" onClick={()=>move(i,1)}>↓</button>
               <button className="text-xs text-red-400" onClick={()=>remove(s.id)}>×</button>

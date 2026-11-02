@@ -15,6 +15,7 @@ import MediaLibrary from './pages/MediaLibrary';
 import ProductViewer3D from './pages/ProductViewer3D';
 import WebsiteBuilder from './pages/WebsiteBuilder';
 import Reports from './pages/Reports';
+import BookingCalendar from './pages/BookingCalendar';
 import SuperAdmin from './pages/SuperAdmin';
 
 export default function App() {
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="/3d" element={<ProductViewer3D />} />
           <Route path="/builder" element={<RequireAuth><WebsiteBuilder /></RequireAuth>} />
           <Route path="/reports" element={<RequireAuth><Reports /></RequireAuth>} />
+          <Route path="/calendar" element={<RequireAuth><BookingCalendar /></RequireAuth>} />
           <Route path="/superadmin/*" element={<SuperAdmin />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Route>

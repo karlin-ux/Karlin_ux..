@@ -8,6 +8,8 @@ function SuperInner() {
   const [audit, setAudit] = useState<any[]>([]);
   const [security, setSecurity] = useState<any[]>([]);
   const [health, setHealth] = useState<any>(null);
+  const [mediaHealth, setMediaHealth] = useState<any>(null);
+  const [auditFilter, setAuditFilter] = useState('');
   const [tab, setTab] = useState('overview');
 
   useEffect(() => {
@@ -16,6 +18,7 @@ function SuperInner() {
     api.get('/platform/audit/').then(r => setAudit(r.data.results || r.data));
     api.get('/platform/security-events/').then(r => setSecurity(r.data.results || r.data));
     api.get('/platform/health/').then(r => setHealth(r.data));
+    api.get('/platform/media-health/').then(r => setMediaHealth(r.data));
   }, []);
 
   const tabs = ['overview','users','audit','security','health'];
@@ -33,6 +36,7 @@ function SuperInner() {
           <div className="card p-3"><div className="text-xs text-[var(--muted)]">Registered accounts</div><div className="text-xl font-bold">{users.length}</div></div>
           <div className="card p-3"><div className="text-xs text-[var(--muted)]">Audit entries</div><div className="text-xl font-bold">{audit.length}</div></div>
           <div className="card p-3"><div className="text-xs text-[var(--muted)]">Security events</div><div className="text-xl font-bold">{security.length}</div></div>
+          {mediaHealth && <div className="card p-3"><div className="text-xs text-[var(--muted)]">Platform media assets</div><div className="text-xl font-bold">{mediaHealth.total_assets}</div></div>}
           <div className="col-span-full text-xs text-[var(--muted)]">Metrics are genuine measured platform data. Empty states shown when no data collected.</div>
         </div>
       )}
@@ -42,7 +46,7 @@ function SuperInner() {
           <table className="w-full text-sm">
             <thead><tr><th>Email</th><th>Role</th><th>Active</th><th>Created</th></tr></thead>
             <tbody>
-              {users.map(u => <tr key={u.id} className="border-t border-[var(--border)]"><td>{u.email}</td><td>{u.role}</td><td>{u.is_active?'Yes':'No'}</td><td>{new Date(u.created_at).toLocaleDateString()}</td></tr>)}
+              {users.map(u => <tr key={u.id} className="border-t border-[var(--border)]"><td>{u.email}</td><td>{u.role}</td><td>{u.is_active?'Yes':'No'}</td><td>{new Date(u.created_at).toLocaleDateString()}</td><td>{!u.is_superadmin && (u.is_active ? <button className="text-xs text-red-400" onClick={async()=>{await api.post(`/platform/users/${u.id}/suspend/`); const r=await api.get('/platform/users/'); setUsers(r.data.results||r.data);}}>Suspend</button> : <button className="text-xs" onClick={async()=>{await api.post(`/platform/users/${u.id}/reactivate/`); const r=await api.get('/platform/users/'); setUsers(r.data.results||r.data);}}>Reactivate</button>)}</td></tr>)}
             </tbody>
           </table>
         </div>
@@ -50,8 +54,9 @@ function SuperInner() {
 
       {tab === 'audit' && (
         <div className="card p-4">
+          <input className="input mb-3" placeholder="Filter action" value={auditFilter} onChange={e=>setAuditFilter(e.target.value)} />
           <ul className="text-sm space-y-1">
-            {audit.map(a => <li key={a.id}>{new Date(a.created_at).toLocaleString()} — {a.actor?.email || 'system'} — {a.action} — {a.target}</li>)}
+            {audit.filter(a => !auditFilter || a.action.includes(auditFilter)).map(a => <li key={a.id}>{new Date(a.created_at).toLocaleString()} — {a.actor?.email || 'system'} — {a.action} — {a.target}</li>)}
           </ul>
         </div>
       )}
