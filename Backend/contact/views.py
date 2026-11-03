@@ -28,7 +28,7 @@ def contact_submit(request):
         ip_address=ip,
     )
 
-    recipient = getattr(settings, "CONTACT_RECIPIENT_EMAIL", "yourheinskarl@gmail.com")
+    recipient = getattr(settings, "CONTACT_RECIPIENT_EMAIL", "contact@localhost")
     subject = f"Contact form: {msg.subject or 'New message'}"
     body = f"From: {msg.name} <{msg.email}>\nIP: {ip}\n\n{msg.message}"
     try:
