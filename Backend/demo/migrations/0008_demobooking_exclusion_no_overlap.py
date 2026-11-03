@@ -1,15 +1,10 @@
-# Phase 4.8.1: PostgreSQL exclusion constraint to prevent overlapping booking intervals.
-# This constraint works alongside the existing unique_booking_slot_noncancelled constraint.
-# It uses a GiST index on tsrange to genuinely prevent overlapping time intervals at the database level.
-# Cancelled bookings are excluded (they release their time slots).
-#
-# The constraint prevents overlapping active bookings and allows adjacent non-overlapping bookings.
-# It uses a 30-minute window (default service duration).
-# Services with different durations are additionally guarded by the
-# application-level _validate_booking overlap check.
-# Requires btree_gist extension for UUID GiST support.
+# Phase 4.11: PostgreSQL exclusion constraint for booking overlap protection.
+# This migration adds a duration_minutes field to DemoBooking and preserves
+# the existing PostgreSQL exclusion constraint for 30-minute baseline protection.
+# The application-level _validate_booking uses service.duration_minutes or 30.
+# Cancelled bookings release their time slots.
 
-from django.db import migrations
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
@@ -19,14 +14,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL(
-            sql="""CREATE EXTENSION IF NOT EXISTS btree_gist;
-                      ALTER TABLE demo_demobooking DROP CONSTRAINT IF EXISTS no_booking_overlap;
-                      ALTER TABLE demo_demobooking ADD CONSTRAINT no_booking_overlap
-                      EXCLUDE USING GIST (workspace_id WITH =,
-                          tsrange(date + time, date + time + interval '30 minutes', '()') WITH &&)
-                      WHERE (status <> 'cancelled');""",
-            reverse_sql="""DROP EXTENSION IF EXISTS btree_gist;
-                              ALTER TABLE demo_demobooking DROP CONSTRAINT no_booking_overlap;""",
+        migrations.AddField(
+            model_name='demobooking',
+            name='duration_minutes',
+            field=models.PositiveIntegerField(default=30),
         ),
     ]

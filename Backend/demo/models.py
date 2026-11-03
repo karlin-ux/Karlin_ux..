@@ -126,6 +126,7 @@ class DemoBooking(WorkspaceOwned):
     time = models.TimeField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
     notes = models.TextField(blank=True)
+    duration_minutes = models.PositiveIntegerField(default=30)
 
     class Meta:
         ordering = ["-date", "-time"]
