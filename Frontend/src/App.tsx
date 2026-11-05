@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './layout/Layout';
-import { RequireAuth } from './components/Protected';
+import { RequireAuth, RequireSuper } from './components/Protected';
 import Home from './pages/Home';
 import Explore from './pages/Explore';
 import Projects from './pages/Projects';
@@ -31,14 +31,14 @@ export default function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/customer/*" element={<CustomerHome />} />
-          <Route path="/admin/*" element={<AdminDashboard />} />
+          <Route path="/customer/*" element={<RequireAuth><CustomerHome /></RequireAuth>} />
+          <Route path="/admin/*" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
           <Route path="/media" element={<RequireAuth><MediaLibrary /></RequireAuth>} />
           <Route path="/3d" element={<ProductViewer3D />} />
           <Route path="/builder" element={<RequireAuth><WebsiteBuilder /></RequireAuth>} />
           <Route path="/reports" element={<RequireAuth><Reports /></RequireAuth>} />
           <Route path="/calendar" element={<RequireAuth><BookingCalendar /></RequireAuth>} />
-          <Route path="/superadmin/*" element={<SuperAdmin />} />
+          <Route path="/superadmin/*" element={<RequireAuth><RequireSuper><SuperAdmin /></RequireSuper></RequireAuth>} />
           <Route path="*" element={<Navigate to="/" />} />
         </Route>
       </Routes>
