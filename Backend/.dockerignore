@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+.venv
+staticfiles
+uploads
+__pycache__
+*.pyc
+*.pyo
+*.log
+.pytest_cache
+.ruff_cache

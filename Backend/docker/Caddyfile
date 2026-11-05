@@ -1,10 +1,42 @@
+# Caddy configuration for Karlin_ux
+#
+# Environment variables:
+#   CADDY_DOMAIN - The public domain name (default: localhost for local dev)
+#   HTTPS_PUBLIC_PORT - The public HTTPS port (default: 8443)
+#
+# For local development: uses internal TLS (self-signed certificate)
+# For production: set CADDY_DOMAIN to your real domain and Caddy will
+# automatically obtain and renew Let's Encrypt certificates.
 {
-    auto_https disable_redirects
+	# Disable automatic HTTPS redirects for local development on non-standard ports.
+	# In production with a real domain, Caddy handles HTTPS automatically.
+	auto_https disable_redirects
 }
+
+# HTTP -> HTTPS redirect
 :80 {
-    redir https://{host}:8443{uri} 308
+	redir https://{host}:{$HTTPS_PUBLIC_PORT:8443}{uri} 308
 }
+
+# HTTPS
 :443 {
-    tls internal
-    reverse_proxy web:8000
+	# Use internal TLS for local development (self-signed).
+	# In production, remove "tls internal" and set CADDY_DOMAIN to enable
+	# automatic Let's Encrypt certificates.
+	tls internal
+
+	# Security headers
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy same-origin
+		-Server
+	}
+
+	# Reverse proxy to Django backend
+	reverse_proxy web:8000 {
+		# Forward the original protocol for Django's SECURE_PROXY_SSL_HEADER
+		header_up X-Forwarded-Proto https
+		header_up Host {host}
+	}
 }

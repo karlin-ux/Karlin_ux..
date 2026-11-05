@@ -7,54 +7,100 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
     volumes:
       - karlin_pgdata:/var/lib/postgresql
+    expose:
+      - "5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
     networks: [karlin]
+    restart: unless-stopped
+    # Database is internal-only; not exposed to host
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
 
   web:
     build:
-      context: .
-      dockerfile: Backend/Dockerfile
+      context: ./Backend
+      dockerfile: Dockerfile
     environment:
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?set}
       DJANGO_DEBUG: ${DJANGO_DEBUG:-False}
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}
       DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS:-https://localhost:8443}
+      DJANGO_CORS_ALLOWED_ORIGINS: ${DJANGO_CORS_ALLOWED_ORIGINS:-}
       POSTGRES_DB: ${POSTGRES_DB:-karlin_ux}
       POSTGRES_USER: ${POSTGRES_USER:-karlin_ux}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set}
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
-      RUN_MIGRATIONS: "true"
-      COLLECT_STATIC: "true"
-      SEED_SHOWCASE: "true"
-      DJANGO_SECURE_COOKIES: "true"
-      DJANGO_SECURE_SSL_REDIRECT: "true"
-      DJANGO_SECURE_HSTS_SECONDS: "31536000"
-    expose: ["8000"]
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+      COLLECT_STATIC: ${COLLECT_STATIC:-true}
+      SEED_SHOWCASE: ${SEED_SHOWCASE:-false}
+      DJANGO_SECURE_COOKIES: ${DJANGO_SECURE_COOKIES:-true}
+      DJANGO_SECURE_SSL_REDIRECT: ${DJANGO_SECURE_SSL_REDIRECT:-true}
+      DJANGO_SECURE_HSTS_SECONDS: ${DJANGO_SECURE_HSTS_SECONDS:-31536000}
+      DJANGO_SECURE_HSTS_PRELOAD: ${DJANGO_SECURE_HSTS_PRELOAD:-false}
+      DJANGO_SECURE_PROXY_SSL_HEADER: ${DJANGO_SECURE_PROXY_SSL_HEADER:-true}
+      DJANGO_LOG_LEVEL: ${DJANGO_LOG_LEVEL:-INFO}
+      MEDIA_MAX_UPLOAD_SIZE: ${MEDIA_MAX_UPLOAD_SIZE:-10485760}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-noreply@localhost}
+      CONTACT_RECIPIENT_EMAIL: ${CONTACT_RECIPIENT_EMAIL:-contact@localhost}
+    expose:
+      - "8000"
     depends_on:
-      db: { condition: service_healthy }
+      db:
+        condition: service_healthy
     volumes:
       - karlin_uploads:/app/uploads
       - karlin_static:/app/staticfiles
     networks: [karlin]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/auth/csrf/', timeout=5)\" || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1G
 
   proxy:
     image: caddy:2.10-alpine
-    depends_on: [web]
+    depends_on:
+      web:
+        condition: service_healthy
     ports:
       - "127.0.0.1:${HTTP_PORT:-8080}:80"
       - "127.0.0.1:${HTTPS_PORT:-8443}:443"
     environment:
       HTTPS_PUBLIC_PORT: ${HTTPS_PORT:-8443}
+      CADDY_DOMAIN: ${CADDY_DOMAIN:-localhost}
     volumes:
       - ./Backend/docker/Caddyfile:/etc/caddy/Caddyfile:ro
       - karlin_caddy_data:/data
       - karlin_caddy_config:/config
     networks: [karlin]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:80/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
 
 volumes:
   karlin_pgdata:
