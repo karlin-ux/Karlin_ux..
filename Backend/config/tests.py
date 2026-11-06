@@ -167,3 +167,57 @@ class PersonalEmailTests(TestCase):
         recipient = getattr(settings, "CONTACT_RECIPIENT_EMAIL", "")
         self.assertNotIn("yourheinskarl", recipient)
         self.assertNotIn("gmail.com", recipient)
+
+
+class HealthEndpointTests(TestCase):
+    """Test public health endpoints."""
+
+    def test_liveness_returns_200(self):
+        """Liveness endpoint should return 200 with status ok."""
+        from django.test.client import Client
+        client = Client()
+        r = client.get("/api/health/")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()["status"], "ok")
+
+    def test_liveness_no_sensitive_info(self):
+        """Liveness endpoint should not expose sensitive information."""
+        from django.test.client import Client
+        client = Client()
+        r = client.get("/api/health/")
+        data = r.json()
+        # Should only contain status
+        self.assertEqual(set(data.keys()), {"status"})
+        # Should not contain any sensitive keys
+        sensitive_keys = {"database", "host", "port", "password", "secret", "debug", "version", "settings"}
+        self.assertTrue(sensitive_keys.isdisjoint(set(data.keys())))
+
+    def test_readiness_returns_200_when_db_available(self):
+        """Readiness endpoint should return 200 when database is available."""
+        from django.test.client import Client
+        client = Client()
+        r = client.get("/api/health/ready/")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()["status"], "ready")
+
+    def test_readiness_no_sensitive_info(self):
+        """Readiness endpoint should not expose sensitive information."""
+        from django.test.client import Client
+        client = Client()
+        r = client.get("/api/health/ready/")
+        data = r.json()
+        # Should only contain status
+        self.assertEqual(set(data.keys()), {"status"})
+        sensitive_keys = {"database", "host", "port", "password", "secret", "debug", "version", "settings", "connection"}
+        self.assertTrue(sensitive_keys.isdisjoint(set(data.keys())))
+
+    def test_health_endpoints_no_auth_required(self):
+        """Health endpoints should not require authentication."""
+        from django.test.client import Client
+        client = Client()
+        r1 = client.get("/api/health/")
+        r2 = client.get("/api/health/ready/")
+        self.assertNotEqual(r1.status_code, 401)
+        self.assertNotEqual(r1.status_code, 403)
+        self.assertNotEqual(r2.status_code, 401)
+        self.assertNotEqual(r2.status_code, 403)

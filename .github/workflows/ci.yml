@@ -36,9 +36,15 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r Backend/requirements.txt
+      - name: Django system check
+        run: cd Backend && python manage.py check
+      - name: Migration check
+        run: cd Backend && python manage.py makemigrations --check --dry-run
       - run: cd Backend && python manage.py migrate --noinput
       - run: cd Backend && python manage.py seed_showcase
       - run: cd Backend && python manage.py test
+      - name: Bandit security scan
+        run: cd Backend && python -m bandit -r . --exclude="./migrations" -ll
 
   frontend:
     runs-on: ubuntu-latest
@@ -47,7 +53,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - run: cd Frontend && npm ci && npm run build
+      - run: cd Frontend && npm ci
+      - name: TypeScript check
+        run: cd Frontend && npx tsc --noEmit
+      - name: Lint
+        run: cd Frontend && npm run lint
+      - name: Production build
+        run: cd Frontend && npm run build
 
   secret-scan:
     runs-on: ubuntu-latest
@@ -58,3 +70,12 @@ jobs:
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build backend image
+        run: docker build -f Backend/Dockerfile -t karlin-backend:test ./Backend
+      - name: Validate docker-compose
+        run: docker compose config
