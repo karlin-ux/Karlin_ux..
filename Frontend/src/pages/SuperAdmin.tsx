@@ -10,6 +10,7 @@ function SuperInner() {
   const [security, setSecurity] = useState<any[]>([]);
   const [health, setHealth] = useState<any>(null);
   const [mediaHealth, setMediaHealth] = useState<any>(null);
+  const [contactMessages, setContactMessages] = useState<any[]>([]);
   const [auditFilter, setAuditFilter] = useState('');
   const [tab, setTab] = useState('overview');
   const [loading, setLoading] = useState(true);
@@ -22,10 +23,11 @@ function SuperInner() {
       api.get('/platform/security-events/').then(r => setSecurity(r.data.results || r.data)).catch(() => {}),
       api.get('/platform/health/').then(r => setHealth(r.data)).catch(() => {}),
       api.get('/platform/media-health/').then(r => setMediaHealth(r.data)).catch(() => {}),
+      api.get('/platform/contact-messages/').then(r => setContactMessages(r.data.results || r.data)).catch(() => {}),
     ]).finally(() => setLoading(false));
   }, []);
 
-  const tabs = ['overview', 'users', 'audit', 'security', 'health'];
+  const tabs = ['overview', 'users', 'audit', 'security', 'health', 'contact'];
 
   async function suspendUser(id: string) {
     await api.post(`/platform/users/${id}/suspend/`);
@@ -159,6 +161,35 @@ function SuperInner() {
                 <span className="text-xs text-[var(--text-muted)]">{new Date(s.created_at).toLocaleString()}</span>
               </div>
               <div className="text-sm text-[var(--text-secondary)]">{s.ip_address} · {s.user_agent?.slice(0, 60)}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === 'contact' && (
+        <div className="space-y-3">
+          {contactMessages.length === 0 ? (
+            <div className="card p-12 text-center">
+              <div className="mb-3 flex justify-center"><Icon name="content-management" size={48} /></div>
+              <p className="text-[var(--text-muted)]">No contact messages yet.</p>
+            </div>
+          ) : contactMessages.map((m: any) => (
+            <div key={m.id} className="card p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <span className="font-medium">{m.name}</span>
+                  <span className="text-sm text-[var(--text-secondary)] ml-2">&lt;{m.email}&gt;</span>
+                </div>
+                <span className="text-xs text-[var(--text-muted)]">{new Date(m.created_at).toLocaleString()}</span>
+              </div>
+              {m.subject && <div className="text-sm font-medium mb-1">{m.subject}</div>}
+              <div className="text-sm text-[var(--text-secondary)] whitespace-pre-wrap">{m.message}</div>
+              <div className="mt-2 flex items-center gap-3 text-xs text-[var(--text-muted)]">
+                <span>IP: {m.ip_address}</span>
+                <span className={m.email_sent ? 'text-[var(--success)]' : 'text-[var(--error)]'}>
+                  {m.email_sent ? 'Email sent ✓' : 'Email not sent'}
+                </span>
+              </div>
             </div>
           ))}
         </div>

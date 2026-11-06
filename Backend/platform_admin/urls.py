@@ -6,6 +6,7 @@ from . import views
 router = DefaultRouter()
 router.register(r"users", views.PlatformUserViewSet, basename="platform-users")
 router.register(r"settings", views.GlobalSettingView, basename="platform-settings")
+router.register(r"contact-messages", views.ContactMessageViewSet, basename="platform-contact-messages")
 
 urlpatterns = [
     path("", include(router.urls)),

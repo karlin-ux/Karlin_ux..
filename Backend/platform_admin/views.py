@@ -12,6 +12,16 @@ from .serializers import (
     PlatformNotificationSerializer, PlatformUserSerializer, SecurityEventSerializer,
 )
 
+# Contact messages for Super Admin
+from contact.models import ContactMessage
+from rest_framework import serializers
+
+
+class ContactMessageReadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactMessage
+        fields = ["id", "name", "email", "subject", "message", "ip_address", "created_at", "email_sent", "email_error"]
+
 UserModel = get_user_model()
 
 
@@ -156,6 +166,12 @@ class PlatformMediaHealthView(generics.GenericAPIView):
             "upload_failures": jobs.filter(status="failed").count(),
             "measured": True,
         })
+
+
+class ContactMessageViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [IsSuperAdmin]
+    queryset = ContactMessage.objects.all().order_by("-created_at")
+    serializer_class = ContactMessageReadSerializer
 
 
 class TrackEventView(generics.GenericAPIView):
