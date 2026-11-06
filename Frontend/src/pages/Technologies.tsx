@@ -118,9 +118,23 @@ export default function Technologies() {
   const [statusFilter, setStatusFilter] = useState<TechStatus | 'all'>('all');
   const [selectedTech, setSelectedTech] = useState<Technology | null>(null);
 
+  // Programming languages that should appear in the Languages section
+  // even if their primary category is different (e.g., Python is Backend)
+  const PROGRAMMING_LANGUAGES = new Set([
+    'Python', 'Java', 'Kotlin', 'C', 'C++', 'C#', 'Lua', 'Roblox Luau', 'Ruby',
+    'JavaScript', 'TypeScript',
+  ]);
+
   const filtered = useMemo(() => {
     return technologies.filter(t => {
-      if (categoryFilter !== 'All' && t.category !== categoryFilter) return false;
+      if (categoryFilter !== 'All') {
+        if (categoryFilter === 'Languages') {
+          // Show all programming languages, regardless of primary category
+          if (!PROGRAMMING_LANGUAGES.has(t.name)) return false;
+        } else if (t.category !== categoryFilter) {
+          return false;
+        }
+      }
       if (statusFilter !== 'all' && t.status !== statusFilter) return false;
       if (search) {
         const q = search.toLowerCase();
