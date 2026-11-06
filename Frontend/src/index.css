@@ -114,48 +114,49 @@
    DESIGN TOKENS — LIGHT THEME
    ============================================ */
 .light {
-  --bg: #F5F7FB;
-  --bg-secondary: #FFFFFF;
-  --bg-elevated: #FFFFFF;
-  --bg-surface: #F0F4F9;
-  --bg-overlay: rgba(245, 247, 251, 0.85);
+  /* Softer, warmer, less bright overall mood */
+  --bg: #F0EDE8;
+  --bg-secondary: #F7F5F2;
+  --bg-elevated: #FBF9F6;
+  --bg-surface: #EDE9E3;
+  --bg-overlay: rgba(240, 237, 232, 0.85);
 
-  --text: #152033;
-  --text-secondary: #58677D;
-  --text-muted: #8A95A8;
-  --text-inverse: #FFFFFF;
+  --text: #2A2520;
+  --text-secondary: #5C554D;
+  --text-muted: #8A8278;
+  --text-inverse: #F0EDE8;
 
-  --border: #E2E8F0;
-  --border-subtle: #EDF1F7;
-  --border-strong: #CBD5E1;
+  --border: #D9D4CC;
+  --border-subtle: #E5E1DA;
+  --border-strong: #BFB8AE;
 
-  --accent: #087F5B;
-  --accent-hover: #066D4E;
-  --accent-active: #055A40;
-  --accent-soft: #E6F4F0;
-  --accent-glow: rgba(8, 127, 91, 0.1);
+  --accent: #1A7A5A;
+  --accent-hover: #15684C;
+  --accent-active: #10553E;
+  --accent-soft: #E0EDE6;
+  --accent-glow: rgba(26, 122, 90, 0.08);
 
-  --accent-2: #356FE8;
-  --accent-2-hover: #2858CC;
-  --accent-2-soft: #E8EEFB;
+  --accent-2: #4A6FA5;
+  --accent-2-hover: #3D5D8C;
+  --accent-2-soft: #E4E9F2;
 
-  --accent-3: #7C3AED;
-  --accent-3-soft: #F0EBFB;
+  --accent-3: #7B5EA7;
+  --accent-3-soft: #EAE5F0;
 
-  --success: #059669;
-  --success-soft: #D1FAE5;
-  --warning: #D97706;
-  --warning-soft: #FEF3C7;
-  --error: #DC2626;
-  --error-soft: #FEE2E2;
-  --info: #2563EB;
-  --info-soft: #DBEAFE;
+  --success: #2D8A5E;
+  --success-soft: #D8EDE3;
+  --warning: #B8860B;
+  --warning-soft: #F5EDD6;
+  --error: #C0392B;
+  --error-soft: #F5E0DD;
+  --info: #3B7DD8;
+  --info-soft: #DEE7F5;
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
-  --shadow-glow: 0 0 20px rgba(8, 127, 91, 0.08);
-  --shadow-glow-blue: 0 0 20px rgba(53, 111, 232, 0.08);
+  --shadow-sm: 0 1px 2px rgba(42, 37, 32, 0.04);
+  --shadow-md: 0 4px 12px rgba(42, 37, 32, 0.06);
+  --shadow-lg: 0 8px 32px rgba(42, 37, 32, 0.08);
+  --shadow-glow: 0 0 20px rgba(26, 122, 90, 0.06);
+  --shadow-glow-blue: 0 0 20px rgba(74, 111, 165, 0.06);
 }
 
 /* ============================================
