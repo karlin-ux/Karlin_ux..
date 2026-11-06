@@ -128,9 +128,12 @@ class PlatformHealthView(generics.GenericAPIView):
             connection.ensure_connection()
         except Exception:
             db_ok = False
+        # Log administrative health access
+        import logging
+        logger = logging.getLogger("django.security")
+        logger.info("Super Admin health check accessed by %s", request.user.email)
         return Response({
             "database": "ok" if db_ok else "error",
-            "debug": False,
         })
 
 

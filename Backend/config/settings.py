@@ -113,6 +113,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "config.middleware.RequestIDMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -277,9 +278,14 @@ _LOG_LEVEL = os.environ.get("DJANGO_LOG_LEVEL", "INFO").upper()
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "filters": {
+        "request_id": {
+            "()": "config.log_filter.RequestIDFilter",
+        },
+    },
     "formatters": {
         "standard": {
-            "format": "[{asctime}] {levelname} {name}: {message}",
+            "format": "[{asctime}] {levelname} {name} [{request_id}]: {message}",
             "style": "{",
         },
     },
@@ -287,6 +293,7 @@ LOGGING = {
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "standard",
+            "filters": ["request_id"],
         },
     },
     "root": {"handlers": ["console"], "level": _LOG_LEVEL},

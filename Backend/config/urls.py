@@ -3,7 +3,12 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+from .health import liveness, readiness
+
 urlpatterns = [
+    # Health checks (public, minimal)
+    path("api/health/", liveness, name="health-liveness"),
+    path("api/health/ready/", readiness, name="health-readiness"),
     path("admin/", admin.site.urls),
     path("api/auth/", include("accounts.urls")),
     path("api/showcase/", include("showcase.urls")),
