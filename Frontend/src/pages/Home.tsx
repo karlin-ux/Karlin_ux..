@@ -37,16 +37,8 @@ const techStack = [
   { category: 'Testing', items: ['56 Backend Tests', 'TypeScript', 'ESLint', 'Gitleaks', 'Bandit'] },
 ];
 
-const architectureNodes = [
-  { id: 'frontend', label: 'React Frontend', desc: 'TypeScript SPA with Vite, Tailwind and React Router', x: 10, y: 40, color: 'var(--accent-2)' },
-  { id: 'api', label: 'Django REST API', desc: 'DRF with session auth, CSRF, throttling and permissions', x: 35, y: 40, color: 'var(--accent)' },
-  { id: 'backend', label: 'Django Backend', desc: 'Business logic, models, serializers and views', x: 60, y: 40, color: 'var(--accent-3)' },
-  { id: 'db', label: 'PostgreSQL', desc: 'Relational database with exclusion constraints', x: 85, y: 40, color: 'var(--info)' },
-];
-
 export default function Home() {
   const [hoveredCap, setHoveredCap] = useState<number | null>(null);
-  const [hoveredArch, setHoveredArch] = useState<string | null>(null);
   const [demoTab, setDemoTab] = useState('overview');
   const [demoData, setDemoData] = useState<any>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -388,11 +380,18 @@ export default function Home() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
-            {projects.map((p, i) => (
+            {projects.map((p, i) => {
+              const svgMap: Record<string, string> = {
+                'Karlin_ux Platform': 'featured-karlin-ux-platform',
+                'Customer Management System': 'featured-customer-management',
+                'Booking & Scheduling': 'featured-booking-scheduling',
+                'Media Management': 'featured-media-management',
+              };
+              const svgName = svgMap[p.name] || 'featured-karlin-ux-platform';
+              return (
               <div key={i} className="group card p-0 overflow-hidden hover:border-[var(--accent)]/30 transition-all duration-300">
-                <div className="h-48 bg-gradient-to-br from-[var(--bg-surface)] to-[var(--bg-elevated)] flex items-center justify-center relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-soft)] to-[var(--accent-2-soft)] opacity-50" />
-                  <div className="relative text-6xl opacity-20 group-hover:opacity-30 transition-opacity">⚡</div>
+                <div className="h-48 bg-[var(--bg-surface)] relative overflow-hidden">
+                  <img src={`/illustrations/${svgName}.svg`} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   <div className="absolute bottom-4 left-4">
                     <span className="badge badge-success">{p.status}</span>
                   </div>
@@ -413,7 +412,8 @@ export default function Home() {
                   </Link>
                 </div>
               </div>
-            ))}
+            );
+          })}
           </div>
         </div>
       </section>
@@ -432,31 +432,20 @@ export default function Home() {
 
           {/* Architecture diagram */}
           <div className="card p-8 bg-[var(--bg-elevated)]">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-              {architectureNodes.map((node, i) => (
-                <div key={node.id} className="flex items-center gap-4">
-                  <div
-                    className={`relative p-6 rounded-2xl border transition-all duration-300 cursor-pointer ${hoveredArch === node.id ? 'border-[var(--accent)] shadow-[var(--shadow-glow)] scale-105' : 'border-[var(--border)]'}`}
-                    onMouseEnter={() => setHoveredArch(node.id)}
-                    onMouseLeave={() => setHoveredArch(null)}
-                    style={{ minWidth: '160px' }}
-                  >
-                    <div className="w-10 h-10 rounded-lg mb-3 flex items-center justify-center" style={{ background: `${node.color}20`, color: node.color }}>
-                      <div className="w-4 h-4 rounded-full" style={{ background: node.color }} />
-                    </div>
-                    <div className="font-semibold text-sm mb-1">{node.label}</div>
-                    <div className={`text-xs text-[var(--text-muted)] transition-all duration-300 ${hoveredArch === node.id ? 'opacity-100' : 'opacity-60'}`}>
-                      {node.desc}
-                    </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {[
+                { name: 'React + Vite', svg: 'architecture-react-vite', desc: 'TypeScript SPA with Vite, Tailwind and React Router' },
+                { name: 'Django REST API', svg: 'architecture-django-rest-api', desc: 'DRF with session auth, CSRF, throttling and permissions' },
+                { name: 'Django Backend', svg: 'architecture-django-backend', desc: 'Business logic, models, serializers and views' },
+                { name: 'PostgreSQL', svg: 'architecture-postgresql', desc: 'Relational database with exclusion constraints' },
+                { name: 'Infrastructure', svg: 'architecture-infrastructure-tooling', desc: 'Docker, Caddy, GitHub Actions, monitoring' },
+              ].map((item, i) => (
+                <div key={i} className="rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--accent)]/30 transition-all duration-300">
+                  <img src={`/illustrations/${item.svg}.svg`} alt={item.name} className="w-full h-auto" />
+                  <div className="p-3">
+                    <div className="font-semibold text-sm">{item.name}</div>
+                    <div className="text-xs text-[var(--text-muted)]">{item.desc}</div>
                   </div>
-                  {i < architectureNodes.length - 1 && (
-                    <div className="hidden md:flex items-center">
-                      <svg className="w-12 h-6 text-[var(--accent)]" viewBox="0 0 48 24" fill="none">
-                        <path d="M0 12h40m0 0l-8-6m8 6l-8 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        <circle cx="24" cy="12" r="2" fill="currentColor" className="animate-pulse" />
-                      </svg>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
