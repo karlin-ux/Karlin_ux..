@@ -10,36 +10,52 @@ function AdminInner() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [applications, setApplications] = useState<any[]>([]);
   const [managers, setManagers] = useState<any[]>([]);
-  const [mediaAssets, setMediaAssets] = useState<any[]>([]);
+  // mediaAssets loaded but not currently displayed in UI
+  const [_mediaAssets, setMediaAssets] = useState<any[]>([]);
   const [tab, setTab] = useState('dashboard');
   const [productForm, setProductForm] = useState({ name: '', description: '', price: '', stock: '', category: '', is_published: true, is_featured: false, primary_image: '', gallery: [] as string[], model_3d: '' });
   const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   async function load() {
-    const [s, p, o, c, b, a, m, med] = await Promise.all([
-      api.get('/demo/dashboard/'),
-      api.get('/demo/products/'),
-      api.get('/demo/orders/'),
-      api.get('/demo/customers/'),
-      api.get('/demo/bookings/'),
-      api.get('/demo/applications/'),
-      api.get('/demo/managers/'),
-      api.get('/media/'),
-    ]);
-    setStats(s.data);
-    setProducts(p.data.results || p.data);
-    setOrders(o.data.results || o.data);
-    setCustomers(c.data.results || c.data);
-    setBookings(b.data.results || b.data);
-    setApplications(a.data.results || a.data);
-    setManagers(m.data.results || m.data);
-    setMediaAssets(med.data.results || med.data);
+    try {
+      const [s, p, o, c, b, a, m, med] = await Promise.all([
+        api.get('/demo/dashboard/'),
+        api.get('/demo/products/'),
+        api.get('/demo/orders/'),
+        api.get('/demo/customers/'),
+        api.get('/demo/bookings/'),
+        api.get('/demo/applications/'),
+        api.get('/demo/managers/'),
+        api.get('/media/'),
+      ]);
+      setStats(s.data);
+      setProducts(p.data.results || p.data);
+      setOrders(o.data.results || o.data);
+      setCustomers(c.data.results || c.data);
+      setBookings(b.data.results || b.data);
+      setApplications(a.data.results || a.data);
+      setManagers(m.data.results || m.data);
+      setMediaAssets(med.data.results || med.data);
+    } catch (e) {
+      console.error('Failed to load admin data', e);
+    } finally {
+      setLoading(false);
+    }
   }
-  useEffect(() => { load(); const t=setInterval(load,30000); return ()=>clearInterval(t); }, []);
+  useEffect(() => { load(); const t = setInterval(load, 30000); return () => clearInterval(t); }, []);
 
-  const tabs = ['dashboard','products','orders','bookings','applications','customers','managers'];
+  const tabs = [
+    { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+    { id: 'products', label: 'Products', icon: '📦' },
+    { id: 'orders', label: 'Orders', icon: '🛒' },
+    { id: 'bookings', label: 'Bookings', icon: '📅' },
+    { id: 'applications', label: 'Applications', icon: '📋' },
+    { id: 'customers', label: 'Customers', icon: '👥' },
+    { id: 'managers', label: 'Managers', icon: '👤' },
+  ];
 
-  async function saveProduct(e: any) {
+  async function saveProduct(e: React.FormEvent) {
     e.preventDefault();
     const payload = { ...productForm, price: Number(productForm.price), stock: Number(productForm.stock), primary_image: productForm.primary_image || null, gallery: productForm.gallery };
     if (editingProduct) await api.patch(`/demo/products/${editingProduct.id}/`, payload);
@@ -60,160 +76,230 @@ function AdminInner() {
     load();
   }
 
-  async function updateBookingStatus(id: string, status: string) {
-    await api.patch(`/demo/bookings/${id}/`, { status });
-    load();
-  }
-
-  async function updateApplication(id: string, status: string, notes?: string) {
-    await api.patch(`/demo/applications/${id}/`, { status, internal_notes: notes });
-    load();
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="skeleton h-8 w-48" />
+        <div className="grid md:grid-cols-4 gap-4">
+          {[1,2,3,4].map(i => <div key={i} className="skeleton h-32" />)}
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-4">Workspace Admin (Simulated Data)</h1>
-      <div className="flex gap-2 mb-4 flex-wrap">
-        {tabs.map(t => <button key={t} onClick={()=>setTab(t)} className={`px-3 py-1 rounded ${tab===t?'bg-[var(--accent)] text-white':'bg-[var(--surface-2)]'}`}>{t}</button>)}
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Workspace Admin</h1>
+        <span className="badge badge-info">Simulated Data</span>
       </div>
 
-      {tab === 'dashboard' && stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {Object.entries(stats).filter(([k])=>k!=='simulated').map(([k,v]) => (
-            <div key={k} className="card p-3">
-              <div className="text-xs text-[var(--muted)]">{k.replace(/_/g,' ')}</div>
-              <div className="text-xl font-bold">{String(v)}</div>
-            </div>
-          ))}
-          <div className="col-span-full text-xs text-yellow-300">All figures are simulated demonstration data.</div>
-        </div>
-      )}
+      {/* Tabs */}
+      <div className="flex gap-1 overflow-x-auto pb-2 border-b border-[var(--border)]">
+        {tabs.map(t => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap transition-colors ${
+              tab === t.id
+                ? 'text-[var(--accent)] border-b-2 border-[var(--accent)]'
+                : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
+            }`}
+          >
+            {t.icon} {t.label}
+          </button>
+        ))}
+      </div>
 
-      {tab === 'products' && (
-        <div className="space-y-4">
-          <form onSubmit={saveProduct} className="card p-4 grid grid-cols-1 md:grid-cols-3 gap-2">
-            <input className="input" placeholder="Name" value={productForm.name} onChange={e=>setProductForm({...productForm, name: e.target.value})} required />
-            <input className="input" placeholder="Price" type="number" step="0.01" value={productForm.price} onChange={e=>setProductForm({...productForm, price: e.target.value})} required />
-            <input className="input" placeholder="Stock" type="number" value={productForm.stock} onChange={e=>setProductForm({...productForm, stock: e.target.value})} required />
-            <input className="input" placeholder="Category" value={productForm.category} onChange={e=>setProductForm({...productForm, category: e.target.value})} />
-            <input className="input md:col-span-2" placeholder="Description" value={productForm.description} onChange={e=>setProductForm({...productForm, description: e.target.value})} />
-            <label className="text-xs">Primary image
-              <select className="input" value={productForm.primary_image} onChange={e=>setProductForm({...productForm, primary_image: e.target.value})}>
-                <option value="">None</option>
-                {mediaAssets.filter(m=>m.category==='image').map(m => <option key={m.id} value={m.id}>{m.original_filename}</option>)}
-              </select>
-            </label>
-            <label className="text-xs">Gallery
-              <select multiple className="input" value={productForm.gallery} onChange={e=>setProductForm({...productForm, gallery: Array.from(e.target.selectedOptions, o=>o.value)})}>
-                {mediaAssets.filter(m=>m.category==='image').map(m => <option key={m.id} value={m.id}>{m.original_filename}</option>)}
-              </select>
-            </label>
-            <label className="text-xs">3D model
-              <select className="input" value={productForm.model_3d} onChange={e=>setProductForm({...productForm, model_3d: e.target.value})}>
-                <option value="">None</option>
-                {mediaAssets.filter(m=>m.category==='model').map(m => <option key={m.id} value={m.id}>{m.original_filename}</option>)}
-              </select>
-            </label>
-            <label className="flex items-center gap-2"><input type="checkbox" checked={productForm.is_published} onChange={e=>setProductForm({...productForm, is_published: e.target.checked})} /> Published</label>
-            <label className="flex items-center gap-2"><input type="checkbox" checked={productForm.is_featured} onChange={e=>setProductForm({...productForm, is_featured: e.target.checked})} /> Featured</label>
-            <button className="btn" type="submit">{editingProduct ? 'Update' : 'Create'} product</button>
-          </form>
-          <div className="card p-4 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead><tr><th>Name</th><th>Price</th><th>Stock</th><th>Published</th><th></th></tr></thead>
-              <tbody>
-                {products.map(p => (
-                  <tr key={p.id} className="border-t border-[var(--border)]">
-                    <td>{p.name}</td><td>${p.price}</td><td>{p.stock}</td><td>{p.is_published?'Yes':'No'}</td>
-                    <td className="space-x-2">
-                      <button className="text-xs" onClick={()=>{setEditingProduct(p); setProductForm({name:p.name, description:p.description||'', price:p.price, stock:p.stock, category:p.category||'', is_published:p.is_published, is_featured:p.is_featured, primary_image: p.primary_image || '', gallery: p.gallery || [], model_3d: p.model_3d || ''});}}>Edit</button>
-                      <button className="text-xs text-red-400" onClick={()=>deleteProduct(p.id)}>Delete</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* Dashboard Tab */}
+      {tab === 'dashboard' && stats && (
+        <div className="space-y-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { label: 'Products', value: stats.product_count || products.length, icon: '📦' },
+              { label: 'Orders', value: stats.order_count || orders.length, icon: '🛒' },
+              { label: 'Customers', value: stats.customer_count || customers.length, icon: '👥' },
+              { label: 'Revenue', value: `£${stats.revenue || '0.00'}`, icon: '💰' },
+            ].map((s, i) => (
+              <div key={i} className="card p-5">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-2xl">{s.icon}</span>
+                </div>
+                <div className="text-2xl font-bold text-[var(--accent)]">{s.value}</div>
+                <div className="text-sm text-[var(--text-muted)]">{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="card p-5">
+              <h3 className="font-semibold mb-3">Recent Orders</h3>
+              {orders.slice(0, 5).map((o: any) => (
+                <div key={o.id} className="flex items-center justify-between py-2 border-b border-[var(--border)] last:border-0">
+                  <span className="text-sm">#{o.id?.slice(0, 8)}</span>
+                  <span className={`badge ${o.status === 'completed' ? 'badge-success' : o.status === 'cancelled' ? 'badge-error' : 'badge-warning'}`}>{o.status}</span>
+                </div>
+              ))}
+              {orders.length === 0 && <p className="text-sm text-[var(--text-muted)]">No orders yet.</p>}
+            </div>
+            <div className="card p-5">
+              <h3 className="font-semibold mb-3">Recent Bookings</h3>
+              {bookings.slice(0, 5).map((b: any) => (
+                <div key={b.id} className="flex items-center justify-between py-2 border-b border-[var(--border)] last:border-0">
+                  <span className="text-sm">{b.service_name}</span>
+                  <span className={`badge ${b.status === 'cancelled' ? 'badge-error' : 'badge-info'}`}>{b.status}</span>
+                </div>
+              ))}
+              {bookings.length === 0 && <p className="text-sm text-[var(--text-muted)]">No bookings yet.</p>}
+            </div>
           </div>
         </div>
       )}
 
+      {/* Products Tab */}
+      {tab === 'products' && (
+        <div className="space-y-4">
+          <div className="card p-6">
+            <h3 className="font-semibold mb-4">{editingProduct ? 'Edit Product' : 'New Product'}</h3>
+            <form onSubmit={saveProduct} className="grid md:grid-cols-2 gap-3">
+              <input className="input" placeholder="Name" value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value })} required />
+              <input className="input" placeholder="Category" value={productForm.category} onChange={e => setProductForm({ ...productForm, category: e.target.value })} />
+              <input className="input" placeholder="Price" type="number" step="0.01" value={productForm.price} onChange={e => setProductForm({ ...productForm, price: e.target.value })} required />
+              <input className="input" placeholder="Stock" type="number" value={productForm.stock} onChange={e => setProductForm({ ...productForm, stock: e.target.value })} required />
+              <textarea className="input md:col-span-2" placeholder="Description" rows={3} value={productForm.description} onChange={e => setProductForm({ ...productForm, description: e.target.value })} />
+              <div className="md:col-span-2 flex items-center gap-4">
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={productForm.is_published} onChange={e => setProductForm({ ...productForm, is_published: e.target.checked })} />
+                  Published
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={productForm.is_featured} onChange={e => setProductForm({ ...productForm, is_featured: e.target.checked })} />
+                  Featured
+                </label>
+              </div>
+              <div className="md:col-span-2 flex gap-2">
+                <button type="submit" className="btn btn-primary">{editingProduct ? 'Update' : 'Create'}</button>
+                {editingProduct && <button type="button" onClick={() => { setEditingProduct(null); setProductForm({ name: '', description: '', price: '', stock: '', category: '', is_published: true, is_featured: false, primary_image: '', gallery: [], model_3d: '' }); }} className="btn btn-secondary">Cancel</button>}
+              </div>
+            </form>
+          </div>
+
+          <div className="space-y-2">
+            {products.map((p: any) => (
+              <div key={p.id} className="card p-4 flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium">{p.name}</div>
+                  <div className="text-sm text-[var(--text-secondary)]">£{p.price} · Stock: {p.stock} · {p.category}</div>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => { setEditingProduct(p); setProductForm({ name: p.name, description: p.description || '', price: p.price, stock: p.stock, category: p.category || '', is_published: p.is_published, is_featured: p.is_featured, primary_image: p.primary_image || '', gallery: p.gallery || [], model_3d: p.model_3d || '' }); }} className="btn btn-ghost text-sm">Edit</button>
+                  <button onClick={() => deleteProduct(p.id)} className="btn btn-danger text-sm">Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Orders Tab */}
       {tab === 'orders' && (
-        <div className="card p-4 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead><tr><th>ID</th><th>Status</th><th>Total</th><th>Date</th><th>Update</th></tr></thead>
-            <tbody>
-              {orders.map(o => (
-                <tr key={o.id} className="border-t border-[var(--border)]">
-                  <td>{o.id}</td><td>{o.status}</td><td>${o.total}</td><td>{new Date(o.order_date).toLocaleDateString()}</td>
-                  <td>
-                    <select className="input text-xs" value={o.status} onChange={e=>updateOrderStatus(o.id, e.target.value)}>
-                      {['new','pending','processing','paid','shipped','completed','cancelled','refunded'].map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="space-y-3">
+          {orders.length === 0 ? (
+            <div className="card p-12 text-center">
+              <div className="text-4xl mb-3">🛒</div>
+              <p className="text-[var(--text-muted)]">No orders yet.</p>
+            </div>
+          ) : orders.map((o: any) => (
+            <div key={o.id} className="card p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-semibold">Order #{o.id?.slice(0, 8)}</span>
+                <select value={o.status} onChange={e => updateOrderStatus(o.id, e.target.value)} className="input max-w-[140px] text-sm py-1">
+                  <option value="pending">Pending</option>
+                  <option value="processing">Processing</option>
+                  <option value="shipped">Shipped</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+              <div className="text-sm text-[var(--text-secondary)]">
+                {o.items?.length || 0} items · £{o.total || '0.00'} · {new Date(o.created_at).toLocaleDateString()}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
+      {/* Bookings Tab */}
       {tab === 'bookings' && (
-        <div className="card p-4 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead><tr><th>Service</th><th>Date</th><th>Time</th><th>Status</th><th>Update</th></tr></thead>
-            <tbody>
-              {bookings.map(b => (
-                <tr key={b.id} className="border-t border-[var(--border)]">
-                  <td>{b.service_name}</td><td>{b.date}</td><td>{b.time}</td><td>{b.status}</td>
-                  <td>
-                    <select className="input text-xs" value={b.status} onChange={e=>updateBookingStatus(b.id, e.target.value)}>
-                      {['pending','confirmed','rescheduled','cancelled','completed'].map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="space-y-3">
+          {bookings.length === 0 ? (
+            <div className="card p-12 text-center">
+              <div className="text-4xl mb-3">📅</div>
+              <p className="text-[var(--text-muted)]">No bookings yet.</p>
+            </div>
+          ) : bookings.map((b: any) => (
+            <div key={b.id} className="card p-4 flex items-center justify-between">
+              <div>
+                <div className="font-medium">{b.service_name}</div>
+                <div className="text-sm text-[var(--text-secondary)]">{b.date} at {b.time} · {b.duration_minutes}min · {b.status}</div>
+              </div>
+              <span className={`badge ${b.status === 'cancelled' ? 'badge-error' : b.status === 'completed' ? 'badge-success' : 'badge-info'}`}>{b.status}</span>
+            </div>
+          ))}
         </div>
       )}
 
+      {/* Applications Tab */}
       {tab === 'applications' && (
-        <div className="card p-4 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead><tr><th>Type</th><th>Applicant</th><th>Status</th><th>Update</th></tr></thead>
-            <tbody>
-              {applications.map(a => (
-                <tr key={a.id} className="border-t border-[var(--border)]">
-                  <td>{a.application_type}</td><td>{a.applicant_name}</td><td>{a.status}</td>
-                  <td>
-                    <select className="input text-xs" value={a.status} onChange={e=>updateApplication(a.id, e.target.value, a.internal_notes)}>
-                      {['new','reviewing','approved','rejected','closed'].map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <p className="text-xs text-[var(--muted)] mt-2">Internal notes are managed via API and never exposed to customers.</p>
+        <div className="space-y-3">
+          {applications.length === 0 ? (
+            <div className="card p-12 text-center">
+              <div className="text-4xl mb-3">📋</div>
+              <p className="text-[var(--text-muted)]">No applications yet.</p>
+            </div>
+          ) : applications.map((a: any) => (
+            <div key={a.id} className="card p-4">
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-medium">{a.subject || a.application_type}</span>
+                <span className={`badge ${a.status === 'approved' ? 'badge-success' : a.status === 'rejected' ? 'badge-error' : 'badge-warning'}`}>{a.status}</span>
+              </div>
+              <div className="text-sm text-[var(--text-secondary)]">{a.applicant_name} · {a.applicant_email}</div>
+            </div>
+          ))}
         </div>
       )}
 
+      {/* Customers Tab */}
       {tab === 'customers' && (
-        <div className="card p-4 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead><tr><th>Name</th><th>Email</th><th>Category</th><th>Active</th></tr></thead>
-            <tbody>
-              {customers.map(c => <tr key={c.id} className="border-t border-[var(--border)]"><td>{c.name}</td><td>{c.email}</td><td>{c.category}</td><td>{c.is_active?'Yes':'No'}</td></tr>)}
-            </tbody>
-          </table>
+        <div className="space-y-3">
+          {customers.length === 0 ? (
+            <div className="card p-12 text-center">
+              <div className="text-4xl mb-3">👥</div>
+              <p className="text-[var(--text-muted)]">No customers yet.</p>
+            </div>
+          ) : customers.map((c: any) => (
+            <div key={c.id} className="card p-4">
+              <div className="font-medium">{c.name}</div>
+              <div className="text-sm text-[var(--text-secondary)]">{c.email} · {c.category}</div>
+            </div>
+          ))}
         </div>
       )}
 
+      {/* Managers Tab */}
       {tab === 'managers' && (
-        <div className="card p-4">
-          <ul className="text-sm">
-            {managers.map(m => <li key={m.id}>{m.name} — {m.email} (active: {String(m.is_active)})</li>)}
-          </ul>
+        <div className="space-y-3">
+          {managers.length === 0 ? (
+            <div className="card p-12 text-center">
+              <div className="text-4xl mb-3">👤</div>
+              <p className="text-[var(--text-muted)]">No managers yet.</p>
+            </div>
+          ) : managers.map((m: any) => (
+            <div key={m.id} className="card p-4">
+              <div className="font-medium">{m.name}</div>
+              <div className="text-sm text-[var(--text-secondary)]">{m.email} (active: {String(m.is_active)})</div>
+            </div>
+          ))}
         </div>
       )}
     </div>

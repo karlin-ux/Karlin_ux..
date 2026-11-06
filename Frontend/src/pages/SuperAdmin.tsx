@@ -11,45 +11,117 @@ function SuperInner() {
   const [mediaHealth, setMediaHealth] = useState<any>(null);
   const [auditFilter, setAuditFilter] = useState('');
   const [tab, setTab] = useState('overview');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/platform/analytics/').then(r => setAnalytics(r.data));
-    api.get('/platform/users/').then(r => setUsers(r.data.results || r.data));
-    api.get('/platform/audit/').then(r => setAudit(r.data.results || r.data));
-    api.get('/platform/security-events/').then(r => setSecurity(r.data.results || r.data));
-    api.get('/platform/health/').then(r => setHealth(r.data));
-    api.get('/platform/media-health/').then(r => setMediaHealth(r.data));
+    Promise.all([
+      api.get('/platform/analytics/').then(r => setAnalytics(r.data)).catch(() => {}),
+      api.get('/platform/users/').then(r => setUsers(r.data.results || r.data)).catch(() => {}),
+      api.get('/platform/audit/').then(r => setAudit(r.data.results || r.data)).catch(() => {}),
+      api.get('/platform/security-events/').then(r => setSecurity(r.data.results || r.data)).catch(() => {}),
+      api.get('/platform/health/').then(r => setHealth(r.data)).catch(() => {}),
+      api.get('/platform/media-health/').then(r => setMediaHealth(r.data)).catch(() => {}),
+    ]).finally(() => setLoading(false));
   }, []);
 
-  const tabs = ['overview','users','audit','security','health'];
+  const tabs = ['overview', 'users', 'audit', 'security', 'health'];
+
+  async function suspendUser(id: string) {
+    await api.post(`/platform/users/${id}/suspend/`);
+    const r = await api.get('/platform/users/');
+    setUsers(r.data.results || r.data);
+  }
+
+  async function reactivateUser(id: string) {
+    await api.post(`/platform/users/${id}/reactivate/`);
+    const r = await api.get('/platform/users/');
+    setUsers(r.data.results || r.data);
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="skeleton h-8 w-64" />
+        <div className="grid md:grid-cols-4 gap-4">
+          {[1,2,3,4].map(i => <div key={i} className="skeleton h-32" />)}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-4">Super Admin Control Centre (Genuine Platform Data)</h1>
-      <div className="flex gap-2 mb-4 flex-wrap">
-        {tabs.map(t => <button key={t} onClick={()=>setTab(t)} className={`px-3 py-1 rounded ${tab===t?'bg-[var(--accent)] text-white':'bg-[var(--surface-2)]'}`}>{t}</button>)}
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Super Admin Control Centre</h1>
+        <span className="badge badge-info">Genuine Platform Data</span>
       </div>
 
-      {tab === 'overview' && analytics && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="card p-3"><div className="text-xs text-[var(--muted)]">Total platform events</div><div className="text-xl font-bold">{analytics.total_events}</div></div>
-          <div className="card p-3"><div className="text-xs text-[var(--muted)]">Registered accounts (confirmed)</div><div className="text-xl font-bold">{users.length}</div></div>
-          {analytics && <div className="card p-3"><div className="text-xs text-[var(--muted)]">Recent registrations (30d)</div><div className="text-xl font-bold">{analytics.recent_registrations_30d}</div></div>}
-          {analytics && <div className="card p-3"><div className="text-xs text-[var(--muted)]">Active users estimate (login-based)</div><div className="text-xl font-bold">{analytics.active_users_estimate_30d}</div></div>}
-          {analytics && <div className="card p-3"><div className="text-xs text-[var(--muted)]">Active sessions estimate</div><div className="text-xl font-bold">{analytics.active_sessions_estimate}</div></div>}
-          <div className="card p-3"><div className="text-xs text-[var(--muted)]">Audit entries</div><div className="text-xl font-bold">{audit.length}</div></div>
-          <div className="card p-3"><div className="text-xs text-[var(--muted)]">Security events</div><div className="text-xl font-bold">{security.length}</div></div>
-          {mediaHealth && <div className="card p-3"><div className="text-xs text-[var(--muted)]">Platform media assets</div><div className="text-xl font-bold">{mediaHealth.total_assets}</div></div>}
-          <div className="col-span-full text-xs text-[var(--muted)]">Registered accounts and login-based estimates are genuine platform data. Anonymous visitor analytics are only recorded when tracked events exist. Simulated workspace data is never included.</div>
+      <div className="flex gap-1 overflow-x-auto pb-2 border-b border-[var(--border)]">
+        {tabs.map(t => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap transition-colors ${
+              tab === t
+                ? 'text-[var(--accent)] border-b-2 border-[var(--accent)]'
+                : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
+            }`}
+          >
+            {t.charAt(0).toUpperCase() + t.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'overview' && (
+        <div className="space-y-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { label: 'Platform Events', value: analytics?.total_events || 0, icon: '📊' },
+              { label: 'Registered Accounts', value: users.length, icon: '👥' },
+              { label: 'Recent Registrations (30d)', value: analytics?.recent_registrations_30d || 0, icon: '📈' },
+              { label: 'Audit Entries', value: audit.length, icon: '📝' },
+            ].map((s, i) => (
+              <div key={i} className="card p-5">
+                <div className="text-2xl mb-2">{s.icon}</div>
+                <div className="text-2xl font-bold text-[var(--accent)]">{s.value}</div>
+                <div className="text-sm text-[var(--text-muted)]">{s.label}</div>
+              </div>
+            ))}
+          </div>
+          <div className="card p-4 text-xs text-[var(--text-muted)]">
+            Registered accounts and login-based estimates are genuine platform data. Simulated workspace data is never included.
+          </div>
         </div>
       )}
 
       {tab === 'users' && (
         <div className="card p-4 overflow-x-auto">
           <table className="w-full text-sm">
-            <thead><tr><th>Email</th><th>Role</th><th>Active</th><th>Created</th></tr></thead>
+            <thead>
+              <tr className="border-b border-[var(--border)]">
+                <th className="text-left py-2 px-3 text-[var(--text-secondary)]">Email</th>
+                <th className="text-left py-2 px-3 text-[var(--text-secondary)]">Role</th>
+                <th className="text-left py-2 px-3 text-[var(--text-secondary)]">Active</th>
+                <th className="text-left py-2 px-3 text-[var(--text-secondary)]">Created</th>
+                <th className="text-left py-2 px-3 text-[var(--text-secondary)]">Actions</th>
+              </tr>
+            </thead>
             <tbody>
-              {users.map(u => <tr key={u.id} className="border-t border-[var(--border)]"><td>{u.email}</td><td>{u.role}</td><td>{u.is_active?'Yes':'No'}</td><td>{new Date(u.created_at).toLocaleDateString()}</td><td>{!u.is_superadmin && (u.is_active ? <button className="text-xs text-red-400" onClick={async()=>{await api.post(`/platform/users/${u.id}/suspend/`); const r=await api.get('/platform/users/'); setUsers(r.data.results||r.data);}}>Suspend</button> : <button className="text-xs" onClick={async()=>{await api.post(`/platform/users/${u.id}/reactivate/`); const r=await api.get('/platform/users/'); setUsers(r.data.results||r.data);}}>Reactivate</button>)}</td></tr>)}
+              {users.map(u => (
+                <tr key={u.id} className="border-t border-[var(--border)]">
+                  <td className="py-2 px-3">{u.email}</td>
+                  <td className="py-2 px-3"><span className={`badge ${u.is_superadmin ? 'badge-accent' : 'badge-info'}`}>{u.role}</span></td>
+                  <td className="py-2 px-3">{u.is_active ? '✓' : '✗'}</td>
+                  <td className="py-2 px-3 text-[var(--text-muted)]">{new Date(u.created_at).toLocaleDateString()}</td>
+                  <td className="py-2 px-3">
+                    {!u.is_superadmin && (
+                      u.is_active
+                        ? <button onClick={() => suspendUser(u.id)} className="text-xs text-[var(--error)] hover:underline">Suspend</button>
+                        : <button onClick={() => reactivateUser(u.id)} className="text-xs text-[var(--success)] hover:underline">Reactivate</button>
+                    )}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -57,24 +129,63 @@ function SuperInner() {
 
       {tab === 'audit' && (
         <div className="card p-4">
-          <input className="input mb-3" placeholder="Filter action" value={auditFilter} onChange={e=>setAuditFilter(e.target.value)} />
-          <ul className="text-sm space-y-1">
-            {audit.filter(a => !auditFilter || a.action.includes(auditFilter)).map(a => <li key={a.id}>{new Date(a.created_at).toLocaleString()} — {a.actor?.email || 'system'} — {a.action} — {a.target}</li>)}
-          </ul>
+          <input className="input mb-4" placeholder="Filter action" value={auditFilter} onChange={e => setAuditFilter(e.target.value)} />
+          <div className="space-y-2">
+            {audit.filter((a: any) => !auditFilter || a.action?.includes(auditFilter)).map((a: any) => (
+              <div key={a.id} className="py-2 border-b border-[var(--border)] last:border-0">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-sm">{a.action}</span>
+                  <span className="text-xs text-[var(--text-muted)]">{new Date(a.created_at).toLocaleString()}</span>
+                </div>
+                <div className="text-xs text-[var(--text-secondary)]">{a.target} · {a.outcome}</div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
       {tab === 'security' && (
-        <div className="card p-4">
-          <ul className="text-sm space-y-1">
-            {security.map(s => <li key={s.id}>{new Date(s.created_at).toLocaleString()} — {s.event_type} — {s.ip_address}</li>)}
-          </ul>
+        <div className="space-y-3">
+          {security.length === 0 ? (
+            <div className="card p-12 text-center">
+              <div className="text-4xl mb-3">🛡️</div>
+              <p className="text-[var(--text-muted)]">No security events.</p>
+            </div>
+          ) : security.map((s: any) => (
+            <div key={s.id} className="card p-4">
+              <div className="flex items-center justify-between">
+                <span className="font-medium">{s.event_type}</span>
+                <span className="text-xs text-[var(--text-muted)]">{new Date(s.created_at).toLocaleString()}</span>
+              </div>
+              <div className="text-sm text-[var(--text-secondary)]">{s.ip_address} · {s.user_agent?.slice(0, 60)}</div>
+            </div>
+          ))}
         </div>
       )}
 
-      {tab === 'health' && health && (
-        <div className="card p-4">
-          <pre className="text-sm">{JSON.stringify(health, null, 2)}</pre>
+      {tab === 'health' && (
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="card p-5">
+            <h3 className="font-semibold mb-3">Application Health</h3>
+            {health ? (
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between"><span className="text-[var(--text-secondary)]">Database</span><span className={`badge ${health.database === 'ok' ? 'badge-success' : 'badge-error'}`}>{health.database}</span></div>
+              </div>
+            ) : <p className="text-[var(--text-muted)]">Loading...</p>}
+          </div>
+          <div className="card p-5">
+            <h3 className="font-semibold mb-3">Media Health</h3>
+            {mediaHealth ? (
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between"><span className="text-[var(--text-secondary)]">Total Assets</span><span className="font-medium">{mediaHealth.total_assets}</span></div>
+                <div className="flex justify-between"><span className="text-[var(--text-secondary)]">Storage</span><span className="font-medium">{(mediaHealth.total_storage_bytes / 1024 / 1024).toFixed(2)} MB</span></div>
+                <div className="flex justify-between"><span className="text-[var(--text-secondary)]">Images</span><span className="font-medium">{mediaHealth.image_count}</span></div>
+                <div className="flex justify-between"><span className="text-[var(--text-secondary)]">Documents</span><span className="font-medium">{mediaHealth.document_count}</span></div>
+                <div className="flex justify-between"><span className="text-[var(--text-secondary)]">Videos</span><span className="font-medium">{mediaHealth.video_count}</span></div>
+                <div className="flex justify-between"><span className="text-[var(--text-secondary)]">Processing Failures</span><span className={`font-medium ${mediaHealth.processing_failures > 0 ? 'text-[var(--error)]' : ''}`}>{mediaHealth.processing_failures}</span></div>
+              </div>
+            ) : <p className="text-[var(--text-muted)]">Loading...</p>}
+          </div>
         </div>
       )}
     </div>

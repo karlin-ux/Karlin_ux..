@@ -1,18 +1,38 @@
-import { useEffect, useState } from 'react';
-import { api } from '../api/client';
+import { Link } from 'react-router-dom';
+
+const projects = [
+  { name: 'Karlin_ux Platform', desc: 'Full-stack portfolio and business management platform with Django backend, React frontend, PostgreSQL, Docker and Caddy.', tech: ['Django', 'React', 'TypeScript', 'PostgreSQL', 'Docker'], status: 'Active' },
+  { name: 'Customer Management System', desc: 'Customer accounts, profiles, order tracking and communication tools.', tech: ['Django', 'DRF', 'React'], status: 'Active' },
+  { name: 'Booking & Scheduling', desc: 'Calendar-based booking with conflict prevention and multi-duration support.', tech: ['Django', 'PostgreSQL', 'React'], status: 'Active' },
+  { name: 'Media Management', desc: 'Secure file uploads, image processing, variant generation and storage tracking.', tech: ['Django', 'Pillow', 'React'], status: 'Active' },
+];
 
 export default function Projects() {
-  const [projects, setProjects] = useState<any[]>([]);
-  useEffect(() => { api.get('/showcase/projects/').then(r => setProjects(r.data.results || r.data)); }, []);
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-4">Projects</h1>
-      <div className="space-y-4">
-        {projects.map(p => (
-          <div key={p.id} className="card p-4">
-            <h3 className="font-semibold">{p.title}</h3>
-            <p className="text-sm text-[var(--muted)]">{p.summary}</p>
-            <p className="text-xs mt-2">{p.technologies}</p>
+    <div className="max-w-7xl mx-auto space-y-8">
+      <section className="text-center py-12">
+        <h1 className="text-4xl md:text-5xl font-bold mb-4">Projects</h1>
+        <p className="text-[var(--text-secondary)] max-w-2xl mx-auto text-lg">
+          Real projects built with modern technologies. Each one demonstrates practical engineering.
+        </p>
+      </section>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        {projects.map((p, i) => (
+          <div key={i} className="card p-6 hover:border-[var(--accent)]/30 transition-all duration-300">
+            <div className="flex items-start justify-between mb-3">
+              <h3 className="text-xl font-bold">{p.name}</h3>
+              <span className="badge badge-success">{p.status}</span>
+            </div>
+            <p className="text-[var(--text-secondary)] mb-4 leading-relaxed">{p.desc}</p>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {p.tech.map((t, j) => (
+                <span key={j} className="badge badge-info">{t}</span>
+              ))}
+            </div>
+            <Link to="/explore" className="text-[var(--accent)] text-sm font-medium hover:underline">
+              Explore capabilities →
+            </Link>
           </div>
         ))}
       </div>

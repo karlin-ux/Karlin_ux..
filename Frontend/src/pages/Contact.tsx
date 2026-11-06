@@ -3,45 +3,68 @@ import { api } from '../api/client';
 
 export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
-  const [status, setStatus] = useState<{ ok: boolean; msg: string } | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+  const [error, setError] = useState('');
 
-  async function submit(e: any) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    setStatus(null);
+    setStatus('sending');
+    setError('');
     try {
-      const r = await api.post('/contact/submit/', form);
-      setStatus({ ok: true, msg: r.data.detail || 'Message sent.' });
+      await api.post('/contact/submit/', form);
+      setStatus('success');
       setForm({ name: '', email: '', subject: '', message: '' });
     } catch (e: any) {
-      const d = e?.response?.data;
-      setStatus({ ok: false, msg: d?.detail || (d?.errors ? JSON.stringify(d.errors) : 'Failed to send message.') });
-    } finally {
-      setLoading(false);
+      setStatus('error');
+      setError(e?.response?.data?.detail || 'Failed to send message. Please try again.');
     }
   }
 
   return (
-    <div className="card p-6 max-w-2xl">
-      <h1 className="text-3xl font-bold mb-4">Contact Me</h1>
-      <div className="flex flex-wrap gap-3 mb-6 text-sm">
-        <a className="btn" href="https://github.com/karlin-ux" target="_blank" rel="noopener noreferrer">GitHub</a>
-        <a className="btn" href="https://wa.me/27786033642" target="_blank" rel="noopener noreferrer">WhatsApp</a>
-        <a className="btn" href="mailto:yourheinskarl@gmail.com">Email</a>
+    <div className="max-w-2xl mx-auto space-y-8">
+      <section className="text-center py-12">
+        <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact</h1>
+        <p className="text-[var(--text-secondary)] text-lg">
+          Get in touch. I'd love to hear from you.
+        </p>
+      </section>
+
+      <div className="card p-8">
+        {status === 'success' && (
+          <div className="mb-6 p-4 rounded-lg bg-[var(--success-soft)] border border-[var(--success)]/20 text-[var(--success)]">
+            ✓ Message sent successfully! I'll get back to you soon.
+          </div>
+        )}
+        {status === 'error' && (
+          <div className="mb-6 p-4 rounded-lg bg-[var(--error-soft)] border border-[var(--error)]/20 text-[var(--error)]">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={submit} className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1.5 text-[var(--text-secondary)]">Name</label>
+              <input className="input" placeholder="Your name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5 text-[var(--text-secondary)]">Email</label>
+              <input className="input" type="email" placeholder="your@email.com" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5 text-[var(--text-secondary)]">Subject</label>
+            <input className="input" placeholder="What's this about?" value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5 text-[var(--text-secondary)]">Message</label>
+            <textarea className="input" rows={5} placeholder="Your message..." value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} required />
+          </div>
+          <button type="submit" className="btn btn-primary w-full" disabled={status === 'sending'}>
+            {status === 'sending' ? 'Sending...' : 'Send Message'}
+          </button>
+        </form>
       </div>
-      <form onSubmit={submit} className="space-y-3">
-        <input className="input" placeholder="Name" value={form.name} onChange={e=>setForm({...form, name: e.target.value})} required />
-        <input className="input" type="email" placeholder="Email" value={form.email} onChange={e=>setForm({...form, email: e.target.value})} required />
-        <input className="input" placeholder="Subject" value={form.subject} onChange={e=>setForm({...form, subject: e.target.value})} />
-        <textarea className="input" placeholder="Message" rows={4} value={form.message} onChange={e=>setForm({...form, message: e.target.value})} required />
-        <button className="btn" type="submit" disabled={loading}>{loading ? 'Sending…' : 'Send'}</button>
-      </form>
-      {status && <p className={`mt-3 text-sm ${status.ok ? 'text-green-400' : 'text-red-400'}`}>{status.msg}</p>}
-      <p className="mt-4 text-xs text-[var(--muted)]">
-        Privacy notice: Your name, email and message are used only to respond to your enquiry.
-        Messages may be stored for support and security purposes. We do not share your information with third parties.
-      </p>
     </div>
   );
 }

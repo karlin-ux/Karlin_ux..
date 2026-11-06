@@ -1,52 +1,135 @@
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { useTheme } from '../auth/ThemeContext';
-import CommandPalette from '../components/CommandPalette';
-import Assistant from '../components/Assistant';
-import VoiceNav from '../components/VoiceNav';
+
+const navLinks = [
+  { to: '/', label: 'Home' },
+  { to: '/explore', label: 'Explore' },
+  { to: '/projects', label: 'Projects' },
+  { to: '/technologies', label: 'Technologies' },
+  { to: '/about', label: 'About' },
+  { to: '/contact', label: 'Contact' },
+];
 
 export default function Layout() {
   const { user, logout } = useAuth();
   const { theme, toggle } = useTheme();
-  const nav = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-[var(--border)] sticky top-0 z-40 backdrop-blur bg-[var(--bg)]/80">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
-          <Link to="/" className="font-bold text-lg">Karlin_ux</Link>
-          <nav className="flex gap-3 text-sm">
-            <Link to="/explore">Explore</Link>
-            <Link to="/customer">Customer</Link>
-            {user && <Link to="/admin">Admin</Link>}
-            {user && <Link to="/media">Media</Link>}
-            {user?.is_superadmin && <Link to="/superadmin">Super Admin</Link>}
-            <Link to="/projects">Projects</Link>
-            <Link to="/technologies">Technologies</Link>
-            <Link to="/about">About</Link>
-            <Link to="/contact">Contact</Link>
-          </nav>
-          <div className="ml-auto flex items-center gap-3">
-            <button onClick={toggle} className="text-sm">{theme === 'dark' ? 'Light' : 'Dark'}</button>
-            {user ? (
-              <>
-                <span className="text-xs text-[var(--muted)]">{user.email}</span>
-                <button className="btn text-xs" onClick={async ()=>{await logout(); nav('/');}}>Sign out</button>
-              </>
-            ) : (
-              <>
-                <Link to="/signin" className="btn text-xs">Sign In</Link>
-                <Link to="/register" className="text-xs">Register</Link>
-              </>
-            )}
+    <div className="min-h-screen flex flex-col">
+      {/* Top Navigation */}
+      <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--bg)]/80 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-2 font-bold text-xl">
+              <span className="text-gradient">Karlin_ux</span>
+            </Link>
+
+            {/* Desktop Nav */}
+            <nav className="hidden md:flex items-center gap-1">
+              {navLinks.map(link => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  className={({ isActive }) =>
+                    `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'text-[var(--accent)] bg-[var(--accent-soft)]'
+                        : 'text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--bg-surface)]'
+                    }`
+                  }
+                >
+                  {link.label}
+                </NavLink>
+              ))}
+            </nav>
+
+            {/* Right side */}
+            <div className="flex items-center gap-3">
+              {/* Theme toggle */}
+              <button
+                onClick={toggle}
+                className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--bg-surface)] transition-colors"
+                aria-label="Toggle theme"
+              >
+                {theme === 'dark' ? '☀️' : '🌙'}
+              </button>
+
+              {user ? (
+                <div className="flex items-center gap-2">
+                  {user.is_superadmin && (
+                    <Link to="/superadmin" className="btn-ghost text-sm">Super Admin</Link>
+                  )}
+                  <Link to="/customer" className="btn-ghost text-sm">Dashboard</Link>
+                  <button onClick={logout} className="btn-secondary text-sm">Logout</button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Link to="/signin" className="btn-ghost text-sm">Sign In</Link>
+                  <Link to="/register" className="btn-primary text-sm">Get Started</Link>
+                </div>
+              )}
+
+              {/* Mobile menu button */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text)]"
+                aria-label="Toggle menu"
+              >
+                {mobileMenuOpen ? '✕' : '☰'}
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-[var(--border)] bg-[var(--bg)]">
+            <nav className="px-4 py-3 space-y-1">
+              {navLinks.map(link => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `block px-3 py-2 rounded-lg text-sm font-medium ${
+                      isActive
+                        ? 'text-[var(--accent)] bg-[var(--accent-soft)]'
+                        : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
+                    }`
+                  }
+                >
+                  {link.label}
+                </NavLink>
+              ))}
+              {user && (
+                <>
+                  <Link to="/customer" className="block px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)]" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
+                  {user.is_superadmin && (
+                    <Link to="/superadmin" className="block px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)]" onClick={() => setMobileMenuOpen(false)}>Super Admin</Link>
+                  )}
+                  <button onClick={() => { logout(); setMobileMenuOpen(false); }} className="block w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)]">Logout</button>
+                </>
+              )}
+            </nav>
+          </div>
+        )}
       </header>
-      <main className="max-w-7xl mx-auto px-4 py-6">
+
+      {/* Main content */}
+      <main className="flex-1">
         <Outlet />
       </main>
-      <CommandPalette />
-      <Assistant />
-      <VoiceNav />
+
+      {/* Footer */}
+      <footer className="border-t border-[var(--border)] py-8 mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-[var(--text-muted)]">
+          <p>© {new Date().getFullYear()} Karlin_ux. Built with Django, React, PostgreSQL, and Tailwind CSS.</p>
+        </div>
+      </footer>
     </div>
   );
 }
