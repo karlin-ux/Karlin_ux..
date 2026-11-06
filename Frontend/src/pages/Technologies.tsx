@@ -122,7 +122,7 @@ export default function Technologies() {
   // even if their primary category is different (e.g., Python is Backend)
   const PROGRAMMING_LANGUAGES = new Set([
     'Python', 'Java', 'Kotlin', 'C', 'C++', 'C#', 'Lua', 'Roblox Luau', 'Ruby',
-    'JavaScript', 'TypeScript',
+    'JavaScript', 'TypeScript', 'HTML5', 'CSS3', 'Django',
   ]);
 
   const filtered = useMemo(() => {
