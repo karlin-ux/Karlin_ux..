@@ -57,8 +57,22 @@ export default function BookingCalendar() {
             <option value="">Select service</option>
             {services.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
-          <input className="input" type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} required />
-          <input className="input" type="time" value={form.time} onChange={e => setForm({ ...form, time: e.target.value })} required />
+          <div className="relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--accent)] pointer-events-none">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <input className="input pl-11 text-center" type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} required />
+          </div>
+          <div className="relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--accent)] pointer-events-none">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <input className="input pl-11 text-center" type="time" value={form.time} onChange={e => setForm({ ...form, time: e.target.value })} required />
+          </div>
           <input className="input" placeholder="Customer name" value={form.customer_name} onChange={e => setForm({ ...form, customer_name: e.target.value })} />
           <input className="input" placeholder="Customer email" value={form.customer_email} onChange={e => setForm({ ...form, customer_email: e.target.value })} />
           <button type="submit" className="btn btn-primary md:col-span-2">Create Booking</button>

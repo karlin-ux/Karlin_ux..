@@ -469,6 +469,36 @@ h6 { font-size: 1rem; }
   outline-offset: 2px;
 }
 
+/* Date and time input styling */
+input[type="date"],
+input[type="time"] {
+  color-scheme: dark;
+  text-align: center;
+}
+
+.light input[type="date"],
+.light input[type="time"] {
+  color-scheme: light;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7) sepia(1) saturate(3) hue-rotate(120deg);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+.light input[type="date"]::-webkit-calendar-picker-indicator,
+.light input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.3) sepia(1) saturate(3) hue-rotate(120deg);
+}
+
 /* Selection */
 ::selection {
   background: var(--accent-soft);
