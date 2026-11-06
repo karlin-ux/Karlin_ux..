@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { RequireAuth, RequireSuper } from '../components/Protected';
+import Icon from '../components/Icon';
 
 function SuperInner() {
   const [analytics, setAnalytics] = useState<any>(null);
@@ -76,13 +77,13 @@ function SuperInner() {
         <div className="space-y-6">
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: 'Platform Events', value: analytics?.total_events || 0, icon: '📊' },
-              { label: 'Registered Accounts', value: users.length, icon: '👥' },
-              { label: 'Recent Registrations (30d)', value: analytics?.recent_registrations_30d || 0, icon: '📈' },
-              { label: 'Audit Entries', value: audit.length, icon: '📝' },
+              { label: 'Platform Events', value: analytics?.total_events || 0, icon: 'analytics-reporting' },
+              { label: 'Registered Accounts', value: users.length, icon: 'metric-customers' },
+              { label: 'Recent Registrations (30d)', value: analytics?.recent_registrations_30d || 0, icon: 'analytics-reporting' },
+              { label: 'Audit Entries', value: audit.length, icon: 'content-management' },
             ].map((s, i) => (
               <div key={i} className="card p-5">
-                <div className="text-2xl mb-2">{s.icon}</div>
+                <div className="mb-2"><Icon name={s.icon} size={24} /></div>
                 <div className="text-2xl font-bold text-[var(--accent)]">{s.value}</div>
                 <div className="text-sm text-[var(--text-muted)]">{s.label}</div>
               </div>
@@ -111,7 +112,7 @@ function SuperInner() {
                 <tr key={u.id} className="border-t border-[var(--border)]">
                   <td className="py-2 px-3">{u.email}</td>
                   <td className="py-2 px-3"><span className={`badge ${u.is_superadmin ? 'badge-accent' : 'badge-info'}`}>{u.role}</span></td>
-                  <td className="py-2 px-3">{u.is_active ? '✓' : '✗'}</td>
+                  <td className="py-2 px-3">{u.is_active ? 'Yes' : 'No'}</td>
                   <td className="py-2 px-3 text-[var(--text-muted)]">{new Date(u.created_at).toLocaleDateString()}</td>
                   <td className="py-2 px-3">
                     {!u.is_superadmin && (
@@ -148,7 +149,7 @@ function SuperInner() {
         <div className="space-y-3">
           {security.length === 0 ? (
             <div className="card p-12 text-center">
-              <div className="text-4xl mb-3">🛡️</div>
+              <div className="mb-3 flex justify-center"><Icon name="security-infrastructure" size={48} /></div>
               <p className="text-[var(--text-muted)]">No security events.</p>
             </div>
           ) : security.map((s: any) => (

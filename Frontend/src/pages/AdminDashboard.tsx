@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { RequireAuth } from '../components/Protected';
+import Icon from '../components/Icon';
 
 function AdminInner() {
   const [stats, setStats] = useState<any>(null);
@@ -46,13 +47,13 @@ function AdminInner() {
   useEffect(() => { load(); const t = setInterval(load, 30000); return () => clearInterval(t); }, []);
 
   const tabs = [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-    { id: 'products', label: 'Products', icon: '📦' },
-    { id: 'orders', label: 'Orders', icon: '🛒' },
-    { id: 'bookings', label: 'Bookings', icon: '📅' },
-    { id: 'applications', label: 'Applications', icon: '📋' },
-    { id: 'customers', label: 'Customers', icon: '👥' },
-    { id: 'managers', label: 'Managers', icon: '👤' },
+    { id: 'dashboard', label: 'Dashboard', icon: 'analytics-reporting' },
+    { id: 'products', label: 'Products', icon: 'catalogue' },
+    { id: 'orders', label: 'Orders', icon: 'orders' },
+    { id: 'bookings', label: 'Bookings', icon: 'bookings' },
+    { id: 'applications', label: 'Applications', icon: 'applications' },
+    { id: 'customers', label: 'Customers', icon: 'metric-customers' },
+    { id: 'managers', label: 'Managers', icon: 'customer-experiences' },
   ];
 
   async function saveProduct(e: React.FormEvent) {
@@ -106,7 +107,7 @@ function AdminInner() {
                 : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
             }`}
           >
-            {t.icon} {t.label}
+            <Icon name={t.icon} size={16} /> {t.label}
           </button>
         ))}
       </div>
@@ -116,14 +117,14 @@ function AdminInner() {
         <div className="space-y-6">
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: 'Products', value: stats.product_count || products.length, icon: '📦' },
-              { label: 'Orders', value: stats.order_count || orders.length, icon: '🛒' },
-              { label: 'Customers', value: stats.customer_count || customers.length, icon: '👥' },
-              { label: 'Revenue', value: `£${stats.revenue || '0.00'}`, icon: '💰' },
+              { label: 'Products', value: stats.product_count || products.length, icon: 'catalogue' },
+              { label: 'Orders', value: stats.order_count || orders.length, icon: 'orders' },
+              { label: 'Customers', value: stats.customer_count || customers.length, icon: 'metric-customers' },
+              { label: 'Revenue', value: `£${stats.revenue || '0.00'}`, icon: 'metric-revenue' },
             ].map((s, i) => (
               <div key={i} className="card p-5">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-2xl">{s.icon}</span>
+                  <Icon name={s.icon} size={24} />
                 </div>
                 <div className="text-2xl font-bold text-[var(--accent)]">{s.value}</div>
                 <div className="text-sm text-[var(--text-muted)]">{s.label}</div>
@@ -206,7 +207,7 @@ function AdminInner() {
         <div className="space-y-3">
           {orders.length === 0 ? (
             <div className="card p-12 text-center">
-              <div className="text-4xl mb-3">🛒</div>
+              <div className="mb-3 flex justify-center"><Icon name="orders" size={48} /></div>
               <p className="text-[var(--text-muted)]">No orders yet.</p>
             </div>
           ) : orders.map((o: any) => (
@@ -234,7 +235,7 @@ function AdminInner() {
         <div className="space-y-3">
           {bookings.length === 0 ? (
             <div className="card p-12 text-center">
-              <div className="text-4xl mb-3">📅</div>
+              <div className="mb-3 flex justify-center"><Icon name="bookings" size={48} /></div>
               <p className="text-[var(--text-muted)]">No bookings yet.</p>
             </div>
           ) : bookings.map((b: any) => (
@@ -254,7 +255,7 @@ function AdminInner() {
         <div className="space-y-3">
           {applications.length === 0 ? (
             <div className="card p-12 text-center">
-              <div className="text-4xl mb-3">📋</div>
+              <div className="mb-3 flex justify-center"><Icon name="applications" size={48} /></div>
               <p className="text-[var(--text-muted)]">No applications yet.</p>
             </div>
           ) : applications.map((a: any) => (
@@ -274,7 +275,7 @@ function AdminInner() {
         <div className="space-y-3">
           {customers.length === 0 ? (
             <div className="card p-12 text-center">
-              <div className="text-4xl mb-3">👥</div>
+              <div className="mb-3 flex justify-center"><Icon name="metric-customers" size={48} /></div>
               <p className="text-[var(--text-muted)]">No customers yet.</p>
             </div>
           ) : customers.map((c: any) => (
@@ -291,7 +292,7 @@ function AdminInner() {
         <div className="space-y-3">
           {managers.length === 0 ? (
             <div className="card p-12 text-center">
-              <div className="text-4xl mb-3">👤</div>
+              <div className="mb-3 flex justify-center"><Icon name="customer-experiences" size={48} /></div>
               <p className="text-[var(--text-muted)]">No managers yet.</p>
             </div>
           ) : managers.map((m: any) => (

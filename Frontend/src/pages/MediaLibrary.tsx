@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
+import Icon from '../components/Icon';
 
 export default function MediaLibrary() {
   const [assets, setAssets] = useState<any[]>([]);
@@ -65,7 +66,7 @@ export default function MediaLibrary() {
 
       {assets.length === 0 ? (
         <div className="card p-12 text-center">
-          <div className="text-4xl mb-3">🖼️</div>
+          <div className="mb-3 flex justify-center"><Icon name="media-management" size={48} /></div>
           <p className="text-[var(--text-muted)]">No media files yet. Upload your first file.</p>
         </div>
       ) : (
@@ -76,7 +77,7 @@ export default function MediaLibrary() {
                 {a.category === 'image' ? (
                   <img src={`/api/media/${a.id}/file/`} alt={a.original_filename} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-3xl">{a.category === 'video' ? '🎬' : a.category === 'document' ? '📄' : '📁'}</span>
+                  <Icon name={a.category === 'video' ? 'media-management' : a.category === 'document' ? 'content-management' : 'catalogue'} size={32} />
                 )}
               </div>
               <div className="text-sm font-medium truncate mb-1">{a.original_filename}</div>

@@ -55,7 +55,7 @@ export default function Layout() {
                 className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--bg-surface)] transition-colors"
                 aria-label="Toggle theme"
               >
-                {theme === 'dark' ? '☀️' : '🌙'}
+                {theme === 'dark' ? '☀' : '☾'}
               </button>
 
               {user ? (

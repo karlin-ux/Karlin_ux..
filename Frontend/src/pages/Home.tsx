@@ -1,19 +1,20 @@
 import { Link } from 'react-router-dom';
+import Icon from '../components/Icon';
 
 export default function Home() {
   const capabilities = [
-    { title: 'Customer Experiences', desc: 'Registration, authentication, profiles, orders, bookings and customer self-service.', icon: '👤' },
-    { title: 'Business Management', desc: 'Product catalogues, order processing, customer management and workspace administration.', icon: '📊' },
-    { title: 'Analytics & Reporting', desc: 'Real-time dashboards, trend analysis and business intelligence from live data.', icon: '📈' },
-    { title: 'Content Management', desc: 'Page builder, content revisions, media management and SEO-friendly content.', icon: '📝' },
-    { title: 'Media Management', desc: 'Secure file uploads, image processing, variant generation and storage tracking.', icon: '🖼️' },
-    { title: 'Booking Systems', desc: 'Calendar-based scheduling with conflict prevention and multi-duration support.', icon: '📅' },
-    { title: 'Application Management', desc: 'Customer applications, review workflows and status tracking.', icon: '📋' },
-    { title: 'Role-Based Access', desc: 'Multi-tier authorization: customer, workspace admin and platform super admin.', icon: '🔐' },
-    { title: 'AI-Assisted Interfaces', desc: 'Voice navigation, command palette and assistant integration.', icon: '🤖' },
-    { title: 'Search', desc: 'Full-text search across products, customers and content.', icon: '🔍' },
-    { title: '3D Product Experiences', desc: 'Interactive 3D product viewers with model loading and controls.', icon: '🎨' },
-    { title: 'Security & Infrastructure', desc: 'CSRF protection, workspace isolation, rate limiting, Docker and Caddy.', icon: '🛡️' },
+    { title: 'Customer Experiences', desc: 'Registration, authentication, profiles, orders, bookings and customer self-service.', icon: 'customer-experiences' },
+    { title: 'Business Management', desc: 'Product catalogues, order processing, customer management and workspace administration.', icon: 'business-management' },
+    { title: 'Analytics & Reporting', desc: 'Real-time dashboards, trend analysis and business intelligence from live data.', icon: 'analytics-reporting' },
+    { title: 'Content Management', desc: 'Page builder, content revisions, media management and SEO-friendly content.', icon: 'content-management' },
+    { title: 'Media Management', desc: 'Secure file uploads, image processing, variant generation and storage tracking.', icon: 'media-management' },
+    { title: 'Booking Systems', desc: 'Calendar-based scheduling with conflict prevention and multi-duration support.', icon: 'booking-systems' },
+    { title: 'Application Management', desc: 'Customer applications, review workflows and status tracking.', icon: 'application-management' },
+    { title: 'Role-Based Access', desc: 'Multi-tier authorization: customer, workspace admin and platform super admin.', icon: 'role-based-access' },
+    { title: 'AI-Assisted Interfaces', desc: 'Voice navigation, command palette and assistant integration.', icon: 'ai-assisted-interfaces' },
+    { title: 'Search', desc: 'Full-text search across products, customers and content.', icon: 'search' },
+    { title: '3D Product Experiences', desc: 'Interactive 3D product viewers with model loading and controls.', icon: '3d-product-experiences' },
+    { title: 'Security & Infrastructure', desc: 'CSRF protection, workspace isolation, rate limiting, Docker and Caddy.', icon: 'security-infrastructure' },
   ];
 
   return (
@@ -66,7 +67,7 @@ export default function Home() {
                 key={i}
                 className="card p-6 hover:border-[var(--accent)]/30 transition-all duration-300 group cursor-default"
               >
-                <div className="text-3xl mb-3">{cap.icon}</div>
+                <div className="mb-3"><Icon name={cap.icon} size={40} /></div>
                 <h3 className="font-semibold text-[var(--text)] mb-2 group-hover:text-[var(--accent)] transition-colors">
                   {cap.title}
                 </h3>

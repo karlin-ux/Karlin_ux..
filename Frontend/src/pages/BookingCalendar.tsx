@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
+import Icon from '../components/Icon';
 
 export default function BookingCalendar() {
   const [bookings, setBookings] = useState<any[]>([]);
@@ -69,7 +70,7 @@ export default function BookingCalendar() {
         <h3 className="font-semibold">Upcoming Bookings</h3>
         {bookings.length === 0 ? (
           <div className="card p-12 text-center">
-            <div className="text-4xl mb-3">📅</div>
+            <div className="mb-3 flex justify-center"><Icon name="booking-empty-state" size={48} /></div>
             <p className="text-[var(--text-muted)]">No bookings yet.</p>
           </div>
         ) : bookings.map((b: any) => (

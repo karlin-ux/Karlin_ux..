@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
+import Icon from '../components/Icon';
 
 interface Product { id: string; name: string; description: string; price: string; stock: number; category: string; is_published: boolean; is_featured: boolean; primary_image?: any; model_3d?: any; }
 
@@ -116,12 +117,12 @@ export default function CustomerHome() {
   const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
 
   const tabs = [
-    { id: 'catalogue', label: 'Catalogue', icon: '🛍️' },
-    { id: 'cart', label: 'Cart', icon: '🛒', badge: cartItems.length },
-    { id: 'orders', label: 'Orders', icon: '📦' },
-    { id: 'bookings', label: 'Bookings', icon: '📅' },
-    { id: 'applications', label: 'Applications', icon: '📋' },
-    { id: 'notifications', label: 'Notifications', icon: '🔔', badge: notifications.filter(n => !n.is_read).length },
+    { id: 'catalogue', label: 'Catalogue', icon: 'catalogue' },
+    { id: 'cart', label: 'Cart', icon: 'cart', badge: cartItems.length },
+    { id: 'orders', label: 'Orders', icon: 'orders' },
+    { id: 'bookings', label: 'Bookings', icon: 'bookings' },
+    { id: 'applications', label: 'Applications', icon: 'applications' },
+    { id: 'notifications', label: 'Notifications', icon: 'notifications', badge: notifications.filter(n => !n.is_read).length },
   ];
 
   if (loading) {
@@ -159,7 +160,7 @@ export default function CustomerHome() {
                 : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
             }`}
           >
-            {t.icon} {t.label}
+            <Icon name={t.icon} size={16} /> {t.label}
             {t.badge ? <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-[var(--accent)] text-[var(--text-inverse)] text-xs">{t.badge}</span> : null}
           </button>
         ))}
@@ -186,7 +187,7 @@ export default function CustomerHome() {
 
           {filtered.length === 0 ? (
             <div className="card p-12 text-center">
-              <div className="text-4xl mb-3">🛍️</div>
+              <div className="mb-3 flex justify-center"><Icon name="catalogue" size={48} /></div>
               <p className="text-[var(--text-muted)]">No products found.</p>
             </div>
           ) : view === 'grid' ? (
@@ -194,7 +195,7 @@ export default function CustomerHome() {
               {filtered.map(p => (
                 <div key={p.id} className="card p-5 hover:border-[var(--accent)]/30 transition-all">
                   <div className="aspect-video bg-[var(--bg-surface)] rounded-lg mb-3 flex items-center justify-center text-[var(--text-muted)]">
-                    {p.primary_image ? <img src={p.primary_image?.url || p.primary_image} alt={p.name} className="w-full h-full object-cover rounded-lg" /> : '📦'}
+                    {p.primary_image ? <img src={p.primary_image?.url || p.primary_image} alt={p.name} className="w-full h-full object-cover rounded-lg" /> : <Icon name="catalogue" size={32} />}
                   </div>
                   <h3 className="font-semibold mb-1">{p.name}</h3>
                   <p className="text-sm text-[var(--text-secondary)] mb-2 line-clamp-2">{p.description}</p>
@@ -210,7 +211,7 @@ export default function CustomerHome() {
               {filtered.map(p => (
                 <div key={p.id} className="card p-4 flex items-center gap-4">
                   <div className="w-16 h-16 bg-[var(--bg-surface)] rounded-lg flex items-center justify-center shrink-0">
-                    {p.primary_image ? <img src={p.primary_image?.url || p.primary_image} alt={p.name} className="w-full h-full object-cover rounded-lg" /> : '📦'}
+                    {p.primary_image ? <img src={p.primary_image?.url || p.primary_image} alt={p.name} className="w-full h-full object-cover rounded-lg" /> : <Icon name="catalogue" size={32} />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold">{p.name}</h3>
@@ -230,7 +231,7 @@ export default function CustomerHome() {
         <div className="space-y-4">
           {cartItems.length === 0 ? (
             <div className="card p-12 text-center">
-              <div className="text-4xl mb-3">🛒</div>
+              <div className="mb-3 flex justify-center"><Icon name="cart" size={48} /></div>
               <p className="text-[var(--text-muted)]">Your cart is empty.</p>
             </div>
           ) : (
@@ -265,7 +266,7 @@ export default function CustomerHome() {
         <div className="space-y-3">
           {orders.length === 0 ? (
             <div className="card p-12 text-center">
-              <div className="text-4xl mb-3">📦</div>
+              <div className="mb-3 flex justify-center"><Icon name="orders" size={48} /></div>
               <p className="text-[var(--text-muted)]">No orders yet.</p>
             </div>
           ) : orders.map((o: any) => (
@@ -303,7 +304,7 @@ export default function CustomerHome() {
           <div className="space-y-3">
             {bookings.length === 0 ? (
               <div className="card p-12 text-center">
-                <div className="text-4xl mb-3">📅</div>
+                <div className="mb-3 flex justify-center"><Icon name="booking-empty-state" size={48} /></div>
                 <p className="text-[var(--text-muted)]">No bookings yet.</p>
               </div>
             ) : bookings.map((b: any) => (
@@ -352,7 +353,7 @@ export default function CustomerHome() {
         <div className="space-y-3">
           {notifications.length === 0 ? (
             <div className="card p-12 text-center">
-              <div className="text-4xl mb-3">🔔</div>
+              <div className="mb-3 flex justify-center"><Icon name="notifications" size={48} /></div>
               <p className="text-[var(--text-muted)]">No notifications.</p>
             </div>
           ) : notifications.map((n: any) => (

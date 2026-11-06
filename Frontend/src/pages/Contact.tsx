@@ -32,7 +32,7 @@ export default function Contact() {
       <div className="card p-8">
         {status === 'success' && (
           <div className="mb-6 p-4 rounded-lg bg-[var(--success-soft)] border border-[var(--success)]/20 text-[var(--success)]">
-            ✓ Message sent successfully! I'll get back to you soon.
+            Message sent successfully! I'll get back to you soon.
           </div>
         )}
         {status === 'error' && (
