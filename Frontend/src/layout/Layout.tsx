@@ -61,10 +61,10 @@ export default function Layout() {
               {user ? (
                 <div className="flex items-center gap-2">
                   {user.is_superadmin && (
-                    <Link to="/superadmin" className="btn-ghost text-sm">Super Admin</Link>
+                    <Link to="/superadmin" className="px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--bg-surface)] transition-colors">Super Admin</Link>
                   )}
-                  <Link to="/customer" className="btn-ghost text-sm">Dashboard</Link>
-                  <button onClick={logout} className="btn-secondary text-sm">Logout</button>
+                  <Link to="/customer" className="px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--bg-surface)] transition-colors">Dashboard</Link>
+                  <button onClick={logout} className="px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--bg-surface)] transition-colors">Logout</button>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
@@ -107,11 +107,11 @@ export default function Layout() {
               ))}
               {user && (
                 <>
-                  <Link to="/customer" className="block px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)]" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
+                  <Link to="/customer" className="block px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--bg-surface)] transition-colors" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
                   {user.is_superadmin && (
-                    <Link to="/superadmin" className="block px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)]" onClick={() => setMobileMenuOpen(false)}>Super Admin</Link>
+                    <Link to="/superadmin" className="block px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--bg-surface)] transition-colors" onClick={() => setMobileMenuOpen(false)}>Super Admin</Link>
                   )}
-                  <button onClick={() => { logout(); setMobileMenuOpen(false); }} className="block w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)]">Logout</button>
+                  <button onClick={() => { logout(); setMobileMenuOpen(false); }} className="block w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--bg-surface)] transition-colors">Logout</button>
                 </>
               )}
             </nav>
