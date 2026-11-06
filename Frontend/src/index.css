@@ -395,6 +395,15 @@ h6 { font-size: 1rem; }
   to { transform: translateY(0); opacity: 1; }
 }
 
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
 /* Modal overlay */
 .modal-overlay {
   position: fixed;
