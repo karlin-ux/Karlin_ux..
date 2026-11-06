@@ -79,7 +79,7 @@ export default function Home() {
           ============================================ */}
       <section ref={heroRef} className="relative min-h-screen flex items-center pt-20 pb-16 overflow-hidden">
         {/* Background SVG */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
+        <div className="absolute inset-0 opacity-[0.0375] pointer-events-none">
           <img src="/illustrations/customer-experiences.svg" alt="" className="w-full h-full object-cover" />
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -235,7 +235,7 @@ export default function Home() {
                   onMouseLeave={() => setHoveredCap(null)}
                 >
                   {/* Background SVG illustration */}
-                  <div className="absolute inset-0 opacity-[0.04] group-hover:opacity-[0.08] transition-opacity duration-500 pointer-events-none">
+                  <div className="absolute inset-0 opacity-[0.05] group-hover:opacity-[0.10] transition-opacity duration-500 pointer-events-none">
                     <img src={`/illustrations/${cap.icon}.svg`} alt="" className="w-full h-full object-cover" />
                   </div>
                   {/* Background gradient on hover */}
@@ -276,7 +276,7 @@ export default function Home() {
           LIVE PLATFORM PREVIEW
           ============================================ */}
       <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.02] pointer-events-none">
+        <div className="absolute inset-0 opacity-[0.025] pointer-events-none">
           <img src="/illustrations/analytics-reporting.svg" alt="" className="w-full h-full object-cover" />
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -433,7 +433,7 @@ export default function Home() {
           ENGINEERING ARCHITECTURE
           ============================================ */}
       <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.02] pointer-events-none">
+        <div className="absolute inset-0 opacity-[0.025] pointer-events-none">
           <img src="/illustrations/security-infrastructure.svg" alt="" className="w-full h-full object-cover" />
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

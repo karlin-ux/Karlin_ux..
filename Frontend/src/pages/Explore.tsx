@@ -88,7 +88,7 @@ export default function Explore() {
           ============================================ */}
       <section className="relative py-24 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-soft)] via-transparent to-[var(--accent-2-soft)] opacity-40" />
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
+        <div className="absolute inset-0 opacity-[0.0375] pointer-events-none">
           <img src="/illustrations/ai-assisted-interfaces.svg" alt="" className="w-full h-full object-cover" />
         </div>
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[var(--accent)] rounded-full blur-[200px] opacity-[0.06]" />
@@ -125,7 +125,7 @@ export default function Explore() {
                   onMouseLeave={() => setActivePreview(null)}
                 >
                   {/* Background SVG illustration */}
-                  <div className="absolute inset-0 opacity-[0.06] group-hover:opacity-[0.12] transition-opacity duration-500 pointer-events-none">
+                  <div className="absolute inset-0 opacity-[0.075] group-hover:opacity-[0.15] transition-opacity duration-500 pointer-events-none">
                     <img src={`/illustrations/${group.icon}.svg`} alt="" className="w-full h-full object-cover" />
                   </div>
                   {/* Background gradient */}
@@ -178,7 +178,7 @@ export default function Explore() {
           LIVE PLATFORM PREVIEW
           ============================================ */}
       <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.02] pointer-events-none">
+        <div className="absolute inset-0 opacity-[0.025] pointer-events-none">
           <img src="/illustrations/analytics-reporting.svg" alt="" className="w-full h-full object-cover" />
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -249,7 +249,7 @@ export default function Explore() {
           ENGINEERING SHOWCASE
           ============================================ */}
       <section className="py-24 bg-[var(--bg-secondary)] relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.02] pointer-events-none">
+        <div className="absolute inset-0 opacity-[0.025] pointer-events-none">
           <img src="/illustrations/security-infrastructure.svg" alt="" className="w-full h-full object-cover" />
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
