@@ -261,26 +261,16 @@ export default function Explore() {
           </div>
 
           <div className="card p-8 bg-[var(--bg-elevated)]">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               {[
-                { label: 'React Frontend', desc: 'TypeScript SPA', color: 'var(--accent-2)' },
-                { label: 'Django REST API', desc: 'DRF with auth', color: 'var(--accent)' },
-                { label: 'Django Backend', desc: 'Business logic', color: 'var(--accent-3)' },
-                { label: 'PostgreSQL', desc: 'Relational DB', color: 'var(--info)' },
-              ].map((node, i) => (
-                <div key={i} className="flex items-center gap-4">
-                  <div className="text-center">
-                    <div className="w-16 h-16 rounded-2xl mx-auto mb-2 flex items-center justify-center border border-[var(--border)] bg-[var(--bg-surface)]" style={{ borderColor: node.color }}>
-                      <div className="w-4 h-4 rounded-full" style={{ background: node.color }} />
-                    </div>
-                    <div className="font-semibold text-sm">{node.label}</div>
-                    <div className="text-xs text-[var(--text-muted)]">{node.desc}</div>
-                  </div>
-                  {i < 3 && (
-                    <svg className="w-8 h-6 text-[var(--accent)] hidden md:block" viewBox="0 0 32 24" fill="none">
-                      <path d="M0 12h24m0 0l-6-4m6 4l-6 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
+                { name: 'React + Vite', svg: 'architecture-react-vite' },
+                { name: 'Django REST API', svg: 'architecture-django-rest-api' },
+                { name: 'Django Backend', svg: 'architecture-django-backend' },
+                { name: 'PostgreSQL', svg: 'architecture-postgresql' },
+                { name: 'Infrastructure', svg: 'architecture-infrastructure-tooling' },
+              ].map((item, i) => (
+                <div key={i} className="rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--accent)]/30 transition-all duration-300">
+                  <img src={`/illustrations/${item.svg}.svg`} alt={item.name} className="w-full h-auto" />
                 </div>
               ))}
             </div>

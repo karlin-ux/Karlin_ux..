@@ -456,10 +456,6 @@ export default function Home() {
               ].map((item, i) => (
                 <div key={i} className="rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--accent)]/30 transition-all duration-300">
                   <img src={`/illustrations/${item.svg}.svg`} alt={item.name} className="w-full h-auto" />
-                  <div className="p-3">
-                    <div className="font-semibold text-sm">{item.name}</div>
-                    <div className="text-xs text-[var(--text-muted)]">{item.desc}</div>
-                  </div>
                 </div>
               ))}
             </div>
