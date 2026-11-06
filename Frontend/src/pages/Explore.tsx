@@ -46,7 +46,7 @@ const capabilityGroups = [
   {
     title: 'Booking & Applications',
     desc: 'Calendar scheduling, conflict prevention and application workflows.',
-    icon: 'bookings',
+    icon: 'booking-systems',
     size: 'medium',
     color: 'var(--warning)',
     features: ['Calendar Scheduling', 'Conflict Prevention', 'Booking Management', 'Application Submission', 'Status Tracking'],
@@ -229,7 +229,7 @@ export default function Explore() {
                     { action: 'New order placed', time: '2 min ago', icon: 'orders' },
                     { action: 'Customer registered', time: '5 min ago', icon: 'customer-experiences' },
                     { action: 'Product updated', time: '12 min ago', icon: 'catalogue' },
-                    { action: 'Booking confirmed', time: '18 min ago', icon: 'bookings' },
+                    { action: 'Booking confirmed', time: '18 min ago', icon: 'booking-systems' },
                     { action: 'Media uploaded', time: '25 min ago', icon: 'media-management' },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
