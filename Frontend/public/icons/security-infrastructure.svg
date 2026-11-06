@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Security Infrastructure</title>
+  <desc id="desc">Premium Karlin UX interface icon with mint, blue and violet accents.</desc>
+  <g stroke="#DCE7F5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 7 51 14v15c0 13-8 22-19 28C21 51 13 42 13 29V14Z"/>
+    <path d="m32 15 12 4v10c0 8-4 14-12 19-8-5-12-11-12-19V19Z" stroke="#53F5B0"/>
+    <path d="m25 31 5 5 10-12" stroke="#53F5B0" stroke-width="3"/>
+  </g>
+</svg>

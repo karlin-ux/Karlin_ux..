@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Booking Systems</title>
+  <desc id="desc">Premium Karlin UX interface icon with mint, blue and violet accents.</desc>
+  <g stroke="#DCE7F5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="10" y="13" width="44" height="41" rx="5"/>
+    <path d="M10 24h44M21 9v9M43 9v9" stroke="#53F5B0" stroke-width="3"/>
+    <path d="M20 32h5M31 32h5M42 32h3M20 42h5M31 42h5" stroke-width="3"/>
+    <path d="m40 43 3 3 7-8" stroke="#53F5B0" stroke-width="2.8"/>
+  </g>
+</svg>

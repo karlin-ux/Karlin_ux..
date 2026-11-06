@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Content Management</title>
+  <desc id="desc">Premium Karlin UX interface icon with mint, blue and violet accents.</desc>
+  <g stroke="#DCE7F5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 9h24l9 9v37H16Z"/>
+    <path d="M40 9v10h9M23 28h19M23 35h19M23 42h13"/>
+    <path d="m39 42 11-11 5 5-11 11-7 2Z" fill="#53F5B0" fill-opacity=".2" stroke="#53F5B0"/>
+  </g>
+</svg>

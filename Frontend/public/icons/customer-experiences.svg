@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Customer Experiences</title>
+  <desc id="desc">Premium Karlin UX interface icon with mint, blue and violet accents.</desc>
+  <g stroke="#DCE7F5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 10a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z" fill="#5C9DFF" opacity=".22"/>
+    <path d="M32 10a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z"/>
+    <path d="M13 54c1.8-10.2 8.6-16 19-16s17.2 5.8 19 16" />
+    <path d="M20 53c1.2-6.6 5.2-10 12-10s10.8 3.4 12 10" stroke="#53F5B0"/>
+  </g>
+</svg>

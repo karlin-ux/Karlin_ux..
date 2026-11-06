@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Metric Customers</title>
+  <desc id="desc">Premium Karlin UX interface icon with mint, blue and violet accents.</desc>
+  <g stroke="#DCE7F5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="24" cy="23" r="9" fill="#5C9DFF" fill-opacity=".18"/>
+    <circle cx="24" cy="23" r="9"/>
+    <path d="M8 53c1-9 6-14 16-14s15 5 16 14"/>
+    <circle cx="44" cy="25" r="7" stroke="#9B85FF"/>
+    <path d="M41 39c7 0 12 4 14 11" stroke="#9B85FF"/>
+  </g>
+</svg>

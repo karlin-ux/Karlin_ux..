@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">3D Product Experiences</title>
+  <desc id="desc">Premium Karlin UX interface icon with mint, blue and violet accents.</desc>
+  <g stroke="#DCE7F5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m32 8 21 12v24L32 56 11 44V20Z"/>
+    <path d="m11 20 21 12 21-12M32 32v24M21 14l21 12" stroke="#53F5B0"/>
+    <path d="m32 8 21 12-21 12-21-12Z" fill="#9B85FF" fill-opacity=".16"/>
+  </g>
+</svg>

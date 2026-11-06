@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Ai Assisted Interfaces</title>
+  <desc id="desc">Premium Karlin UX interface icon with mint, blue and violet accents.</desc>
+  <g stroke="#DCE7F5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="12" y="17" width="40" height="34" rx="9"/>
+    <path d="M22 17v-5M42 17v-5M22 51v5M42 51v5M12 29H7M12 41H7M52 29h5M52 41h5"/>
+    <circle cx="25" cy="33" r="3" fill="#53F5B0" stroke="none"/>
+    <circle cx="39" cy="33" r="3" fill="#53F5B0" stroke="none"/>
+    <path d="M24 42h16M32 6v5" stroke="#9B85FF" stroke-width="2.5"/>
+    <path d="m29 8 3-3 3 3" stroke="#9B85FF"/>
+  </g>
+</svg>

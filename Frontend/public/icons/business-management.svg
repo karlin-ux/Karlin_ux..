@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Business Management</title>
+  <desc id="desc">Premium Karlin UX interface icon with mint, blue and violet accents.</desc>
+  <g stroke="#DCE7F5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="9" y="14" width="46" height="38" rx="5"/>
+    <path d="M9 24h46M20 14v-4h24v4" />
+    <path d="M19 43V33M28 43V28M37 43V36M46 43V22" stroke="#53F5B0" stroke-width="4"/>
+  </g>
+</svg>

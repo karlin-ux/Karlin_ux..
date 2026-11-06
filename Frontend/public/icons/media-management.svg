@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Media Management</title>
+  <desc id="desc">Premium Karlin UX interface icon with mint, blue and violet accents.</desc>
+  <g stroke="#DCE7F5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="9" y="13" width="46" height="38" rx="5"/>
+    <circle cx="22" cy="25" r="4" fill="#F5BD58" stroke="none"/>
+    <path d="m13 45 12-12 8 8 7-7 11 11" stroke="#53F5B0" stroke-width="3"/>
+    <path d="M15 18h34" stroke="#5C9DFF"/>
+  </g>
+</svg>

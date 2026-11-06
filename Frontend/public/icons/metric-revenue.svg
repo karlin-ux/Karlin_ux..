@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Metric Revenue</title>
+  <desc id="desc">Premium Karlin UX interface icon with mint, blue and violet accents.</desc>
+  <g stroke="#DCE7F5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 8c-9 0-16 8-16 19 0 13 8 23 16 29 8-6 16-16 16-29C48 16 41 8 32 8Z"/>
+    <path d="M37 22c-1-3-4-4-7-3-5 1-5 7 1 9l3 1c6 2 5 8 0 10-4 2-9 0-10-4M32 15v33" stroke="#53F5B0" stroke-width="2.5"/>
+  </g>
+</svg>

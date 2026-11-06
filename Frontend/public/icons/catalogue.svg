@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Catalogue</title>
+  <desc id="desc">Premium Karlin UX interface icon with mint, blue and violet accents.</desc>
+  <g stroke="#DCE7F5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 18h10l4 5h30v29H10Z"/>
+    <path d="M10 18v-5h15l4 5h25v5" stroke="#53F5B0"/>
+    <path d="M19 31h25M19 38h19M19 45h22" stroke="#5C9DFF"/>
+  </g>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Application Management</title>
+  <desc id="desc">Premium Karlin UX interface icon with mint, blue and violet accents.</desc>
+  <g stroke="#DCE7F5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19 11h26a4 4 0 0 1 4 4v39H15V15a4 4 0 0 1 4-4Z"/>
+    <path d="M25 8h14v8H25Z" fill="#53F5B0" fill-opacity=".18" stroke="#53F5B0"/>
+    <path d="M23 27h18M23 35h18M23 43h11"/>
+    <circle cx="46" cy="45" r="8" fill="#141E2E" stroke="#5C9DFF"/>
+    <path d="m42 45 3 3 5-6" stroke="#53F5B0"/>
+  </g>
+</svg>
