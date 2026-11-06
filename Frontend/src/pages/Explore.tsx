@@ -88,6 +88,9 @@ export default function Explore() {
           ============================================ */}
       <section className="relative py-24 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-soft)] via-transparent to-[var(--accent-2-soft)] opacity-40" />
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
+          <img src="/illustrations/ai-assisted-interfaces.svg" alt="" className="w-full h-full object-cover" />
+        </div>
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[var(--accent)] rounded-full blur-[200px] opacity-[0.06]" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -121,6 +124,10 @@ export default function Explore() {
                   onMouseEnter={() => setActivePreview(group.title)}
                   onMouseLeave={() => setActivePreview(null)}
                 >
+                  {/* Background SVG illustration */}
+                  <div className="absolute inset-0 opacity-[0.06] group-hover:opacity-[0.12] transition-opacity duration-500 pointer-events-none">
+                    <img src={`/illustrations/${group.icon}.svg`} alt="" className="w-full h-full object-cover" />
+                  </div>
                   {/* Background gradient */}
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{
                     background: `radial-gradient(circle at 30% 30%, ${group.color}15, transparent 70%)`,
@@ -170,7 +177,10 @@ export default function Explore() {
       {/* ============================================
           LIVE PLATFORM PREVIEW
           ============================================ */}
-      <section className="py-24">
+      <section className="py-24 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.02] pointer-events-none">
+          <img src="/illustrations/analytics-reporting.svg" alt="" className="w-full h-full object-cover" />
+        </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Live Platform Preview</h2>
@@ -238,7 +248,10 @@ export default function Explore() {
       {/* ============================================
           ENGINEERING SHOWCASE
           ============================================ */}
-      <section className="py-24 bg-[var(--bg-secondary)]">
+      <section className="py-24 bg-[var(--bg-secondary)] relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.02] pointer-events-none">
+          <img src="/illustrations/security-infrastructure.svg" alt="" className="w-full h-full object-cover" />
+        </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Engineering Showcase</h2>

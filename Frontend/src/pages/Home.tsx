@@ -77,7 +77,11 @@ export default function Home() {
       {/* ============================================
           HERO SECTION — Two Column
           ============================================ */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center pt-20 pb-16">
+      <section ref={heroRef} className="relative min-h-screen flex items-center pt-20 pb-16 overflow-hidden">
+        {/* Background SVG */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
+          <img src="/illustrations/customer-experiences.svg" alt="" className="w-full h-full object-cover" />
+        </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left: Content */}
@@ -230,6 +234,10 @@ export default function Home() {
                   onMouseEnter={() => setHoveredCap(i)}
                   onMouseLeave={() => setHoveredCap(null)}
                 >
+                  {/* Background SVG illustration */}
+                  <div className="absolute inset-0 opacity-[0.04] group-hover:opacity-[0.08] transition-opacity duration-500 pointer-events-none">
+                    <img src={`/illustrations/${cap.icon}.svg`} alt="" className="w-full h-full object-cover" />
+                  </div>
                   {/* Background gradient on hover */}
                   <div className={`absolute inset-0 bg-gradient-to-br from-[var(--accent-soft)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
 
@@ -267,7 +275,10 @@ export default function Home() {
       {/* ============================================
           LIVE PLATFORM PREVIEW
           ============================================ */}
-      <section className="py-24">
+      <section className="py-24 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.02] pointer-events-none">
+          <img src="/illustrations/analytics-reporting.svg" alt="" className="w-full h-full object-cover" />
+        </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Live Platform Preview</h2>
@@ -421,7 +432,10 @@ export default function Home() {
       {/* ============================================
           ENGINEERING ARCHITECTURE
           ============================================ */}
-      <section className="py-24">
+      <section className="py-24 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.02] pointer-events-none">
+          <img src="/illustrations/security-infrastructure.svg" alt="" className="w-full h-full object-cover" />
+        </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Engineering Architecture</h2>
