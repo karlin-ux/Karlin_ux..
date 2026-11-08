@@ -21,8 +21,7 @@ from .serializers import (
 
 
 def _user_workspace(user):
-    if user.is_superadmin:
-        return None
+    # Super admins can use their own workspace for demo features
     return Workspace.objects.filter(owner=user).first()
 
 
