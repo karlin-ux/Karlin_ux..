@@ -167,7 +167,7 @@ export default function Technologies() {
       {/* Hero */}
       <section className="text-center py-12">
         <div className="text-xs font-medium text-[var(--accent)] uppercase tracking-widest mb-3">Engineering Toolkit</div>
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">Technologies & Capabilities</h1>
+        <h1 className="text-4xl md:text-5xl font-bold mb-4">Technologies and Skills</h1>
         <p className="text-[var(--text-secondary)] max-w-2xl mx-auto text-lg mb-8">
           From full-stack development and database engineering to mobile applications, cloud infrastructure and software testing — explore the technologies I use and the tools I can bring to a project.
         </p>
