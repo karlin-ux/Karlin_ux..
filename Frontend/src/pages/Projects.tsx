@@ -5,6 +5,7 @@ const projects = [
   { name: 'Customer Management System', desc: 'Customer accounts, profiles, order tracking and communication tools.', tech: ['Django', 'DRF', 'React'], status: 'Active', path: '/customer' },
   { name: 'Booking & Scheduling', desc: 'Calendar-based booking with conflict prevention and multi-duration support.', tech: ['Django', 'PostgreSQL', 'React'], status: 'Active', path: '/calendar' },
   { name: 'Media Management', desc: 'Secure file uploads, image processing, variant generation and storage tracking.', tech: ['Django', 'Pillow', 'React'], status: 'Active', path: '/media' },
+  { name: '3D Viewer', desc: 'Interactive Three.js Earth viewer with orbit controls, atmosphere, cloud layer and an Earth topography/bathymetry texture.', tech: ['React', 'TypeScript', 'Three.js'], status: 'Active', path: '/3d' },
 ];
 
 export default function Projects() {
