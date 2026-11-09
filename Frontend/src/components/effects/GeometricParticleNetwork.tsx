@@ -101,10 +101,11 @@ function flushBuckets(
  * GeometricParticleNetwork
  *
  * A living, cursor-reactive geometric network:
- * - dense depth-layered particles with irregular triangular faces
+ * - dense depth-layered particles with irregular triangular formations
+ * - smooth cursor displacement with subtle 3D depth response
+ * - cursor-following local illumination that brightens nearby geometry
  * - uniform spatial grid so neighbour search stays cheap as density rises
  * - batched Path2D drawing (a handful of canvas calls per frame)
- * - smooth cursor displacement plus local illumination (no big halo)
  * - palette changes are blended live, outside React state
  * - respects prefers-reduced-motion and pauses when hidden
  */
@@ -506,7 +507,9 @@ export default function GeometricParticleNetwork({
     const renderSpotlight = (palette: RGB[]) => {
       if (!interactive || !pointer.active || !palette.length) return;
 
-      const radius = Math.min(170, interactionRadius * 0.9);
+      // A tight, local spotlight that illuminates nearby geometric forms
+      // without creating a large distracting halo.
+      const radius = Math.min(150, interactionRadius * 0.72);
       const glow = ctx.createRadialGradient(
         pointer.x,
         pointer.y,
@@ -516,9 +519,11 @@ export default function GeometricParticleNetwork({
         radius
       );
       const secondary = palette[1 % palette.length] ?? palette[0];
+      const tertiary = palette[2 % palette.length] ?? palette[0];
 
-      glow.addColorStop(0, toRgba(palette[0], 0.08));
-      glow.addColorStop(0.5, toRgba(secondary, 0.03));
+      glow.addColorStop(0, toRgba(palette[0], 0.095));
+      glow.addColorStop(0.22, toRgba(secondary, 0.045));
+      glow.addColorStop(0.55, toRgba(tertiary, 0.016));
       glow.addColorStop(1, toRgba(palette[0], 0));
 
       ctx.fillStyle = glow;
@@ -590,8 +595,9 @@ export default function GeometricParticleNetwork({
           if (distance > 0.001 && distance < interactionRadius) {
             const influence = 1 - distance / interactionRadius;
 
-            // Squared falloff keeps the push smooth and local.
-            const force = influence * influence * 30 * particle.z;
+            // Squared falloff keeps the push smooth and local; depth (z)
+            // gives nearer particles a subtly stronger 3D response.
+            const force = influence * influence * (26 + particle.z * 12);
             x += (dx / distance) * force;
             y += (dy / distance) * force;
           }
@@ -606,7 +612,7 @@ export default function GeometricParticleNetwork({
           const distance = Math.sqrt(dx * dx + dy * dy);
 
           proximity[i] = clamp(
-            1 - distance / (interactionRadius * 1.5),
+            1 - distance / (interactionRadius * 1.35),
             0,
             1
           );
