@@ -2,6 +2,10 @@ import { useState } from 'react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { useTheme } from '../auth/ThemeContext';
+import GeometricParticleNetwork from '../components/effects/GeometricParticleNetwork';
+
+// Karlin_ux design tokens: --accent, --accent-2, --accent-3
+const NETWORK_COLORS = ['#53F5B0', '#5C9DFF', '#9B85FF'];
 
 const navLinks = [
   { to: '/', label: 'Home' },
@@ -18,7 +22,20 @@ export default function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="karlin-particle-backdrop relative isolate min-h-screen flex flex-col">
+      {/* Viewport-sized backdrop. The inner wrapper is position:relative so the
+          canvas can fill it; the outer layer keeps the effect behind content. */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="relative h-full w-full">
+          <GeometricParticleNetwork
+            colors={NETWORK_COLORS}
+            className="absolute inset-0 h-full w-full"
+            density={1}
+            opacity={0.9}
+            interactive
+          />
+        </div>
+      </div>
       {/* Top Navigation */}
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--bg)]/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

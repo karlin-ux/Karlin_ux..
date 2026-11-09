@@ -181,6 +181,20 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* ============================================
+   INTERACTIVE PARTICLE BACKDROP
+   Page-level section fills are made translucent so the fixed geometric
+   network is visible through them. Cards and surfaces keep their opaque
+   backgrounds, so text contrast is unchanged.
+   ============================================ */
+.karlin-particle-backdrop main section[class*="bg-[var(--bg)]"] {
+  background-color: color-mix(in srgb, var(--bg) 35%, transparent);
+}
+
+.karlin-particle-backdrop main section[class*="bg-[var(--bg-secondary)]"] {
+  background-color: color-mix(in srgb, var(--bg-secondary) 35%, transparent);
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
