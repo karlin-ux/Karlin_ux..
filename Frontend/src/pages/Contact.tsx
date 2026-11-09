@@ -29,19 +29,19 @@ export default function Contact() {
         </p>
       </section>
 
-      <div className="card p-8">
+      <div className="neon-perimeter card relative overflow-hidden rounded-[var(--radius-lg)] border-[var(--border-strong)] bg-[var(--bg-elevated)]/90 p-8 shadow-lg backdrop-blur-sm">
         {status === 'success' && (
-          <div className="mb-6 p-4 rounded-lg bg-[var(--success-soft)] border border-[var(--success)]/20 text-[var(--success)]">
+          <div className="mb-6 p-4 rounded-lg bg-[var(--success-soft)] border border-[var(--success)]/20 text-[var(--success)]" role="status">
             Message sent successfully! I'll get back to you soon.
           </div>
         )}
         {status === 'error' && (
-          <div className="mb-6 p-4 rounded-lg bg-[var(--error-soft)] border border-[var(--error)]/20 text-[var(--error)]">
+          <div className="mb-6 p-4 rounded-lg bg-[var(--error-soft)] border border-[var(--error)]/20 text-[var(--error)]" role="alert">
             {error}
           </div>
         )}
 
-        <form onSubmit={submit} className="space-y-4">
+        <form onSubmit={submit} className="space-y-4" noValidate={false}>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1.5 text-[var(--text-secondary)]">Name</label>

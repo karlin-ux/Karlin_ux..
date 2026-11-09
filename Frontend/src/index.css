@@ -522,3 +522,104 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   background: var(--accent-soft);
   color: var(--accent);
 }
+
+/* ============================================
+   NEON PERIMETER BORDER (Phase D)
+   A refined glow that travels around the border.
+   ============================================ */
+@keyframes neon-perimeter-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.neon-perimeter {
+  position: relative;
+  isolation: isolate;
+}
+
+.neon-perimeter::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    transparent 55%,
+    rgba(83, 245, 176, 0.15) 68%,
+    rgba(92, 157, 255, 0.95) 76%,
+    rgba(155, 133, 255, 0.95) 84%,
+    rgba(83, 245, 176, 0.35) 92%,
+    transparent 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: neon-perimeter-spin 9s linear infinite;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.9;
+}
+
+.neon-perimeter::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    transparent 60%,
+    rgba(92, 157, 255, 0.12) 78%,
+    rgba(83, 245, 176, 0.18) 86%,
+    transparent 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: neon-perimeter-spin 9s linear infinite;
+  filter: blur(6px);
+  pointer-events: none;
+  z-index: -2;
+  opacity: 0.75;
+}
+
+.light .neon-perimeter::before {
+  opacity: 0.75;
+}
+
+.light .neon-perimeter::after {
+  opacity: 0.55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .neon-perimeter::before,
+  .neon-perimeter::after {
+    animation: none;
+  }
+  .neon-perimeter::before {
+    background: linear-gradient(
+      135deg,
+      rgba(83, 245, 176, 0.45),
+      rgba(92, 157, 255, 0.45),
+      rgba(155, 133, 255, 0.35)
+    );
+    opacity: 0.7;
+  }
+  .neon-perimeter::after {
+    opacity: 0.35;
+  }
+}

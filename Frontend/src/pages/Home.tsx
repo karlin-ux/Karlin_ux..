@@ -277,8 +277,12 @@ export default function Home() {
                 The tools I reach for most, grouped by the problems they solve.
               </p>
             </div>
-            <Link to="/technologies" className="btn btn-secondary self-start text-sm sm:self-auto">
-              Explore all technologies
+            <Link
+              to="/technologies"
+              className="neon-perimeter inline-flex items-center justify-center self-start rounded-xl border border-[var(--accent)]/25 bg-[var(--bg-elevated)] px-5 py-3 text-sm font-semibold text-[var(--text)] shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 sm:self-auto sm:px-6 sm:py-3.5 sm:text-base"
+            >
+              Explore Technologies &amp; Skills
+              <span aria-hidden="true" className="ml-2 text-[var(--accent)]">→</span>
             </Link>
           </div>
 
