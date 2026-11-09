@@ -1,209 +1,184 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useState, useRef } from 'react';
-import { api } from '../api/client';
 import Icon from '../components/Icon';
 
 /* ============================================
-   CAPABILITIES DATA
+   HOME CONTENT
    ============================================ */
-const capabilities = [
-  { title: 'Customer Experiences', desc: 'Registration, authentication, profiles, orders, bookings and customer self-service portals.', icon: 'customer-experiences', size: 'large', category: 'Core' },
-  { title: 'Business Management', desc: 'Product catalogues, order processing, customer management and workspace administration.', icon: 'business-management', size: 'large', category: 'Core' },
-  { title: 'Analytics & Reporting', desc: 'Real-time dashboards, trend analysis and business intelligence from live data.', icon: 'analytics-reporting', size: 'large', category: 'Core' },
-  { title: 'Content Management', desc: 'Page builder, content revisions, media management and SEO-friendly content.', icon: 'content-management', size: 'large', category: 'Core' },
-  { title: 'Media Management', desc: 'Secure file uploads, image processing, variant generation and storage tracking.', icon: 'media-management', size: 'small', category: 'Supporting' },
-  { title: 'Booking Systems', desc: 'Calendar-based scheduling with conflict prevention and multi-duration support.', icon: 'booking-systems', size: 'small', category: 'Supporting' },
-  { title: 'Application Management', desc: 'Customer applications, review workflows and status tracking.', icon: 'application-management', size: 'small', category: 'Supporting' },
-  { title: 'Role-Based Access', desc: 'Multi-tier authorization: customer, workspace admin and platform super admin.', icon: 'role-based-access', size: 'small', category: 'Supporting' },
-  { title: 'AI-Assisted Interfaces', desc: 'Voice navigation, command palette and assistant integration.', icon: 'ai-assisted-interfaces', size: 'small', category: 'Supporting' },
-  { title: 'Search', desc: 'Full-text search across products, customers and content.', icon: 'search', size: 'small', category: 'Supporting' },
-  { title: '3D Product Experiences', desc: 'Interactive 3D product viewers with model loading and controls.', icon: '3d-product-experiences', size: 'small', category: 'Supporting' },
-  { title: 'Security & Infrastructure', desc: 'CSRF protection, workspace isolation, rate limiting, Docker and Caddy.', icon: 'security-infrastructure', size: 'small', category: 'Supporting' },
+
+const atAGlance = [
+  { value: '7+', label: 'Years shipping web software' },
+  { value: '4+', label: 'Years with relational data' },
+  { value: '50+', label: 'Technologies in rotation' },
+  { value: '6', label: 'Engineering domains' },
 ];
 
-const projects = [
-  { name: 'Karlin_ux Platform', desc: 'Full-stack portfolio and business management platform with Django backend, React frontend, PostgreSQL, Docker and Caddy.', tech: ['Django', 'React', 'TypeScript', 'PostgreSQL', 'Docker'], status: 'Active' },
-  { name: 'Customer Management System', desc: 'Customer accounts, profiles, order tracking and communication tools.', tech: ['Django', 'DRF', 'React'], status: 'Active' },
-  { name: 'Booking & Scheduling', desc: 'Calendar-based booking with conflict prevention and multi-duration support.', tech: ['Django', 'PostgreSQL', 'React'], status: 'Active' },
-  { name: 'Media Management', desc: 'Secure file uploads, image processing, variant generation and storage tracking.', tech: ['Django', 'Pillow', 'React'], status: 'Active' },
+const aboutHighlights = [
+  {
+    title: 'End-to-end ownership',
+    desc: 'From data model and API design through to the interface and deployment.',
+  },
+  {
+    title: 'Architecture that lasts',
+    desc: 'Clear boundaries, typed contracts and pragmatic, maintainable decisions.',
+  },
+  {
+    title: 'Quality built in',
+    desc: 'Automated tests, static analysis and careful manual verification.',
+  },
+  {
+    title: 'Performance by default',
+    desc: 'Lean payloads, considered rendering and accessible interactions.',
+  },
 ];
 
-const techStack = [
-  { category: 'Frontend', items: ['React 19', 'TypeScript', 'Vite', 'Tailwind CSS', 'React Router'] },
-  { category: 'Backend', items: ['Django 5.2', 'Django REST Framework', 'Python', 'Gunicorn'] },
-  { category: 'Database', items: ['PostgreSQL 18', 'Exclusion Constraints', 'Migrations'] },
-  { category: 'Infrastructure', items: ['Docker Compose', 'Caddy', 'GitHub Actions', 'WhiteNoise'] },
-  { category: 'Security', items: ['CSRF Protection', 'Session Auth', 'Rate Limiting', 'Workspace Isolation'] },
-  { category: 'Testing', items: ['56 Backend Tests', 'TypeScript', 'ESLint', 'Gitleaks', 'Bandit'] },
+const technicalDomains = [
+  {
+    title: 'Frontend',
+    icon: 'customer-experiences',
+    category: 'Frontend',
+    blurb: 'Accessible, type-safe interfaces built to feel effortless.',
+    items: ['React 19', 'TypeScript', 'Tailwind CSS', 'Vite', 'HTML5', 'CSS3'],
+  },
+  {
+    title: 'Backend',
+    icon: 'business-management',
+    category: 'Backend',
+    blurb: 'API-first services with clear contracts and secure defaults.',
+    items: ['Python', 'Django', 'Django REST Framework', 'REST APIs'],
+  },
+  {
+    title: 'Database',
+    icon: 'metric-orders',
+    category: 'Database',
+    blurb: 'Relational modelling, constraints and dependable migrations.',
+    items: ['PostgreSQL', 'SQL', 'Schema design', 'Migrations', 'Constraints'],
+  },
+  {
+    title: 'Infrastructure',
+    icon: 'security-infrastructure',
+    category: 'Infrastructure',
+    blurb: 'Containers, reverse proxy and repeatable delivery pipelines.',
+    items: ['Docker', 'Docker Compose', 'Caddy', 'Linux', 'GitHub Actions'],
+  },
+  {
+    title: 'Quality',
+    icon: 'application-management',
+    category: 'Testing',
+    blurb: 'Automated checks backed by thoughtful manual verification.',
+    items: ['Unit testing', 'Integration testing', 'E2E testing', 'Static analysis', 'Debugging'],
+  },
+  {
+    title: 'Tooling & Creative',
+    icon: '3d-product-experiences',
+    category: 'Tools',
+    blurb: 'Everyday engineering tools plus 3D and visual experiments.',
+    items: ['Git', 'GitHub', 'VS Code', 'Insomnia', 'Blender', '3D modelling'],
+  },
 ];
+
+const featuredProject = {
+  name: 'Karlin_ux Platform',
+  summary:
+    'A full-stack portfolio and business management platform with customer accounts, workspace administration, reporting and media tooling.',
+  tech: ['Django', 'React', 'TypeScript', 'PostgreSQL', 'Docker'],
+  points: [
+    'Django REST API with session auth and workspace isolation',
+    'React 19 and TypeScript frontend with a shared design system',
+    'PostgreSQL data model, Docker images and CI-backed delivery',
+  ],
+};
 
 export default function Home() {
-  const [hoveredCap, setHoveredCap] = useState<number | null>(null);
-  const [demoTab, setDemoTab] = useState('overview');
-  const [demoData, setDemoData] = useState<any>(null);
-  const [isVisible, setIsVisible] = useState(false);
-  const heroRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setIsVisible(true);
-    // Load demo data for the live preview
-    api.get('/demo/analytics-summary/').then(r => setDemoData(r.data)).catch(() => {});
-  }, []);
-
   return (
-    <div className="relative overflow-hidden">
+    <div className="flex flex-col">
       {/* ============================================
-          ANIMATED BACKGROUND
+          HERO
           ============================================ */}
-      <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
-        {/* Radial gradients */}
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[var(--accent)] rounded-full blur-[200px] opacity-[0.07] animate-pulse" style={{ animationDuration: '8s' }} />
-        <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-[var(--accent-2)] rounded-full blur-[180px] opacity-[0.06] animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }} />
-        <div className="absolute bottom-1/4 left-1/3 w-[400px] h-[400px] bg-[var(--accent-3)] rounded-full blur-[160px] opacity-[0.05] animate-pulse" style={{ animationDuration: '12s', animationDelay: '4s' }} />
+      <section className="relative overflow-hidden pb-12 pt-14 sm:pb-16 sm:pt-20">
+        <div className="pointer-events-none absolute -right-24 -top-40 h-[520px] w-[520px] rounded-full bg-[var(--accent)] opacity-[0.06] blur-[160px]" />
+        <div className="pointer-events-none absolute -left-24 top-32 h-[360px] w-[360px] rounded-full bg-[var(--accent-2)] opacity-[0.05] blur-[140px]" />
 
-        {/* Grid pattern */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: 'linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)',
-          backgroundSize: '60px 60px',
-        }} />
-
-        {/* Floating particles */}
-        <div className="absolute top-20 left-10 w-2 h-2 bg-[var(--accent)] rounded-full opacity-30 animate-bounce" style={{ animationDuration: '6s' }} />
-        <div className="absolute top-40 right-20 w-1.5 h-1.5 bg-[var(--accent-2)] rounded-full opacity-20 animate-bounce" style={{ animationDuration: '8s', animationDelay: '1s' }} />
-        <div className="absolute bottom-32 left-1/4 w-1 h-1 bg-[var(--accent-3)] rounded-full opacity-25 animate-bounce" style={{ animationDuration: '7s', animationDelay: '3s' }} />
-        <div className="absolute top-60 right-1/3 w-2 h-2 bg-[var(--accent)] rounded-full opacity-20 animate-bounce" style={{ animationDuration: '9s', animationDelay: '2s' }} />
-      </div>
-
-      {/* ============================================
-          HERO SECTION — Two Column
-          ============================================ */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center pt-20 pb-16 overflow-hidden">
-        {/* Background SVG */}
-        <div className="absolute inset-0 opacity-[0.0375] pointer-events-none">
-          <img src="/illustrations/customer-experiences.svg" alt="" className="w-full h-full object-cover" />
-        </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Left: Content */}
-            <div className={`space-y-8 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-              {/* Status indicator */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--accent-soft)] border border-[var(--accent)]/20 text-[var(--accent)] text-sm font-medium">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[var(--accent)]" />
-                </span>
-                Available for new projects
-              </div>
-
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight">
-                Building Modern
-                <br />
-                <span className="text-gradient">Digital Platforms</span>
-              </h1>
-
-              <p className="text-lg md:text-xl text-[var(--text-secondary)] leading-relaxed max-w-xl">
-                A self-taught full-stack developer crafting real, working software — from customer experiences to business management systems.
-                Every feature backed by Django, PostgreSQL, and modern infrastructure.
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid items-end gap-10 lg:grid-cols-12 lg:gap-12">
+            <div className="lg:col-span-7">
+              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--text-secondary)] sm:text-base">
+                Hi I&apos;m
               </p>
 
-              <div className="flex flex-wrap gap-4">
-                <Link to="/explore" className="btn btn-primary text-base px-8 py-3.5">
-                  Explore Capabilities
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+              <h1 className="mt-3 text-balance">
+                <span className="block text-5xl font-bold leading-[0.98] tracking-tight text-[var(--text)] sm:text-6xl lg:text-7xl xl:text-8xl">
+                  KarlHeins Lourens
+                </span>
+                <span className="mt-4 block max-w-3xl text-2xl font-semibold leading-tight tracking-tight text-gradient sm:text-3xl lg:text-4xl">
+                  Full Stacks Developer &amp; Software Engineer
+                </span>
+              </h1>
+
+              <p className="mt-6 max-w-2xl text-base leading-relaxed text-[var(--text-secondary)] sm:text-lg">
+                I design and build full-stack web applications, business platforms and interactive
+                engineering experiences — from data models and APIs to responsive interfaces.
+              </p>
+
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  className="btn btn-primary cursor-not-allowed opacity-70"
+                  disabled
+                  aria-disabled="true"
+                  title="Resume file is not available yet"
+                >
+                  Resume
+                </button>
+                <Link
+                  to="/contact"
+                  className="btn btn-secondary motion-reduce:transition-none"
+                  aria-label="Contact Me"
+                >
+                  Contact Me
                 </Link>
-                <Link to="/projects" className="btn btn-secondary text-base px-8 py-3.5">
+                <Link
+                  to="/projects"
+                  className="btn btn-ghost motion-reduce:transition-none"
+                >
                   View Projects
                 </Link>
               </div>
-
-              {/* Tech indicators */}
-              <div className="flex flex-wrap gap-3 pt-4">
-                {['React', 'Django', 'PostgreSQL', 'Docker', 'TypeScript'].map((tech, i) => (
-                  <span key={i} className="px-3 py-1 rounded-full text-xs font-medium bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-secondary)]">
-                    {tech}
-                  </span>
-                ))}
-              </div>
+              <p className="mt-3 text-xs text-[var(--text-muted)]">
+                Resume download will be enabled when the resume file is available.
+              </p>
             </div>
 
-            {/* Right: Interactive Visual Composition */}
-            <div className={`relative transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
-              {/* Main dashboard panel */}
-              <div className="relative">
-                {/* Floating panels */}
-                <div className="absolute -top-6 -left-6 w-48 h-32 card p-4 bg-[var(--bg-elevated)]/80 backdrop-blur-xl border-[var(--accent)]/20 shadow-2xl animate-float z-10" style={{ animationDuration: '6s' }}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Icon name="analytics-reporting" size={16} />
-                    <span className="text-xs font-medium text-[var(--text-secondary)]">Analytics</span>
-                  </div>
-                  <div className="text-2xl font-bold text-[var(--accent)]">£12.4k</div>
-                  <div className="text-xs text-[var(--text-muted)]">Revenue this month</div>
-                  <div className="mt-2 h-8 flex items-end gap-1">
-                    {[30, 50, 35, 60, 45, 70, 55].map((h, i) => (
-                      <div key={i} className="flex-1 bg-[var(--accent)]/30 rounded-t" style={{ height: `${h}%` }} />
-                    ))}
-                  </div>
+            <div className="lg:col-span-5">
+              <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)]/80 p-5 backdrop-blur-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">
+                    At a glance
+                  </p>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent-soft)] px-2.5 py-1 text-[11px] font-semibold text-[var(--accent)]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
+                    Available
+                  </span>
                 </div>
 
-                <div className="absolute -bottom-4 -right-4 w-44 h-28 card p-4 bg-[var(--bg-elevated)]/80 backdrop-blur-xl border-[var(--accent-2)]/20 shadow-2xl animate-float z-10" style={{ animationDuration: '7s', animationDelay: '1s' }}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Icon name="metric-customers" size={16} />
-                    <span className="text-xs font-medium text-[var(--text-secondary)]">Customers</span>
-                  </div>
-                  <div className="text-2xl font-bold text-[var(--accent-2)]">248</div>
-                  <div className="text-xs text-[var(--text-muted)]">+12 this week</div>
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  {atAGlance.map((stat) => (
+                    <div
+                      key={stat.label}
+                      className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)]/60 p-4"
+                    >
+                      <div className="text-2xl font-bold tracking-tight text-[var(--accent)]">
+                        {stat.value}
+                      </div>
+                      <div className="mt-1 text-[11px] font-medium leading-snug text-[var(--text-muted)]">
+                        {stat.label}
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
-                <div className="absolute top-1/2 -right-8 w-40 h-24 card p-4 bg-[var(--bg-elevated)]/80 backdrop-blur-xl border-[var(--accent-3)]/20 shadow-2xl animate-float z-10" style={{ animationDuration: '8s', animationDelay: '2s' }}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Icon name="security-infrastructure" size={16} />
-                    <span className="text-xs font-medium text-[var(--text-secondary)]">System</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[var(--success)]" />
-                    <span className="text-sm font-medium text-[var(--success)]">All healthy</span>
-                  </div>
-                  <div className="text-xs text-[var(--text-muted)] mt-1">56 tests passing</div>
-                </div>
-
-                {/* Main panel */}
-                <div className="card p-6 bg-[var(--bg-elevated)]/60 backdrop-blur-xl border-[var(--border-strong)]">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-[var(--error)]" />
-                      <div className="w-3 h-3 rounded-full bg-[var(--warning)]" />
-                      <div className="w-3 h-3 rounded-full bg-[var(--success)]" />
-                    </div>
-                    <span className="text-xs text-[var(--text-muted)] font-mono">karlin_ux dashboard</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-[var(--bg-surface)] rounded-lg p-3">
-                      <div className="text-xs text-[var(--text-muted)] mb-1">Products</div>
-                      <div className="text-xl font-bold">24</div>
-                    </div>
-                    <div className="bg-[var(--bg-surface)] rounded-lg p-3">
-                      <div className="text-xs text-[var(--text-muted)] mb-1">Orders</div>
-                      <div className="text-xl font-bold">156</div>
-                    </div>
-                    <div className="bg-[var(--bg-surface)] rounded-lg p-3">
-                      <div className="text-xs text-[var(--text-muted)] mb-1">Customers</div>
-                      <div className="text-xl font-bold">89</div>
-                    </div>
-                    <div className="bg-[var(--bg-surface)] rounded-lg p-3">
-                      <div className="text-xs text-[var(--text-muted)] mb-1">Bookings</div>
-                      <div className="text-xl font-bold">34</div>
-                    </div>
-                  </div>
-                  <div className="mt-4 h-24 bg-[var(--bg-surface)] rounded-lg flex items-end gap-1 p-2">
-                    {[20, 35, 25, 45, 30, 55, 40, 65, 50, 70, 45, 60].map((h, i) => (
-                      <div key={i} className="flex-1 bg-gradient-to-t from-[var(--accent)] to-[var(--accent-2)] rounded-t opacity-70" style={{ height: `${h}%` }} />
-                    ))}
-                  </div>
-                  <div className="mt-3 flex items-center gap-2 text-xs text-[var(--text-muted)]">
-                    <Icon name="notifications" size={12} />
-                    <span>3 new notifications</span>
-                  </div>
-                </div>
+                <p className="mt-4 border-t border-[var(--border)] pt-4 text-xs leading-relaxed text-[var(--text-muted)]">
+                  Full-stack delivery — architecture, implementation and deployment.
+                </p>
               </div>
             </div>
           </div>
@@ -211,385 +186,275 @@ export default function Home() {
       </section>
 
       {/* ============================================
-          CAPABILITIES — Bento Grid
+          ABOUT ME
           ============================================ */}
-      <section className="py-24 bg-[var(--bg-secondary)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">What Can Be Built</h2>
-            <p className="text-[var(--text-secondary)] max-w-2xl mx-auto text-lg">
-              A modern website can do much more than display information. Explore the systems and features
-              that can be developed for real business applications.
-            </p>
-          </div>
-
-          {/* Bento Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[180px]">
-            {capabilities.map((cap, i) => {
-              const isLarge = cap.size === 'large';
-              return (
-                <div
-                  key={i}
-                  className={`group relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] p-6 transition-all duration-500 hover:border-[var(--accent)]/40 hover:shadow-[var(--shadow-glow)] cursor-pointer ${isLarge ? 'md:col-span-2 md:row-span-2' : ''}`}
-                  onMouseEnter={() => setHoveredCap(i)}
-                  onMouseLeave={() => setHoveredCap(null)}
-                >
-                  {/* Background SVG illustration */}
-                  <div className="absolute inset-0 opacity-[0.05] group-hover:opacity-[0.10] transition-opacity duration-500 pointer-events-none">
-                    <img src={`/illustrations/${cap.icon}.svg`} alt="" className="w-full h-full object-cover" />
+      <section id="about" className="relative py-14 sm:py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <article className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)]/85">
+            <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-12 lg:gap-10">
+              <div className="lg:col-span-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[var(--accent)]/20 bg-[var(--accent-soft)] text-lg font-bold text-[var(--accent)]">
+                    K
                   </div>
-                  {/* Background gradient on hover */}
-                  <div className={`absolute inset-0 bg-gradient-to-br from-[var(--accent-soft)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-
-                  <div className="relative z-10 h-full flex flex-col">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className={`transition-transform duration-500 ${hoveredCap === i ? 'scale-110' : ''}`}>
-                        <Icon name={cap.icon} size={isLarge ? 40 : 28} />
-                      </div>
-                      <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">{cap.category}</span>
-                    </div>
-
-                    <h3 className={`font-bold mb-2 group-hover:text-[var(--accent)] transition-colors duration-300 ${isLarge ? 'text-xl' : 'text-base'}`}>
-                      {cap.title}
-                    </h3>
-
-                    <p className={`text-[var(--text-secondary)] leading-relaxed transition-all duration-300 ${hoveredCap === i ? 'opacity-100' : 'opacity-70'} ${isLarge ? 'text-sm' : 'text-xs line-clamp-2'}`}>
-                      {cap.desc}
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
+                      About Me
                     </p>
-
-                    {/* Hover reveal */}
-                    <div className={`mt-auto pt-3 transition-all duration-300 ${hoveredCap === i ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
-                      <span className="text-xs text-[var(--accent)] font-medium flex items-center gap-1">
-                        Explore
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                      </span>
-                    </div>
+                    <p className="text-sm font-medium text-[var(--text-secondary)]">
+                      Full-stack developer
+                    </p>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
 
-      {/* ============================================
-          LIVE PLATFORM PREVIEW
-          ============================================ */}
-      <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.025] pointer-events-none">
-          <img src="/illustrations/analytics-reporting.svg" alt="" className="w-full h-full object-cover" />
-        </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Live Platform Preview</h2>
-            <p className="text-[var(--text-secondary)] max-w-2xl mx-auto text-lg">
-              An interactive demonstration of the platform's dashboard capabilities.
-              <span className="text-[var(--warning)] ml-1">(Simulated demonstration data)</span>
-            </p>
-          </div>
+                <h2 className="mt-5 text-2xl font-bold leading-tight tracking-tight sm:text-3xl">
+                  Practical systems.
+                  <br />
+                  Clean architecture.
+                </h2>
 
-          {/* Dashboard window */}
-          <div className="card p-0 overflow-hidden border-[var(--border-strong)] shadow-2xl">
-            {/* Title bar */}
-            <div className="flex items-center justify-between px-4 py-3 bg-[var(--bg-surface)] border-b border-[var(--border)]">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-[var(--error)]" />
-                <div className="w-3 h-3 rounded-full bg-[var(--warning)]" />
-                <div className="w-3 h-3 rounded-full bg-[var(--success)]" />
-              </div>
-              <span className="text-xs text-[var(--text-muted)] font-mono">karlin_ux — workspace dashboard</span>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[var(--success)] animate-pulse" />
-                <span className="text-xs text-[var(--text-muted)]">Live</span>
-              </div>
-            </div>
-
-            {/* Dashboard content */}
-            <div className="p-6 bg-[var(--bg-elevated)]">
-              {/* Tabs */}
-              <div className="flex gap-1 mb-6 border-b border-[var(--border)]">
-                {['overview', 'analytics', 'activity'].map(t => (
-                  <button
-                    key={t}
-                    onClick={() => setDemoTab(t)}
-                    className={`px-4 py-2 text-sm font-medium capitalize transition-colors border-b-2 ${
-                      demoTab === t
-                        ? 'text-[var(--accent)] border-[var(--accent)]'
-                        : 'text-[var(--text-secondary)] border-transparent hover:text-[var(--text)]'
-                    }`}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
-
-              {demoTab === 'overview' && (
-                <div className="grid md:grid-cols-4 gap-4">
-                  {[
-                    { label: 'Total Orders', value: demoData?.total_orders || 0, icon: 'orders', color: 'var(--accent)' },
-                    { label: 'Revenue', value: `£${demoData?.total_revenue || '0.00'}`, icon: 'metric-revenue', color: 'var(--accent-2)' },
-                    { label: 'Customers', value: demoData?.total_customers || 0, icon: 'metric-customers', color: 'var(--accent-3)' },
-                    { label: 'Products', value: demoData?.product_count || 0, icon: 'catalogue', color: 'var(--info)' },
-                  ].map((s, i) => (
-                    <div key={i} className="bg-[var(--bg-surface)] rounded-xl p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <Icon name={s.icon} size={20} />
-                        <span className="text-xs text-[var(--text-muted)]">{s.label}</span>
-                      </div>
-                      <div className="text-2xl font-bold" style={{ color: s.color }}>{s.value}</div>
-                    </div>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {['Full-stack', 'API-first', 'Database-first', 'Accessible'].map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center rounded-md border border-[var(--border)] bg-[var(--bg-surface)]/60 px-2 py-1 text-[11px] font-medium text-[var(--text-secondary)]"
+                    >
+                      {tag}
+                    </span>
                   ))}
                 </div>
-              )}
+              </div>
 
-              {demoTab === 'analytics' && (
+              <div className="grid gap-6 sm:grid-cols-2 lg:col-span-8">
                 <div className="space-y-4">
-                  <div className="bg-[var(--bg-surface)] rounded-xl p-4 h-48 flex items-end gap-2">
-                    {[20, 35, 25, 45, 30, 55, 40, 65, 50, 70, 45, 60, 55, 75, 50, 65].map((h, i) => (
-                      <div key={i} className="flex-1 bg-gradient-to-t from-[var(--accent)] to-[var(--accent-2)] rounded-t opacity-60 hover:opacity-100 transition-opacity" style={{ height: `${h}%` }} />
-                    ))}
-                  </div>
-                  <div className="flex justify-between text-xs text-[var(--text-muted)]">
-                    <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
-                    <span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
-                  </div>
+                  <p className="text-sm leading-relaxed text-[var(--text-secondary)]">
+                    I&apos;m a self-taught developer with experience across web development,
+                    databases, software testing and Android applications. I enjoy building
+                    practical software, exploring new technologies and understanding how
+                    everything works together.
+                  </p>
+                  <p className="text-sm leading-relaxed text-[var(--text-secondary)]">
+                    Across the stack, I favour clear boundaries, typed contracts and pragmatic
+                    decisions — systems that are straightforward to extend, operate and hand over.
+                  </p>
                 </div>
-              )}
 
-              {demoTab === 'activity' && (
-                <div className="space-y-3">
-                  {[
-                    { action: 'New order placed', time: '2 min ago', icon: 'orders' },
-                    { action: 'Customer registered', time: '5 min ago', icon: 'customer-experiences' },
-                    { action: 'Product updated', time: '12 min ago', icon: 'catalogue' },
-                    { action: 'Booking confirmed', time: '18 min ago', icon: 'bookings' },
-                    { action: 'Media uploaded', time: '25 min ago', icon: 'media-management' },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
-                      <Icon name={item.icon} size={16} />
-                      <span className="flex-1 text-sm">{item.action}</span>
-                      <span className="text-xs text-[var(--text-muted)]">{item.time}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================
-          PROJECT SHOWCASE
-          ============================================ */}
-      <section className="py-24 bg-[var(--bg-secondary)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Featured Projects</h2>
-            <p className="text-[var(--text-secondary)] max-w-2xl mx-auto text-lg">
-              Real projects built with modern technologies. Each one demonstrates practical engineering.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {projects.map((p, i) => {
-              const svgMap: Record<string, string> = {
-                'Karlin_ux Platform': 'featured-karlin-ux-platform',
-                'Customer Management System': 'featured-customer-management',
-                'Booking & Scheduling': 'featured-booking-scheduling',
-                'Media Management': 'featured-media-management',
-              };
-              const svgName = svgMap[p.name] || 'featured-karlin-ux-platform';
-              return (
-              <div key={i} className="group card p-0 overflow-hidden hover:border-[var(--accent)]/30 transition-all duration-300">
-                <div className="h-48 bg-[var(--bg-surface)] relative overflow-hidden">
-                  <img src={`/illustrations/${svgName}.svg`} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute bottom-4 left-4">
-                    <span className="badge badge-success">{p.status}</span>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold mb-2 group-hover:text-[var(--accent)] transition-colors">{p.name}</h3>
-                  <p className="text-[var(--text-secondary)] mb-4 leading-relaxed">{p.desc}</p>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {p.tech.map((t, j) => (
-                      <span key={j} className="px-2 py-1 rounded-md text-xs font-medium bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-secondary)]">
-                        {t}
+                <ul className="space-y-4">
+                  {aboutHighlights.map((item) => (
+                    <li key={item.title} className="flex gap-3">
+                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-[var(--accent)]/20 bg-[var(--accent-soft)] text-[10px] font-bold text-[var(--accent)]">
+                        ✓
                       </span>
-                    ))}
-                  </div>
-                  <Link to="/explore" className="text-[var(--accent)] text-sm font-medium flex items-center gap-1 hover:gap-2 transition-all">
-                    Explore capabilities
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                  </Link>
-                </div>
+                      <div>
+                        <p className="text-sm font-semibold text-[var(--text)]">{item.title}</p>
+                        <p className="mt-0.5 text-xs leading-relaxed text-[var(--text-muted)]">
+                          {item.desc}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            );
-          })}
-          </div>
+            </div>
+          </article>
         </div>
       </section>
 
       {/* ============================================
-          ENGINEERING ARCHITECTURE
+          TECHNICAL CORE
           ============================================ */}
-      <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.025] pointer-events-none">
-          <img src="/illustrations/security-infrastructure.svg" alt="" className="w-full h-full object-cover" />
-        </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Engineering Architecture</h2>
-            <p className="text-[var(--text-secondary)] max-w-2xl mx-auto text-lg">
-              A visual overview of the technology stack and how everything connects.
-            </p>
+      <section className="relative border-y border-[var(--border)] bg-[var(--bg-secondary)] py-14 sm:py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
+                Technical Core
+              </p>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
+                The stack, by domain
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--text-secondary)]">
+                The tools I reach for most, grouped by the problems they solve.
+              </p>
+            </div>
+            <Link to="/technologies" className="btn btn-secondary self-start text-sm sm:self-auto">
+              Explore all technologies
+            </Link>
           </div>
 
-          {/* Architecture diagram */}
-          <div className="card p-8 bg-[var(--bg-elevated)]">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {[
-                { name: 'React + Vite', svg: 'architecture-react-vite', desc: 'TypeScript SPA with Vite, Tailwind and React Router' },
-                { name: 'Django REST API', svg: 'architecture-django-rest-api', desc: 'DRF with session auth, CSRF, throttling and permissions' },
-                { name: 'Django Backend', svg: 'architecture-django-backend', desc: 'Business logic, models, serializers and views' },
-                { name: 'PostgreSQL', svg: 'architecture-postgresql', desc: 'Relational database with exclusion constraints' },
-              ].map((item, i) => (
-                <div key={i} className="rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--accent)]/30 transition-all duration-300">
-                  <img src={`/illustrations/${item.svg}.svg`} alt={item.name} className="w-full h-auto" />
-                  <div className="p-3">
-                    <div className="font-semibold text-sm">{item.name}</div>
-                    <div className="text-xs text-[var(--text-muted)]">{item.desc}</div>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {technicalDomains.map((domain) => (
+              <Link
+                key={domain.title}
+                to={`/technologies?category=${encodeURIComponent(domain.category)}`}
+                aria-label={`Explore ${domain.title} technologies`}
+                className="group flex h-full min-h-[13rem] flex-col rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)]/80 p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--accent)]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface)]">
+                    <Icon name={domain.icon} size={20} />
                   </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Infrastructure items */}
-            <div className="mt-8 pt-8 border-t border-[var(--border)]">
-              <div className="text-sm text-[var(--text-muted)] mb-4 text-center">Infrastructure & Tooling</div>
-              <div className="flex flex-wrap justify-center gap-3">
-                {['Docker Compose', 'Caddy (HTTPS)', 'GitHub Actions', 'Gitleaks', 'Bandit', 'WhiteNoise', 'PostgreSQL 18'].map((item, i) => (
-                  <span key={i} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-secondary)]">
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================
-          TECHNOLOGY STACK
-          ============================================ */}
-      <section className="py-24 bg-[var(--bg-secondary)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Technology Stack</h2>
-            <p className="text-[var(--text-secondary)] max-w-2xl mx-auto text-lg">
-              Real technologies from the repository. Grouped by domain.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {techStack.map((group, i) => (
-              <div key={i} className="card p-6 hover:border-[var(--accent)]/20 transition-all duration-300">
-                <h3 className="text-lg font-bold mb-4 text-[var(--accent)]">{group.category}</h3>
-                <div className="space-y-2">
-                  {group.items.map((item, j) => (
-                    <div key={j} className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-                      <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
-                      {item}
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-sm font-semibold text-[var(--text)]">
+                      {domain.title}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs text-[var(--text-muted)]">
+                        {domain.items.length} tools
+                      </p>
+                      <span
+                        aria-hidden="true"
+                        className="text-xs text-[var(--text-muted)] transition-transform duration-300 group-hover:translate-x-0.5 group-hover:text-[var(--accent)]"
+                      >
+                        →
+                      </span>
                     </div>
+                  </div>
+                </div>
+
+                <p className="mt-3 min-h-[2.5rem] text-xs leading-relaxed text-[var(--text-muted)]">
+                  {domain.blurb}
+                </p>
+
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {domain.items.map((item) => (
+                    <span
+                      key={item}
+                      className="inline-flex items-center rounded-md border border-[var(--border)] bg-[var(--bg-surface)]/60 px-2 py-1 text-[11px] font-medium leading-none text-[var(--text-secondary)] transition-colors group-hover:border-[var(--accent)]/15 group-hover:text-[var(--text)]"
+                    >
+                      {item}
+                    </span>
                   ))}
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
       {/* ============================================
-          FINAL CTA
+          SELECTED WORK
           ============================================ */}
-      <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-soft)] via-transparent to-[var(--accent-2-soft)] opacity-30" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--accent)] rounded-full blur-[200px] opacity-[0.08]" />
-
-        <div className="relative max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Have an idea?{' '}
-            <span className="text-gradient">Let's build something remarkable.</span>
-          </h2>
-          <p className="text-[var(--text-secondary)] text-lg mb-10 max-w-2xl mx-auto">
-            From customer experiences to business management systems — I build software that works.
-            Explore the capabilities, create an account, or get in touch.
-          </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Link to="/explore" className="btn btn-primary text-lg px-8 py-3.5">
-              Explore Capabilities
-            </Link>
-            <Link to="/register" className="btn btn-secondary text-lg px-8 py-3.5">
-              Create Account
-            </Link>
-            <Link to="/contact" className="btn btn-ghost text-lg px-8 py-3.5">
-              Contact Me
+      <section className="relative py-14 sm:py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
+                Selected Work
+              </p>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
+                Built end to end
+              </h2>
+            </div>
+            <Link
+              to="/projects"
+              className="self-start text-sm font-semibold text-[var(--accent)] transition-colors hover:text-[var(--accent-hover)] sm:self-auto"
+            >
+              All projects →
             </Link>
           </div>
+
+          <article className="mt-8 grid overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)]/85 lg:grid-cols-2">
+            <div className="relative flex min-h-[260px] flex-col justify-between gap-8 overflow-hidden border-b border-[var(--border)] bg-[var(--bg-surface)] p-6 sm:p-8 lg:border-b-0 lg:border-r">
+              <div
+                className="pointer-events-none absolute inset-0 opacity-80"
+                style={{
+                  background:
+                    'radial-gradient(circle at 30% 20%, var(--accent-soft), transparent 60%)',
+                }}
+              />
+              <div className="relative flex items-center justify-between gap-3">
+                <span className="inline-flex items-center gap-2 rounded-full border border-[var(--accent)]/20 bg-[var(--accent-soft)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-[var(--accent)]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
+                  Featured · Active
+                </span>
+              </div>
+              <div className="relative">
+                <div className="text-gradient text-6xl font-bold leading-none">K</div>
+                <p className="mt-3 text-sm font-medium text-[var(--text-secondary)]">
+                  Full-stack platform
+                </p>
+              </div>
+              <div className="relative flex flex-wrap gap-1.5">
+                {featuredProject.tech.map((tech) => (
+                  <span
+                    key={tech}
+                    className="inline-flex items-center rounded-md border border-[var(--border)] bg-[var(--bg-elevated)]/70 px-2 py-1 text-[11px] font-medium text-[var(--text-secondary)]"
+                  >
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col p-6 sm:p-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
+                Case study
+              </p>
+              <h3 className="mt-2 text-2xl font-bold tracking-tight">{featuredProject.name}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-[var(--text-secondary)]">
+                {featuredProject.summary}
+              </p>
+
+              <ul className="mt-5 space-y-2.5">
+                {featuredProject.points.map((point) => (
+                  <li
+                    key={point}
+                    className="flex gap-2 text-sm leading-relaxed text-[var(--text-secondary)]"
+                  >
+                    <span className="text-[var(--accent)]">—</span>
+                    <span>{point}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-auto pt-6">
+                <Link to="/projects" className="btn btn-primary text-sm">
+                  View project
+                </Link>
+              </div>
+            </div>
+          </article>
         </div>
       </section>
 
       {/* ============================================
-          FOOTER
+          CONTACT CTA
           ============================================ */}
-      <footer className="border-t border-[var(--border)] py-12 bg-[var(--bg-secondary)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <div className="font-bold text-xl text-gradient mb-3">Karlin_ux</div>
-              <p className="text-sm text-[var(--text-muted)]">
-                Full-stack development portfolio and interactive showcase platform.
+      <section className="relative pb-16 sm:pb-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="relative overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--bg-elevated)]/85 px-6 py-12 text-center sm:px-12 sm:py-16">
+            <div
+              className="pointer-events-none absolute inset-0 opacity-70"
+              style={{
+                background:
+                  'radial-gradient(circle at 50% 0%, var(--accent-soft), transparent 55%)',
+              }}
+            />
+            <div className="relative">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
+                Let&apos;s build something
               </p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-sm mb-3 text-[var(--text)]">Navigation</h4>
-              <div className="space-y-2">
-                {['Home', 'Explore', 'Projects', 'Technologies', 'About', 'Contact'].map((item, i) => (
-                  <Link key={i} to={`/${item.toLowerCase() === 'home' ? '' : item.toLowerCase()}`} className="block text-sm text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors">
-                    {item}
-                  </Link>
-                ))}
+              <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
+                Have a project in mind?{' '}
+                <span className="text-gradient">Let&apos;s talk.</span>
+              </h2>
+              <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-[var(--text-secondary)] sm:text-base">
+                Whether you need a customer portal, a business management system or a custom web
+                application, I&apos;d be glad to help.
+              </p>
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
+                <Link to="/contact" className="btn btn-primary">
+                  Start a conversation
+                </Link>
+                <Link to="/projects" className="btn btn-secondary">
+                  See my work
+                </Link>
               </div>
             </div>
-            <div>
-              <h4 className="font-semibold text-sm mb-3 text-[var(--text)]">Platform</h4>
-              <div className="space-y-2">
-                {[
-                  { label: 'Customer Dashboard', path: '/customer' },
-                  { label: 'Workspace Admin', path: '/admin' },
-                  { label: 'Media Library', path: '/media' },
-                  { label: 'Reports', path: '/reports' },
-                ].map((item, i) => (
-                  <Link key={i} to={item.path} className="block text-sm text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors">
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h4 className="font-semibold text-sm mb-3 text-[var(--text)]">Technology</h4>
-              <div className="space-y-2 text-sm text-[var(--text-muted)]">
-                <div>Django + DRF</div>
-                <div>React + TypeScript</div>
-                <div>PostgreSQL</div>
-                <div>Docker + Caddy</div>
-              </div>
-            </div>
-          </div>
-          <div className="pt-8 border-t border-[var(--border)] text-center text-sm text-[var(--text-muted)]">
-            © {new Date().getFullYear()} Karlin_ux. Built with Django, React, PostgreSQL, and Tailwind CSS.
           </div>
         </div>
-      </footer>
+      </section>
     </div>
   );
 }
