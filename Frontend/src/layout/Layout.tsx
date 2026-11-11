@@ -7,6 +7,7 @@ import ScrollProgress from '../components/ScrollProgress';
 
 // Karlin_ux design tokens: --accent, --accent-2, --accent-3
 const NETWORK_COLORS = ['#53F5B0', '#5C9DFF', '#9B85FF'];
+const NETWORK_COLORS_LIGHT = ['#FF8A00', '#E53935']; // orange dots, red lines
 
 const navLinks = [
   { to: '/', label: 'Home' },
@@ -144,10 +145,10 @@ export default function Layout() {
         <div className="aurora-bg absolute inset-0" aria-hidden="true" />
         <div className="relative h-full w-full">
           <GeometricParticleNetwork
-            colors={NETWORK_COLORS}
+            colors={theme === 'light' ? NETWORK_COLORS_LIGHT : NETWORK_COLORS}
             className="absolute inset-0 h-full w-full"
             density={1}
-            opacity={0.9}
+            opacity={theme === 'light' ? 0.75 : 0.9}
             interactive
           />
         </div>

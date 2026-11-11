@@ -114,49 +114,49 @@
    DESIGN TOKENS — LIGHT THEME
    ============================================ */
 .light {
-  /* Softer, warmer, less bright overall mood */
-  --bg: #F0EDE8;
-  --bg-secondary: #F7F5F2;
-  --bg-elevated: #FBF9F6;
-  --bg-surface: #EDE9E3;
-  --bg-overlay: rgba(240, 237, 232, 0.85);
+  /* Red and white theme */
+  --bg: #FFFFFF;
+  --bg-secondary: #FFF7F7;
+  --bg-elevated: #FFFFFF;
+  --bg-surface: #FFF1F1;
+  --bg-overlay: rgba(255, 255, 255, 0.9);
 
-  --text: #2A2520;
-  --text-secondary: #5C554D;
-  --text-muted: #8A8278;
-  --text-inverse: #F0EDE8;
+  --text: #1F1A1A;
+  --text-secondary: #5C4B4B;
+  --text-muted: #8A6E6E;
+  --text-inverse: #FFFFFF;
 
-  --border: #D9D4CC;
-  --border-subtle: #E5E1DA;
-  --border-strong: #BFB8AE;
+  --border: #F1D6D6;
+  --border-subtle: #F7E4E4;
+  --border-strong: #E3BABA;
 
-  --accent: #1A7A5A;
-  --accent-hover: #15684C;
-  --accent-active: #10553E;
-  --accent-soft: #E0EDE6;
-  --accent-glow: rgba(26, 122, 90, 0.08);
+  --accent: #D32F2F;
+  --accent-hover: #B71C1C;
+  --accent-active: #8E1515;
+  --accent-soft: #FDECEC;
+  --accent-glow: rgba(211, 47, 47, 0.12);
 
-  --accent-2: #4A6FA5;
-  --accent-2-hover: #3D5D8C;
-  --accent-2-soft: #E4E9F2;
+  --accent-2: #FF8A00;
+  --accent-2-hover: #E67600;
+  --accent-2-soft: #FFF1E0;
 
-  --accent-3: #7B5EA7;
-  --accent-3-soft: #EAE5F0;
+  --accent-3: #E53935;
+  --accent-3-soft: #FDE7E7;
 
   --success: #2D8A5E;
   --success-soft: #D8EDE3;
-  --warning: #B8860B;
-  --warning-soft: #F5EDD6;
-  --error: #C0392B;
-  --error-soft: #F5E0DD;
-  --info: #3B7DD8;
-  --info-soft: #DEE7F5;
+  --warning: #E65100;
+  --warning-soft: #FFE9D6;
+  --error: #C62828;
+  --error-soft: #FDE0E0;
+  --info: #D32F2F;
+  --info-soft: #FDECEC;
 
-  --shadow-sm: 0 1px 2px rgba(42, 37, 32, 0.04);
-  --shadow-md: 0 4px 12px rgba(42, 37, 32, 0.06);
-  --shadow-lg: 0 8px 32px rgba(42, 37, 32, 0.08);
-  --shadow-glow: 0 0 20px rgba(26, 122, 90, 0.06);
-  --shadow-glow-blue: 0 0 20px rgba(74, 111, 165, 0.06);
+  --shadow-sm: 0 1px 2px rgba(120, 30, 30, 0.05);
+  --shadow-md: 0 4px 12px rgba(120, 30, 30, 0.08);
+  --shadow-lg: 0 8px 32px rgba(120, 30, 30, 0.10);
+  --shadow-glow: 0 0 20px rgba(211, 47, 47, 0.10);
+  --shadow-glow-blue: 0 0 20px rgba(255, 138, 0, 0.10);
 }
 
 /* ============================================
@@ -1185,4 +1185,22 @@ header nav a[aria-current="page"]::after { transform: scaleX(1); opacity: 1; }
     animation: none;
     box-shadow: 0 0 0 2px rgba(83, 245, 176, 0.35), 0 0 18px rgba(83, 245, 176, 0.35);
   }
+}
+/* Light theme accent overrides (red/white/orange) */
+.light .skills-marquee-item {
+  border-color: rgba(211, 47, 47, 0.22);
+  background: rgba(211, 47, 47, 0.06);
+  color: var(--accent);
+  text-shadow: 0 0 14px rgba(211, 47, 47, 0.18);
+}
+.light .flash-green-text {
+  --flash-on: #d32f2f;
+  --flash-on-glow: rgba(211, 47, 47, 0.85);
+  --flash-dim: rgba(211, 47, 47, 0.22);
+  --flash-dim-glow: rgba(211, 47, 47, 0.12);
+}
+.light .flash-green {
+  --flash-border-on: rgba(211, 47, 47, 0.75);
+  --flash-border-dim: rgba(211, 47, 47, 0.18);
+  --flash-glow: rgba(211, 47, 47, 0.45);
 }

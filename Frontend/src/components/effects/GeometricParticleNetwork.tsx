@@ -199,7 +199,7 @@ export default function GeometricParticleNetwork({
               const boost = Math.max(proximity[i], proximity[j]);
               const alpha = clamp(opacity * (0.05 + strength * depth * 0.4) * (0.85 + boost * 1.1), 0, 0.85);
               if (alpha <= 0.01) continue;
-              const col = palette[(i + j) % palette.length] ?? palette[0];
+              const col = palette.length === 2 ? palette[1] : (palette[(i + j) % palette.length] ?? palette[0]);
               ctx.strokeStyle = toRgba(col, alpha);
               ctx.lineWidth = 0.6 + strength * 0.5;
               ctx.beginPath();
@@ -221,15 +221,16 @@ export default function GeometricParticleNetwork({
         nearest.push({ i, d: dx * dx + dy * dy });
       }
       nearest.sort((a, b) => a.d - b.d);
-      const picks = nearest.slice(0, Math.min(11, nearest.length));
+      const picks = nearest.slice(0, Math.min(7, nearest.length));
       if (picks.length === 0) return;
-      // Same green used in the webpage (accent)
-      const green = palette[0] ?? parseColor("#53F5B0");
+      // Accent color for cursor connections (lines follow line color in 2-color mode)
+      const accent = palette.length === 2 ? palette[1] : (palette[0] ?? parseColor("#53F5B0"));
+      const dotAccent = palette.length === 2 ? palette[0] : accent;
 
       for (let n = 0; n < picks.length; n++) {
         const idx = picks[n].i;
         const fade = 1 - n / Math.max(1, picks.length);
-        ctx.strokeStyle = toRgba(green, opacity * (0.35 + fade * 0.45));
+        ctx.strokeStyle = toRgba(accent, opacity * (0.35 + fade * 0.45));
         ctx.lineWidth = 0.9 + fade * 0.6;
         ctx.beginPath();
         ctx.moveTo(screenX[idx], screenY[idx]);
@@ -238,12 +239,12 @@ export default function GeometricParticleNetwork({
 
         ctx.beginPath();
         ctx.arc(screenX[idx], screenY[idx], 2.2 + fade * 1.0, 0, Math.PI * 2);
-        ctx.fillStyle = toRgba(green, clamp(opacity * (0.5 + fade * 0.4), 0, 1));
+        ctx.fillStyle = toRgba(dotAccent, clamp(opacity * (0.5 + fade * 0.4), 0, 1));
         ctx.fill();
       }
       ctx.beginPath();
       ctx.arc(pointer.x, pointer.y, 2.4, 0, Math.PI * 2);
-      ctx.fillStyle = toRgba(green, opacity * 0.75);
+      ctx.fillStyle = toRgba(accent, opacity * 0.75);
       ctx.fill();
     };
 
@@ -254,7 +255,7 @@ export default function GeometricParticleNetwork({
         const boost = 1 + proximity[i] * 0.7;
         const r = p.radius * (0.7 + p.z * 0.85);
         const alpha = clamp(opacity * (0.4 + p.z * 0.45) * twinkle * boost, 0, 1);
-        const col = palette[i % palette.length] ?? palette[0];
+        const col = palette.length === 2 ? palette[0] : (palette[i % palette.length] ?? palette[0]);
         if (p.z > 0.45) {
           ctx.beginPath();
           ctx.arc(screenX[i], screenY[i], r * 2.4, 0, Math.PI * 2);
