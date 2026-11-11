@@ -273,18 +273,12 @@ export default function Home() {
             <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-12 lg:gap-10">
               <div className="lg:col-span-12">
                 <div className="mx-auto mb-8 flex w-full max-w-[220px] flex-col items-center">
-                  <div
-                    className="flex aspect-square w-full items-center justify-center rounded-2xl border border-dashed border-[var(--border-strong)] bg-[var(--bg-surface)]/60 text-center"
-                    aria-label="Profile image placeholder"
-                  >
-                    <div className="px-4">
-                      <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl border border-[var(--accent)]/20 bg-[var(--accent-soft)] text-lg font-bold text-[var(--accent)]">
-                        K
-                      </div>
-                      <p className="text-xs font-medium text-[var(--text-secondary)]">Image placeholder</p>
-                      <p className="mt-1 text-[11px] leading-relaxed text-[var(--text-muted)]">Centered space for your profile image</p>
-                    </div>
-                  </div>
+                  <img
+                    src="/26376263.png"
+                    alt="Karlheins Lourens"
+                    className="aspect-square w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--bg-surface)]/60 object-cover"
+                    loading="lazy"
+                  />
                 </div>
 
                 <div className="grid items-start gap-8 lg:grid-cols-2">
