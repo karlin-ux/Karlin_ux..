@@ -114,21 +114,21 @@
    DESIGN TOKENS — LIGHT THEME
    ============================================ */
 .light {
-  /* Red and white theme */
-  --bg: #FFFFFF;
-  --bg-secondary: #FFF7F7;
-  --bg-elevated: #FFFFFF;
-  --bg-surface: #FFF1F1;
-  --bg-overlay: rgba(255, 255, 255, 0.9);
+  /* Red and very light grey theme */
+  --bg: #F3F4F6;
+  --bg-secondary: #F7F7F8;
+  --bg-elevated: #F8F9FA;
+  --bg-surface: #EEF0F2;
+  --bg-overlay: rgba(243, 244, 246, 0.92);
 
   --text: #1F1A1A;
   --text-secondary: #5C4B4B;
   --text-muted: #8A6E6E;
   --text-inverse: #FFFFFF;
 
-  --border: #F1D6D6;
-  --border-subtle: #F7E4E4;
-  --border-strong: #E3BABA;
+  --border: #E6D2D2;
+  --border-subtle: #EDE3E3;
+  --border-strong: #D9B8B8;
 
   --accent: #D32F2F;
   --accent-hover: #B71C1C;
@@ -1203,4 +1203,71 @@ header nav a[aria-current="page"]::after { transform: scaleX(1); opacity: 1; }
   --flash-border-on: rgba(211, 47, 47, 0.75);
   --flash-border-dim: rgba(211, 47, 47, 0.18);
   --flash-glow: rgba(211, 47, 47, 0.45);
+}
+
+/* Flashing elements red in light mode */
+.light .flash-green,
+.light .flash-green-text {
+  color: var(--accent);
+}
+.light .flash-green {
+  animation-name: flash-red-flicker;
+}
+.light .flash-green-text {
+  animation-name: flash-red-flicker-text;
+}
+
+/* Red flicker variants for light mode (same rhythm) */
+@keyframes flash-red-flicker {
+  0%, 1.935% { opacity: 1; filter: brightness(1.15) saturate(1.1); box-shadow: 0 0 0 2px rgba(211,47,47,0.45), 0 0 22px rgba(211,47,47,0.55), 0 0 40px rgba(211,47,47,0.2); }
+  1.936%, 4.838% { opacity: 0.78; filter: brightness(0.9) saturate(0.95); box-shadow: 0 0 0 1px rgba(211,47,47,0.2), 0 0 8px rgba(211,47,47,0.2); }
+  4.839%, 6.774% { opacity: 1; filter: brightness(1.15) saturate(1.1); box-shadow: 0 0 0 2px rgba(211,47,47,0.45), 0 0 22px rgba(211,47,47,0.55), 0 0 40px rgba(211,47,47,0.2); }
+  6.775%, 16.451% { opacity: 0.78; filter: brightness(0.9) saturate(0.95); box-shadow: 0 0 0 1px rgba(211,47,47,0.2), 0 0 8px rgba(211,47,47,0.2); }
+  16.452%, 18.387% { opacity: 1; filter: brightness(1.15) saturate(1.1); box-shadow: 0 0 0 2px rgba(211,47,47,0.45), 0 0 22px rgba(211,47,47,0.55), 0 0 40px rgba(211,47,47,0.2); }
+  18.388%, 23.225% { opacity: 0.78; filter: brightness(0.9) saturate(0.95); box-shadow: 0 0 0 1px rgba(211,47,47,0.2), 0 0 8px rgba(211,47,47,0.2); }
+  23.226%, 25.161% { opacity: 1; filter: brightness(1.15) saturate(1.1); box-shadow: 0 0 0 2px rgba(211,47,47,0.45), 0 0 22px rgba(211,47,47,0.55), 0 0 40px rgba(211,47,47,0.2); }
+  25.162%, 27.096% { opacity: 0.78; filter: brightness(0.9) saturate(0.95); box-shadow: 0 0 0 1px rgba(211,47,47,0.2), 0 0 8px rgba(211,47,47,0.2); }
+  27.097%, 29.032% { opacity: 1; filter: brightness(1.15) saturate(1.1); box-shadow: 0 0 0 2px rgba(211,47,47,0.45), 0 0 22px rgba(211,47,47,0.55), 0 0 40px rgba(211,47,47,0.2); }
+  29.033%, 30.967% { opacity: 0.78; filter: brightness(0.9) saturate(0.95); box-shadow: 0 0 0 1px rgba(211,47,47,0.2), 0 0 8px rgba(211,47,47,0.2); }
+  30.968%, 32.903% { opacity: 1; filter: brightness(1.15) saturate(1.1); box-shadow: 0 0 0 2px rgba(211,47,47,0.45), 0 0 22px rgba(211,47,47,0.55), 0 0 40px rgba(211,47,47,0.2); }
+  32.904%, 39.677% { opacity: 0.78; filter: brightness(0.9) saturate(0.95); box-shadow: 0 0 0 1px rgba(211,47,47,0.2), 0 0 8px rgba(211,47,47,0.2); }
+  39.678%, 41.612% { opacity: 1; filter: brightness(1.15) saturate(1.1); box-shadow: 0 0 0 2px rgba(211,47,47,0.45), 0 0 22px rgba(211,47,47,0.55), 0 0 40px rgba(211,47,47,0.2); }
+  41.613%, 58.064% { opacity: 0.78; filter: brightness(0.9) saturate(0.95); box-shadow: 0 0 0 1px rgba(211,47,47,0.2), 0 0 8px rgba(211,47,47,0.2); }
+  58.065%, 60% { opacity: 1; filter: brightness(1.15) saturate(1.1); box-shadow: 0 0 0 2px rgba(211,47,47,0.45), 0 0 22px rgba(211,47,47,0.55), 0 0 40px rgba(211,47,47,0.2); }
+  60.001%, 61.935% { opacity: 0.78; filter: brightness(0.9) saturate(0.95); box-shadow: 0 0 0 1px rgba(211,47,47,0.2), 0 0 8px rgba(211,47,47,0.2); }
+  61.936%, 63.87% { opacity: 1; filter: brightness(1.15) saturate(1.1); box-shadow: 0 0 0 2px rgba(211,47,47,0.45), 0 0 22px rgba(211,47,47,0.55), 0 0 40px rgba(211,47,47,0.2); }
+  63.871%, 67.741% { opacity: 0.78; filter: brightness(0.9) saturate(0.95); box-shadow: 0 0 0 1px rgba(211,47,47,0.2), 0 0 8px rgba(211,47,47,0.2); }
+  67.742%, 100% { opacity: 1; filter: brightness(1.15) saturate(1.1); box-shadow: 0 0 0 2px rgba(211,47,47,0.45), 0 0 22px rgba(211,47,47,0.55), 0 0 40px rgba(211,47,47,0.2); }
+}
+@keyframes flash-red-flicker-text {
+  0%, 1.935% { opacity: 1; color: #d32f2f; text-shadow: 0 0 10px rgba(211,47,47,0.9), 0 0 22px rgba(211,47,47,0.55); }
+  1.936%, 4.838% { opacity: 0.8; color: rgba(211,47,47,0.4); text-shadow: 0 0 4px rgba(211,47,47,0.2); }
+  4.839%, 6.774% { opacity: 1; color: #d32f2f; text-shadow: 0 0 10px rgba(211,47,47,0.9), 0 0 22px rgba(211,47,47,0.55); }
+  6.775%, 16.451% { opacity: 0.8; color: rgba(211,47,47,0.4); text-shadow: 0 0 4px rgba(211,47,47,0.2); }
+  16.452%, 18.387% { opacity: 1; color: #d32f2f; text-shadow: 0 0 10px rgba(211,47,47,0.9), 0 0 22px rgba(211,47,47,0.55); }
+  18.388%, 23.225% { opacity: 0.8; color: rgba(211,47,47,0.4); text-shadow: 0 0 4px rgba(211,47,47,0.2); }
+  23.226%, 25.161% { opacity: 1; color: #d32f2f; text-shadow: 0 0 10px rgba(211,47,47,0.9), 0 0 22px rgba(211,47,47,0.55); }
+  25.162%, 27.096% { opacity: 0.8; color: rgba(211,47,47,0.4); text-shadow: 0 0 4px rgba(211,47,47,0.2); }
+  27.097%, 29.032% { opacity: 1; color: #d32f2f; text-shadow: 0 0 10px rgba(211,47,47,0.9), 0 0 22px rgba(211,47,47,0.55); }
+  29.033%, 30.967% { opacity: 0.8; color: rgba(211,47,47,0.4); text-shadow: 0 0 4px rgba(211,47,47,0.2); }
+  30.968%, 32.903% { opacity: 1; color: #d32f2f; text-shadow: 0 0 10px rgba(211,47,47,0.9), 0 0 22px rgba(211,47,47,0.55); }
+  32.904%, 39.677% { opacity: 0.8; color: rgba(211,47,47,0.4); text-shadow: 0 0 4px rgba(211,47,47,0.2); }
+  39.678%, 41.612% { opacity: 1; color: #d32f2f; text-shadow: 0 0 10px rgba(211,47,47,0.9), 0 0 22px rgba(211,47,47,0.55); }
+  41.613%, 58.064% { opacity: 0.8; color: rgba(211,47,47,0.4); text-shadow: 0 0 4px rgba(211,47,47,0.2); }
+  58.065%, 60% { opacity: 1; color: #d32f2f; text-shadow: 0 0 10px rgba(211,47,47,0.9), 0 0 22px rgba(211,47,47,0.55); }
+  60.001%, 61.935% { opacity: 0.8; color: rgba(211,47,47,0.4); text-shadow: 0 0 4px rgba(211,47,47,0.2); }
+  61.936%, 63.87% { opacity: 1; color: #d32f2f; text-shadow: 0 0 10px rgba(211,47,47,0.9), 0 0 22px rgba(211,47,47,0.55); }
+  63.871%, 67.741% { opacity: 0.8; color: rgba(211,47,47,0.4); text-shadow: 0 0 4px rgba(211,47,47,0.2); }
+  67.742%, 100% { opacity: 1; color: #d32f2f; text-shadow: 0 0 10px rgba(211,47,47,0.9), 0 0 22px rgba(211,47,47,0.55); }
+}
+
+/* Thin white outer border on top of red borders in light mode (light-up effect) */
+.light :where(.card, .btn, .btn-primary, .btn-secondary, .input, .skills-marquee-item, .neon-perimeter, .spotlight-card, [class*="rounded"][class*="border"]) {
+  outline: 1px solid rgba(255, 255, 255, 0.95);
+  outline-offset: 1px;
+}
+.light .input:focus,
+.light .btn:focus-visible,
+.light a:focus-visible {
+  outline-offset: 2px;
 }
