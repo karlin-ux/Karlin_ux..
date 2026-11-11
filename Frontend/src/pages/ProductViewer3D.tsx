@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { MeshoptDecoder } from 'meshoptimizer';
 
 type ProductKey = 'shoe' | 'watch' | 'apple';
 
@@ -36,15 +37,6 @@ export default function ProductViewer3D() {
         const THREE = await import('three');
         const { OrbitControls } = await import('three/examples/jsm/controls/OrbitControls.js');
         const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
-        // Compressed GLB files require setMeshoptDecoder in Three.js 0.187.0+
-        // Note: This requires the meshopt decoder package. If it fails, the viewer
-        // will fall back to an uncompressed GLB or procedural apple.
-        try {
-          const { setMeshoptDecoder } = await import('https://cdn.jsdelivr.net/npm/@meshoptimizer/meshopt-decoder@1/+esm');
-          setMeshoptDecoder();
-        } catch (e) {
-          console.warn('Meshopt decoder could not be loaded, loading uncompressed GLB');
-        }
 
         const container = mount.current;
         if (!container) return;
@@ -223,6 +215,8 @@ export default function ProductViewer3D() {
         } else {
           // Apple: load GLB model
           const loader = new GLTFLoader();
+          await MeshoptDecoder.ready;
+          loader.setMeshoptDecoder(MeshoptDecoder);
           const apple = track(model.add(new THREE.Group()));
           loader.load(
             '/assets/apple.glb',
