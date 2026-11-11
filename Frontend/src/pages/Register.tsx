@@ -84,8 +84,11 @@ export default function Register() {
             </button>
           </form>
           <p className="text-center text-sm text-[var(--text-muted)] mt-6">
-            Already have an account? <a href="/signin" className="text-[var(--accent)] hover:underline">Sign In</a>
-          </p>
+            Already have an account? <a href="/signin" className="text-[var(--accent)] hover:underline">Sign In</a></p>
+            <div className="grid grid-cols-2 gap-2 mt-4">
+              <button onClick={() => window.location.href="/auth/google/register"} className="btn-ghost w-full text-sm">Continue with Google</button>
+              <p className="text-xs text-[var(--text-muted)]">Google accounts with verified email are treated as verified</p>
+            </div>
         </div>
       </div>
     </div>

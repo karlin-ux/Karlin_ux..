@@ -1,0 +1,17 @@
+# Trivy temporary exceptions.
+#
+# Every entry must have a justification, an owner and a review date. Entries
+# without those are not acceptable. CI still reports these findings in the
+# SARIF/table output; they are only excluded from the *blocking* gate.
+#
+# Reviewed: 2026-11-08
+# Review again: 2027-02-08
+
+# CVE-2025-68121 (CRITICAL) — Go stdlib crypto/tls in /usr/local/bin/gosu,
+# shipped by the official postgres:18.6-alpine image.
+# gosu is a ~10 KB privilege-drop helper: it calls setgroups/setgid/setuid and
+# execve, then exits. It never uses crypto/tls, net/http, net/url or crypto/x509,
+# so this CVE is not reachable through the postgres container.
+# Remove once the upstream postgres image rebuilds gosu with a patched Go
+# toolchain (tracked upstream; the image itself is current for PostgreSQL 18.x).
+CVE-2025-68121

@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:18-alpine
+    image: postgres:18.6-alpine
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-karlin_ux}
       POSTGRES_USER: ${POSTGRES_USER:-karlin_ux}
@@ -18,6 +18,18 @@ services:
     networks: [karlin]
     restart: unless-stopped
     # Database is internal-only; not exposed to host
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      # Required by the official entrypoint to initialise the data directory
+      # and drop privileges to the postgres user.
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
     deploy:
       resources:
         limits:
@@ -61,6 +73,16 @@ services:
       - karlin_static:/app/staticfiles
     networks: [karlin]
     restart: unless-stopped
+    # Match the non-root user created in the Dockerfile.
+    user: "1001:1001"
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health/', timeout=5)\" || exit 1"]
       interval: 30s
@@ -74,7 +96,7 @@ services:
           memory: 1G
 
   proxy:
-    image: caddy:2.10-alpine
+    image: caddy:2.11.9-alpine
     depends_on:
       web:
         condition: service_healthy
@@ -90,6 +112,16 @@ services:
       - karlin_caddy_config:/config
     networks: [karlin]
     restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      # Caddy binds privileged ports 80/443 inside the container.
+      - NET_BIND_SERVICE
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:80/ || exit 1"]
       interval: 30s

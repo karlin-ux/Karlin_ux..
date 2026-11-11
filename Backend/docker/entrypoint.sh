@@ -1,14 +1,8 @@
 #!/bin/sh
 set -e
 
-# If running as root, fix volume permissions and drop to appuser
-if [ "$(id -u)" = "0" ]; then
-    chown -R appuser:appuser /app/uploads /app/staticfiles 2>/dev/null || true
-    exec gosu appuser "$@"
-fi
-
-# Graceful shutdown handler
-trap 'echo "Shutting down gracefully..."; exit 0' TERM INT
+# The container runs as the non-root appuser (see Dockerfile). Named volumes
+# inherit ownership from the image directories, so no privilege drop is needed.
 
 if [ "${RUN_MIGRATIONS}" = "true" ]; then
   echo "Running database migrations..."

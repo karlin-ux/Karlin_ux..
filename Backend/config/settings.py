@@ -143,26 +143,39 @@ WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
 # Database
-POSTGRES_DB = os.environ.get("POSTGRES_DB", "karlin_ux")
-POSTGRES_USER = os.environ.get("POSTGRES_USER", "karlin_ux")
-POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD", "")
-POSTGRES_HOST = os.environ.get("POSTGRES_HOST", "127.0.0.1")
-POSTGRES_PORT = os.environ.get("POSTGRES_PORT", "5432")
+DB_ENGINE = os.environ.get("DJANGO_DB_ENGINE", "django.db.backends.sqlite3")
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": POSTGRES_DB,
-        "USER": POSTGRES_USER,
-        "PASSWORD": POSTGRES_PASSWORD,
-        "HOST": POSTGRES_HOST,
-        "PORT": POSTGRES_PORT,
-        "CONN_MAX_AGE": 60,
-        "OPTIONS": {
-            "connect_timeout": 10,
-        },
+if DB_ENGINE == "django.db.backends.postgresql":
+    POSTGRES_DB = os.environ.get("POSTGRES_DB", "karlin_ux")
+    POSTGRES_USER = os.environ.get("POSTGRES_USER", "karlin_ux")
+    POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD", "")
+    POSTGRES_HOST = os.environ.get("POSTGRES_HOST", "127.0.0.1")
+    POSTGRES_PORT = os.environ.get("POSTGRES_PORT", "5432")
+
+    DATABASES = {
+        "default": {
+            "ENGINE": DB_ENGINE,
+            "NAME": POSTGRES_DB,
+            "USER": POSTGRES_USER,
+            "PASSWORD": POSTGRES_PASSWORD,
+            "HOST": POSTGRES_HOST,
+            "PORT": POSTGRES_PORT,
+            "CONN_MAX_AGE": 60,
+            "OPTIONS": {
+                "connect_timeout": 10,
+            },
+        }
     }
-}
+else:
+    # SQLite default
+    import pathlib
+    BASE_DIR = pathlib.Path(__file__).resolve().parent.parent
+    DATABASES = {
+        "default": {
+            "ENGINE": DB_ENGINE,
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},

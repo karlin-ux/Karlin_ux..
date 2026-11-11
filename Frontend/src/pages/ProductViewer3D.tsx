@@ -1,11 +1,27 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+
+type ProductKey = 'shoe' | 'watch' | 'apple';
+
+const PRODUCTS: Array<{ key: ProductKey; name: string; category: string; blurb: string }> = [
+  { key: 'shoe', name: 'Shoe', category: 'Footwear', blurb: 'Procedural 3D demo model of a shoe — view it from every angle like a real product.' },
+  { key: 'watch', name: 'Watch', category: 'Accessories', blurb: 'Procedural 3D demo model of a watch — inspect details in 3D.' },
+  { key: 'apple', name: 'Apple', category: 'Produce', blurb: '3D Apple model — interactive with rotate, zoom, and ambient lighting.' },
+];
 
 export default function ProductViewer3D() {
   const mount = useRef<HTMLDivElement>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selected = (searchParams.get('product') as ProductKey) || 'shoe';
+  const active = PRODUCTS.find(p => p.key === selected) ? selected : 'shoe';
+  const info = useMemo(() => PRODUCTS.find(p => p.key === active) || PRODUCTS[0], [active]);
+
   const [error, setError] = useState('');
   const [rotationPaused, setRotationPaused] = useState(false);
   const rotationPausedRef = useRef(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => { rotationPausedRef.current = rotationPaused; }, [rotationPaused]);
 
   useEffect(() => {
     let renderer: any;
@@ -16,246 +32,274 @@ export default function ProductViewer3D() {
 
     (async () => {
       try {
+        setError('');
         const THREE = await import('three');
         const { OrbitControls } = await import('three/examples/jsm/controls/OrbitControls.js');
+        const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
+        // Compressed GLB files require setMeshoptDecoder in Three.js 0.187.0+
+        // Note: This requires the meshopt decoder package. If it fails, the viewer
+        // will fall back to an uncompressed GLB or procedural apple.
+        try {
+          const { setMeshoptDecoder } = await import('https://cdn.jsdelivr.net/npm/@meshoptimizer/meshopt-decoder@1/+esm');
+          setMeshoptDecoder();
+        } catch (e) {
+          console.warn('Meshopt decoder could not be loaded, loading uncompressed GLB');
+        }
 
         const container = mount.current;
         if (!container) return;
+        container.innerHTML = '';
 
         const width = container.clientWidth || 600;
-        const height = Math.min(width, 600);
+        const height = Math.min(width, 560);
 
-        // Scene
         const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0b1220);
 
-        // Camera
-        const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-        camera.position.z = 3.5;
+        const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+        camera.position.set(0, 1.2, 4.2);
 
-        // Renderer
-        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
         renderer.setSize(width, height);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.shadowMap.enabled = true;
         if (cancelled) return;
         container.appendChild(renderer.domElement);
 
-        // Controls
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.minDistance = 2;
+        controls.dampingFactor = 0.06;
+        controls.minDistance = 2.2;
         controls.maxDistance = 8;
         controls.enablePan = false;
+        controls.target.set(0, 0.2, 0);
 
-        // Track interaction
-        controls.addEventListener('start', () => {
-          isInteracting = true;
-          clearTimeout(resumeTimeout);
-        });
-        controls.addEventListener('end', () => {
-          isInteracting = false;
-          resumeTimeout = setTimeout(() => {}, 2000);
-        });
+        controls.addEventListener('start', () => { isInteracting = true; clearTimeout(resumeTimeout); });
+        controls.addEventListener('end', () => { isInteracting = false; resumeTimeout = setTimeout(() => {}, 1200); });
 
-        // Lighting
-        const sunLight = new THREE.DirectionalLight(0xffffff, 1.5);
-        sunLight.position.set(5, 3, 5);
-        scene.add(sunLight);
+        // Lights
+        scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+        const key = new THREE.DirectionalLight(0xffffff, 1.4);
+        key.position.set(4, 6, 4);
+        key.castShadow = true;
+        scene.add(key);
+        const fill = new THREE.DirectionalLight(0x5c9dff, 0.5);
+        fill.position.set(-4, 2, -3);
+        scene.add(fill);
+        const rim = new THREE.DirectionalLight(0x53f5b0, 0.35);
+        rim.position.set(0, 3, -5);
+        scene.add(rim);
 
-        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
-        scene.add(ambientLight);
+        // Ground
+        const floorGeo = new THREE.CircleGeometry(3.2, 64);
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.95, metalness: 0.05 });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = -0.9;
+        floor.receiveShadow = true;
+        scene.add(floor);
 
-        const rimLight = new THREE.DirectionalLight(0x5C9DFF, 0.3);
-        rimLight.position.set(-5, 0, -5);
-        scene.add(rimLight);
+        const model = new THREE.Group();
+        scene.add(model);
 
-        // Create Earth texture using canvas
-        const canvas = document.createElement('canvas');
-        canvas.width = 1024;
-        canvas.height = 512;
-        const ctx = canvas.getContext('2d')!;
-
-        // Ocean base
-        const oceanGradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-        oceanGradient.addColorStop(0, '#0a2a4a');
-        oceanGradient.addColorStop(0.3, '#0d3a5c');
-        oceanGradient.addColorStop(0.5, '#1a5a7a');
-        oceanGradient.addColorStop(0.7, '#0d3a5c');
-        oceanGradient.addColorStop(1, '#0a2a4a');
-        ctx.fillStyle = oceanGradient;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Add continents (simplified procedural landmasses)
-        ctx.fillStyle = '#1a6b3a';
-        // North America
-        ctx.beginPath();
-        ctx.ellipse(180, 140, 80, 60, -0.3, 0, Math.PI * 2);
-        ctx.fill();
-        // South America
-        ctx.beginPath();
-        ctx.ellipse(220, 320, 40, 80, 0.2, 0, Math.PI * 2);
-        ctx.fill();
-        // Europe
-        ctx.beginPath();
-        ctx.ellipse(420, 120, 35, 30, 0, 0, Math.PI * 2);
-        ctx.fill();
-        // Africa
-        ctx.beginPath();
-        ctx.ellipse(440, 240, 50, 80, 0, 0, Math.PI * 2);
-        ctx.fill();
-        // Asia
-        ctx.beginPath();
-        ctx.ellipse(520, 140, 90, 60, 0.1, 0, Math.PI * 2);
-        ctx.fill();
-        // Australia
-        ctx.beginPath();
-        ctx.ellipse(580, 320, 35, 25, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Add some green variation to land
-        ctx.fillStyle = '#2a7b4a';
-        ctx.globalAlpha = 0.5;
-        ctx.beginPath();
-        ctx.ellipse(190, 130, 50, 40, -0.3, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(430, 110, 25, 20, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(510, 130, 60, 40, 0.1, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 1.0;
-
-        // Add polar ice caps
-        ctx.fillStyle = '#e8f0f8';
-        ctx.globalAlpha = 0.7;
-        ctx.fillRect(0, 0, canvas.width, 30);
-        ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
-        ctx.globalAlpha = 1.0;
-
-        // Add some cloud wisps
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-        for (let i = 0; i < 20; i++) {
-          const x = Math.random() * canvas.width;
-          const y = Math.random() * canvas.height;
-          const w = 40 + Math.random() * 80;
-          const h = 10 + Math.random() * 20;
-          ctx.beginPath();
-          ctx.ellipse(x, y, w, h, Math.random() * Math.PI, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        const earthTexture = new THREE.CanvasTexture(canvas);
-        earthTexture.wrapS = THREE.RepeatWrapping;
-        earthTexture.wrapT = THREE.RepeatWrapping;
-
-        // Earth sphere
-        const earthGeometry = new THREE.SphereGeometry(1, 64, 64);
-        const earthMaterial = new THREE.MeshPhongMaterial({
-          map: earthTexture,
-          specular: new THREE.Color(0x333333),
-          shininess: 25,
-        });
-        const earth = new THREE.Mesh(earthGeometry, earthMaterial);
-        scene.add(earth);
-
-        // Cloud layer
-        const cloudCanvas = document.createElement('canvas');
-        cloudCanvas.width = 1024;
-        cloudCanvas.height = 512;
-        const cloudCtx = cloudCanvas.getContext('2d')!;
-        cloudCtx.fillStyle = 'transparent';
-        cloudCtx.fillRect(0, 0, cloudCanvas.width, cloudCanvas.height);
-        cloudCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-        for (let i = 0; i < 30; i++) {
-          const x = Math.random() * cloudCanvas.width;
-          const y = Math.random() * cloudCanvas.height;
-          const w = 60 + Math.random() * 120;
-          const h = 15 + Math.random() * 30;
-          cloudCtx.beginPath();
-          cloudCtx.ellipse(x, y, w, h, Math.random() * Math.PI, 0, Math.PI * 2);
-          cloudCtx.fill();
-        }
-        const cloudTexture = new THREE.CanvasTexture(cloudCanvas);
-        const cloudGeometry = new THREE.SphereGeometry(1.01, 64, 64);
-        const cloudMaterial = new THREE.MeshPhongMaterial({
-          map: cloudTexture,
-          transparent: true,
-          opacity: 0.4,
-          depthWrite: false,
-        });
-        const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
-        scene.add(clouds);
-
-        // Atmosphere glow
-        const atmosphereGeometry = new THREE.SphereGeometry(1.15, 64, 64);
-        const atmosphereMaterial = new THREE.ShaderMaterial({
-          vertexShader: `
-            varying vec3 vNormal;
-            void main() {
-              vNormal = normalize(normalMatrix * normal);
-              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        const disposeList: Array<{ dispose: () => void }> = [];
+        const track = (obj: any) => {
+          if (obj?.geometry) disposeList.push(obj.geometry);
+          if (obj?.material) {
+            if (Array.isArray(obj.material)) {
+              obj.material.forEach((m: any) => disposeList.push(m));
+            } else {
+              disposeList.push(obj.material);
             }
-          `,
-          fragmentShader: `
-            varying vec3 vNormal;
-            void main() {
-              float intensity = pow(0.6 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
-              gl_FragColor = vec4(0.3, 0.6, 1.0, 1.0) * intensity;
+          }
+          return obj;
+        };
+
+        if (active === 'shoe') {
+          // Simple procedural shoe (sole + upper + tongue + laces suggestion)
+          const soleMat = new THREE.MeshStandardMaterial({ color: 0xe5e7eb, roughness: 0.6, metalness: 0.1 });
+          const upperMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.75, metalness: 0.05 });
+          const accentMat = new THREE.MeshStandardMaterial({ color: 0x53f5b0, roughness: 0.4, metalness: 0.2 });
+
+          const sole = track(new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.28, 0.95), soleMat));
+          sole.position.set(0, -0.55, 0);
+          sole.castShadow = true; sole.receiveShadow = true; model.add(sole);
+
+          const soleFront = track(new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.28, 32), soleMat));
+          soleFront.rotation.z = Math.PI / 2;
+          soleFront.position.set(1.1, -0.55, 0);
+          model.add(soleFront);
+
+          const upper = track(new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.7, 0.85), upperMat));
+          upper.position.set(-0.1, -0.1, 0);
+          upper.castShadow = true; model.add(upper);
+
+          const toe = track(new THREE.Mesh(new THREE.SphereGeometry(0.45, 32, 24, 0, Math.PI), upperMat));
+          toe.scale.set(1.2, 0.8, 0.95);
+          toe.position.set(0.8, -0.2, 0);
+          toe.castShadow = true; model.add(toe);
+
+          const heel = track(new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.55, 0.8), upperMat));
+          heel.position.set(-0.85, -0.05, 0);
+          heel.castShadow = true; model.add(heel);
+
+          const tongue = track(new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.08, 0.45), new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.7 })));
+          tongue.position.set(0.15, 0.28, 0);
+          tongue.rotation.z = -0.15;
+          model.add(tongue);
+
+          const stripe = track(new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.06, 0.88), accentMat));
+          stripe.position.set(0.1, -0.05, 0);
+          model.add(stripe);
+
+          // laces
+          const laceMat = new THREE.MeshStandardMaterial({ color: 0xf3f4f6, roughness: 0.8 });
+          for (let i = 0; i < 3; i++) {
+            const lace = track(new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.015, 8, 24, Math.PI), laceMat));
+            lace.position.set(-0.05 + i * 0.22, 0.26, 0);
+            lace.rotation.x = Math.PI / 2;
+            lace.rotation.z = Math.PI / 2;
+            model.add(lace);
+          }
+
+          camera.position.set(0.2, 1.0, 4.0);
+        } else if (active === 'watch') {
+          // Simple procedural watch (case, bezel, dial, strap, crown)
+          const metal = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.25, metalness: 0.85 });
+          const dark = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.5, metalness: 0.2 });
+          const glass = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.05, metalness: 0, transmission: 0.2, transparent: true, opacity: 0.35 });
+          const strapMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.8, metalness: 0.05 });
+          const accent = new THREE.MeshStandardMaterial({ color: 0x53f5b0, emissive: 0x113322, roughness: 0.3, metalness: 0.4 });
+
+          const caseMesh = track(new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.95, 0.28, 64), metal));
+          caseMesh.rotation.x = Math.PI / 2;
+          caseMesh.castShadow = true; model.add(caseMesh);
+
+          const bezel = track(new THREE.Mesh(new THREE.TorusGeometry(0.92, 0.07, 16, 64), metal));
+          bezel.position.z = 0.12;
+          model.add(bezel);
+
+          const dial = track(new THREE.Mesh(new THREE.CylinderGeometry(0.78, 0.78, 0.06, 64), dark));
+          dial.rotation.x = Math.PI / 2;
+          dial.position.z = 0.12;
+          model.add(dial);
+
+          const crystal = track(new THREE.Mesh(new THREE.CylinderGeometry(0.82, 0.82, 0.04, 64), glass));
+          crystal.rotation.x = Math.PI / 2;
+          crystal.position.z = 0.17;
+          model.add(crystal);
+
+          // markers
+          for (let i = 0; i < 12; i++) {
+            const a = (i / 12) * Math.PI * 2;
+            const isMain = i % 3 === 0;
+            const mk = track(new THREE.Mesh(new THREE.BoxGeometry(isMain ? 0.06 : 0.03, isMain ? 0.18 : 0.1, 0.02), isMain ? accent : metal));
+            mk.position.set(Math.cos(a) * 0.62, Math.sin(a) * 0.62, 0.16);
+            mk.rotation.z = a;
+            model.add(mk);
+          }
+          // hands
+          const hour = track(new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.38, 0.02), metal));
+          hour.position.set(0, 0.12, 0.18); hour.rotation.z = -0.6; model.add(hour);
+          const minute = track(new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.55, 0.02), metal));
+          minute.position.set(0, 0.2, 0.19); minute.rotation.z = 0.9; model.add(minute);
+          const pin = track(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.04, 24), accent));
+          pin.rotation.x = Math.PI / 2; pin.position.z = 0.2; model.add(pin);
+
+          // crown
+          const crown = track(new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.18, 24), metal));
+          crown.rotation.z = Math.PI / 2; crown.position.set(1.02, 0, 0); model.add(crown);
+
+          // straps
+          const strapGeo = new THREE.BoxGeometry(0.9, 1.6, 0.12);
+          const topStrap = track(new THREE.Mesh(strapGeo, strapMat));
+          topStrap.position.set(0, 1.55, 0); topStrap.castShadow = true; model.add(topStrap);
+          const botStrap = track(new THREE.Mesh(strapGeo, strapMat));
+          botStrap.position.set(0, -1.55, 0); botStrap.castShadow = true; model.add(botStrap);
+          const buckle = track(new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.03, 12, 24), metal));
+          buckle.position.set(0, -2.2, 0.05); model.add(buckle);
+
+          camera.position.set(0, 1.4, 4.4);
+        } else {
+          // Apple: load GLB model
+          const loader = new GLTFLoader();
+          const apple = track(model.add(new THREE.Group()));
+          loader.load(
+            '/assets/apple.glb',
+            (gltf) => {
+              const loaded = gltf.scene;
+              // Scale the apple to a reasonable size
+              loaded.scale.set(0.01, 0.01, 0.01);
+              // Position the apple slightly above center
+              loaded.position.set(0, 0.5, 0);
+              // Rotate to a nice display angle
+              loaded.rotation.y = 0.2;
+              loaded.rotation.x = -0.1;
+              model.add(loaded);
+              // Add subtle rotation animation
+              apple.disposed = false;
+              const rotate = () => {
+                if (cancelled || apple.disposed) return;
+                loaded.rotation.y += 0.005;
+                apple.disposed = true; // prevent double-rotation
+                requestAnimationFrame(rotate);
+              };
+              rotate();
+            },
+            undefined,
+            (error) => {
+              console.error('Error loading apple GLB:', error);
+              // Fallback: procedural apple if GLB fails to load
+              const skin = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.45, metalness: 0.05 });
+              const appleMesh = track(new THREE.Mesh(new THREE.SphereGeometry(1.05, 64, 48), skin));
+              appleMesh.scale.set(1, 0.92, 1);
+              appleMesh.castShadow = true; model.add(appleMesh);
+
+              // dimple top/bottom
+              const dimpleMat = new THREE.MeshStandardMaterial({ color: 0xb91c1c, roughness: 0.6 });
+              const topDip = track(new THREE.Mesh(new THREE.SphereGeometry(0.28, 24, 16), dimpleMat));
+              topDip.scale.set(1.4, 0.5, 1.4);
+              topDip.position.set(0, 0.88, 0); model.add(topDip);
+
+              const stem = track(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 0.45, 12), new THREE.MeshStandardMaterial({ color: 0x5b3a1e, roughness: 0.9 })));
+              stem.position.set(0.05, 1.1, 0); stem.rotation.z = -0.15; stem.castShadow = true; model.add(stem);
+
+              const leafGeo = new THREE.SphereGeometry(0.28, 24, 16);
+              const leaf = track(new THREE.Mesh(leafGeo, new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.6, metalness: 0.0 })));
+              leaf.scale.set(1.6, 0.18, 0.7);
+              leaf.position.set(0.32, 1.18, 0); leaf.rotation.z = -0.6; leaf.castShadow = true; model.add(leaf);
+
+              // highlight
+              const hl = track(new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 12), new THREE.MeshStandardMaterial({ color: 0xffaaaa, roughness: 0.2, transparent: true, opacity: 0.35 })));
+              hl.position.set(-0.35, 0.35, 0.75); model.add(hl);
             }
-          `,
-          blending: THREE.AdditiveBlending,
-          side: THREE.BackSide,
-          transparent: true,
-        });
-        const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
-        scene.add(atmosphere);
-
-        // Stars
-        const starsGeometry = new THREE.BufferGeometry();
-        const starsVertices = [];
-        for (let i = 0; i < 2000; i++) {
-          const x = (Math.random() - 0.5) * 200;
-          const y = (Math.random() - 0.5) * 200;
-          const z = (Math.random() - 0.5) * 200;
-          starsVertices.push(x, y, z);
+          );
         }
-        starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
-        const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1, sizeAttenuation: true });
-        const stars = new THREE.Points(starsGeometry, starsMaterial);
-        scene.add(stars);
 
-        // Animation loop
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         let autoRotate = !prefersReducedMotion;
 
         function animate() {
           if (cancelled) return;
           animationId = requestAnimationFrame(animate);
-
           if (autoRotate && !isInteracting && !rotationPausedRef.current) {
-            earth.rotation.y += 0.002;
-            clouds.rotation.y += 0.0025;
+            model.rotation.y += 0.008;
           }
-
           controls.update();
           renderer.render(scene, camera);
         }
         animate();
 
-        // Handle resize
         const handleResize = () => {
           if (!container) return;
           const newWidth = container.clientWidth;
-          const newHeight = Math.min(newWidth, 600);
+          const newHeight = Math.min(newWidth, 560);
           camera.aspect = newWidth / newHeight;
           camera.updateProjectionMatrix();
           renderer.setSize(newWidth, newHeight);
         };
         window.addEventListener('resize', handleResize);
 
-        // Store cleanup
         (container as any).__threeCleanup = () => {
           cancelled = true;
           cancelAnimationFrame(animationId);
@@ -263,14 +307,13 @@ export default function ProductViewer3D() {
           window.removeEventListener('resize', handleResize);
           controls.dispose();
           renderer.dispose();
-          earthGeometry.dispose();
-          earthMaterial.dispose();
-          cloudGeometry.dispose();
-          cloudMaterial.dispose();
-          atmosphereGeometry.dispose();
-          atmosphereMaterial.dispose();
-          starsGeometry.dispose();
-          starsMaterial.dispose();
+          scene.traverse((obj: any) => {
+            if (obj.geometry) obj.geometry.dispose?.();
+            if (obj.material) {
+              if (Array.isArray(obj.material)) obj.material.forEach((m: any) => m.dispose?.());
+              else obj.material.dispose?.();
+            }
+          });
         };
       } catch (e: any) {
         setError('WebGL/3D not available. Your browser may not support 3D rendering.');
@@ -283,14 +326,10 @@ export default function ProductViewer3D() {
       const cleanup = (mount.current as any)?.__threeCleanup;
       if (cleanup) cleanup();
     };
-  }, []);
+  }, [active]);
 
   function toggleRotation() {
-    setRotationPaused(prev => {
-      const next = !prev;
-      rotationPausedRef.current = next;
-      return next;
-    });
+    setRotationPaused(prev => !prev);
   }
 
   function toggleFullscreen() {
@@ -306,7 +345,10 @@ export default function ProductViewer3D() {
   return (
     <div className="card p-6">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-3xl font-bold">3D Earth Viewer</h1>
+        <div>
+          <h1 className="text-3xl font-bold">3D Product Viewer</h1>
+          <p className="text-sm text-[var(--text-muted)] mt-1">Demo: {info.name} · {info.category}</p>
+        </div>
         <div className="flex gap-2">
           <button onClick={toggleRotation} className="btn btn-secondary text-sm px-3 py-1.5">
             {rotationPaused ? '▶ Play' : '⏸ Pause'}
@@ -316,14 +358,31 @@ export default function ProductViewer3D() {
           </button>
         </div>
       </div>
+
       <p className="text-[var(--text-secondary)] mb-4">
-        Interactive 3D Earth globe. Drag to rotate, scroll to zoom. Auto-rotates when idle.
+        {info.blurb} Drag to rotate, scroll to zoom. Auto-rotates when idle.
       </p>
+
+      <div className="flex flex-wrap gap-2 mb-4">
+        {PRODUCTS.map(p => (
+          <button
+            key={p.key}
+            onClick={() => setSearchParams({ product: p.key })}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${active === p.key ? 'bg-[var(--accent-soft)] text-[var(--accent)] border-[var(--accent)]/40' : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] border-[var(var(--border)] hover:border-[var(--accent)]/30'}`}
+          >
+            {p.name} <span className="text-[var(--text-muted)]">· {p.category}</span>
+          </button>
+        ))}
+      </div>
+
       {error && <p className="text-[var(--error)] text-sm mb-3">{error}</p>}
-      <div ref={mount} className="mx-auto rounded-xl overflow-hidden bg-[var(--bg-secondary)]" style={{ minHeight: '400px' }} />
+      <div ref={mount} className="mx-auto rounded-xl overflow-hidden" style={{ minHeight: '420px' }} />
       <p className="text-xs text-[var(--text-muted)] mt-3 text-center">
-        Procedural Earth rendering using Three.js. Drag to rotate, scroll to zoom.
+        Interactive 3D product model. Drag to rotate, scroll to zoom. Auto-rotates when idle.
       </p>
+      <div className="mt-3 text-center">
+        <Link to="/projects" className="text-sm text-[var(--accent)] hover:underline">Back to Projects</Link>
+      </div>
     </div>
   );
 }

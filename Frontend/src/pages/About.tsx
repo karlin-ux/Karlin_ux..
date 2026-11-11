@@ -8,7 +8,7 @@ import Icon from '../components/Icon';
 const experience = [
   { area: 'Web Development', years: 7, color: 'var(--accent)', icon: 'customer-experiences' },
   { area: 'Database Development', years: 4, color: 'var(--accent-2)', icon: 'metric-orders' },
-  { area: 'Software Testing', years: 2, color: 'var(--accent-3)', icon: 'application-management' },
+  { area: 'Software Testing', years: 7, color: 'var(--accent-3)', icon: 'application-management' },
   { area: 'Android Development', years: 1, color: 'var(--warning)', icon: 'customer-experiences' },
 ];
 
@@ -221,7 +221,7 @@ export default function About() {
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
+            <div className="text-center lg:col-span-2">
               <div className="text-xs font-medium text-[var(--accent)] uppercase tracking-widest mb-4">About the Developer</div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
                 Building Software.
@@ -230,63 +230,15 @@ export default function About() {
                 <br />
                 Connecting Ideas.
               </h1>
-              <p className="text-lg text-[var(--text-secondary)] leading-relaxed mb-8 max-w-xl">
+              <p className="mx-auto text-lg text-[var(--text-secondary)] leading-relaxed mb-8 max-w-xl">
                 I'm a self-taught developer with experience across web development, databases, software testing and Android applications.
                 I enjoy building practical software, exploring new technologies and understanding how everything works together.
               </p>
-              <div className="flex flex-wrap gap-3">
-                <a href="#skills" className="btn btn-primary">Explore Skills</a>
-                <Link to="/projects" className="btn btn-secondary">View Projects</Link>
-                <Link to="/contact" className="btn btn-ghost">Contact Me</Link>
+              <div className="flex flex-wrap justify-center gap-3">
+                <Link to="/contact" className="btn btn-primary">Contact Me</Link>
               </div>
             </div>
 
-            {/* Abstract developer visual */}
-            <div className="relative hidden lg:block">
-              <div className="card p-8 bg-[var(--bg-elevated)]/60 backdrop-blur-xl">
-                <div className="grid grid-cols-3 gap-3">
-                  {['Python', 'Django', 'React', 'PostgreSQL', 'Docker', 'TypeScript', 'Tailwind', 'Git', 'Linux'].map((tech, i) => (
-                    <div key={i} className="flex items-center gap-2 p-3 rounded-lg bg-[var(--bg-surface)] border border-[var(--border)] hover:border-[var(--accent)]/30 transition-all">
-                      <div className="w-2 h-2 rounded-full bg-[var(--accent)]" />
-                      <span className="text-xs font-medium">{tech}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4 text-center text-xs text-[var(--text-muted)]">
-                  Technologies used in Karlin_ux and beyond
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================
-          EXPERIENCE OVERVIEW
-          ============================================ */}
-      <section ref={sectionRef} className="py-20 bg-[var(--bg-secondary)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Experience Overview</h2>
-            <p className="text-[var(--text-secondary)] max-w-2xl mx-auto">
-              Years of hands-on experience across different areas of software development.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {experience.map((exp, i) => (
-              <div key={i} className="card p-6 text-center hover:border-[var(--accent)]/30 transition-all duration-300">
-                <div className="mb-4 flex justify-center">
-                  <Icon name={exp.icon} size={32} />
-                </div>
-                <div className="text-4xl font-bold mb-2" style={{ color: exp.color }}>
-                  {countsVisible ? exp.years : 0}
-                  <span className="text-2xl text-[var(--text-muted)]">+</span>
-                </div>
-                <div className="text-sm text-[var(--text-secondary)] font-medium">{exp.area}</div>
-                <div className="text-xs text-[var(--text-muted)] mt-1">years experience</div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
@@ -437,7 +389,7 @@ export default function About() {
       <section className="py-20 bg-[var(--bg-secondary)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Development Journey</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Years Spent on My Developer Journey</h2>
             <p className="text-[var(--text-secondary)] max-w-2xl mx-auto">
               A technical progression across different areas of software engineering.
             </p>
@@ -493,7 +445,7 @@ export default function About() {
               { title: 'Automated Testing Systems', desc: 'Test suites, CI/CD and quality assurance.', icon: 'application-management', link: '/explore' },
               { title: 'Deployment & Infrastructure', desc: 'Docker, cloud hosting and CI/CD pipelines.', icon: 'security-infrastructure', link: '/explore' },
               { title: 'Networking & Security', desc: 'Firewalls, VPNs and secure configurations.', icon: 'security-infrastructure', link: '/explore' },
-              { title: '3D Interactive Experiences', desc: '3D viewers and interactive visualizations.', icon: '3d-product-experiences', link: '/3d' },
+              { title: '3D Interactive Experiences', desc: '3D viewers for products and interactive visualizations (e.g. view a watch in 3D).', icon: '3d-product-experiences', link: '/3d' },
             ].map((item, i) => (
               <Link key={i} to={item.link} className="card p-5 hover:border-[var(--accent)]/30 transition-all duration-300 group">
                 <div className="flex items-center gap-3 mb-2">
@@ -521,9 +473,8 @@ export default function About() {
             From web applications to mobile apps, databases to infrastructure — I can help bring your idea to life.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <Link to="/explore" className="btn btn-primary text-lg px-8 py-3.5">Explore Capabilities</Link>
-            <Link to="/projects" className="btn btn-secondary text-lg px-8 py-3.5">View Projects</Link>
-            <Link to="/contact" className="btn btn-ghost text-lg px-8 py-3.5">Contact Me</Link>
+            <Link to="/explore" className="btn btn-primary flash-green text-lg px-8 py-3.5">Explore Capabilities</Link>
+            <Link to="/contact" className="btn btn-primary text-lg px-8 py-3.5">Contact Me</Link>
           </div>
         </div>
       </section>

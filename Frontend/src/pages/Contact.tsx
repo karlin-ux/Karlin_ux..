@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { api } from '../api/client';
+import Reveal from '../components/Reveal';
 
 export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [error, setError] = useState('');
+  const charged = useMemo(() => !!(form.name && form.email && form.message), [form]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -22,17 +24,18 @@ export default function Contact() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
-      <section className="text-center py-12">
+      <Reveal><section className="text-center py-12">
         <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact</h1>
         <p className="text-[var(--text-secondary)] text-lg">
           Get in touch. I'd love to hear from you.
         </p>
-      </section>
+      </section></Reveal>
 
-      <div className="neon-perimeter card relative overflow-hidden rounded-[var(--radius-lg)] border-[var(--border-strong)] bg-[var(--bg-elevated)]/90 p-8 shadow-lg backdrop-blur-sm">
+      <Reveal delay={120}><div className={`neon-perimeter ${charged || status === 'sending' ? 'neon-perimeter--charged' : ''} card relative overflow-hidden rounded-[var(--radius-lg)] border-[var(--border-strong)] bg-[var(--bg-elevated)]/90 p-8 shadow-lg backdrop-blur-sm`}>
         {status === 'success' && (
-          <div className="mb-6 p-4 rounded-lg bg-[var(--success-soft)] border border-[var(--success)]/20 text-[var(--success)]" role="status">
-            Message sent successfully! I'll get back to you soon.
+          <div className="relative mb-6 overflow-visible rounded-lg border border-[var(--success)]/20 bg-[var(--success-soft)] p-4 text-[var(--success)]" role="status">
+            <span aria-hidden="true" />
+            <span className="relative z-10">Message sent successfully! I'll get back to you soon.</span>
           </div>
         )}
         {status === 'error' && (
@@ -64,7 +67,7 @@ export default function Contact() {
             {status === 'sending' ? 'Sending...' : 'Send Message'}
           </button>
         </form>
-      </div>
+      </div></Reveal>
     </div>
   );
 }

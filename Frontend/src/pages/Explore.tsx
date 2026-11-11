@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import Icon from '../components/Icon';
+import Reveal from '../components/Reveal';
 
 /* ============================================
    CAPABILITY GROUPS
@@ -67,7 +68,7 @@ const capabilityGroups = [
     icon: 'ai-assisted-interfaces',
     size: 'small',
     color: 'var(--accent)',
-    features: ['Voice Navigation', 'Command Palette', '3D Product Viewer', 'Search', 'PWA Support'],
+    features: ['Voice Navigation', 'Command Palette', '3D Product & Object Viewer', 'Search', 'PWA Support'],
     link: '/3d',
   },
 ];
@@ -94,12 +95,12 @@ export default function Explore() {
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[var(--accent)] rounded-full blur-[200px] opacity-[0.06]" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
+          <div className="mx-auto max-w-3xl text-center">
             <div className="text-xs font-medium text-[var(--accent)] uppercase tracking-widest mb-4">Interactive Showroom</div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
               Explore What Can Be <span className="text-gradient">Built</span>
             </h1>
-            <p className="text-lg md:text-xl text-[var(--text-secondary)] leading-relaxed max-w-2xl">
+            <p className="mx-auto text-lg md:text-xl text-[var(--text-secondary)] leading-relaxed max-w-2xl">
               Discover the systems, experiences and engineering solutions that can bring a business idea to life.
               Every capability links to a working demonstration backed by real API endpoints.
             </p>
@@ -116,9 +117,9 @@ export default function Explore() {
             {capabilityGroups.map((group, i) => {
               const isLarge = group.size === 'large';
               return (
+                <Reveal key={i} delay={i * 60} className={isLarge ? 'md:col-span-2 md:row-span-2' : ''}>
                 <div
-                  key={i}
-                  className={`group relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] p-6 transition-all duration-500 hover:border-[var(--border-strong)] hover:shadow-lg cursor-pointer ${
+                  className={`spotlight-card tilt-card group relative h-full overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] p-6 transition-all duration-500 hover:border-[var(--border-strong)] hover:shadow-lg cursor-pointer ${
                     isLarge ? 'md:col-span-2 md:row-span-2' : ''
                   }`}
                   onMouseEnter={() => setActivePreview(group.title)}
@@ -168,6 +169,7 @@ export default function Explore() {
                     </div>
                   </div>
                 </div>
+                </Reveal>
               );
             })}
           </div>
@@ -306,8 +308,8 @@ export default function Explore() {
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <Link to="/customer" className="btn btn-primary text-lg px-8 py-3.5">Try Customer Demo</Link>
-            <Link to="/admin" className="btn btn-secondary text-lg px-8 py-3.5">Try Admin Demo</Link>
-            <Link to="/contact" className="btn btn-ghost text-lg px-8 py-3.5">Contact Me</Link>
+            <Link to="/admin" className="btn btn-primary text-lg px-8 py-3.5">Try Admin Demo</Link>
+            <Link to="/contact" className="btn btn-primary text-lg px-8 py-3.5">Contact Me</Link>
           </div>
         </div>
       </section>

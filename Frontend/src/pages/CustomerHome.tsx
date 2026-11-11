@@ -1,6 +1,15 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import Icon from '../components/Icon';
+
+function product3DKey(p: { name?: string }) {
+  const n = (p.name || '').toLowerCase();
+  if (n.includes('shoe')) return 'shoe';
+  if (n.includes('watch')) return 'watch';
+  if (n.includes('apple')) return 'apple';
+  return null;
+}
 
 interface Product { id: string; name: string; description: string; price: string; stock: number; category: string; is_published: boolean; is_featured: boolean; primary_image?: any; model_3d?: any; }
 
@@ -25,11 +34,16 @@ export default function CustomerHome() {
 
   useEffect(() => { localStorage.setItem('cart', JSON.stringify(cart)); }, [cart]);
 
-  async function loadCart() { try { const c = await api.get('/demo/cart/'); setCart(c.data); } catch {} }
+  async function loadCart() {
+    try {
+      const c = await api.get('/demo/cart/');
+      setCart(c.data);
+    } catch {}
+  }
   async function load() {
     try {
       const p = await api.get('/demo/products/');
-      setProducts((p.data.results || p.data).filter((x: any) => x.is_published !== false));
+      setProducts((p.data.results || p.data).filter((x: any) => x.is_published !== false).slice(0, 3));
       const s = await api.get('/demo/services/');
       setServices(s.data.results || s.data);
       const o = await api.get('/demo/orders/');
@@ -47,16 +61,25 @@ export default function CustomerHome() {
   useEffect(() => { load(); loadCart(); const t = setInterval(() => { load(); loadCart(); }, 30000); return () => clearInterval(t); }, []);
 
   async function addToCart(p: Product) {
-    await api.post('/demo/cart/add/', { product_id: p.id, quantity: 1 });
-    loadCart();
+    try {
+      await api.post('/demo/cart/add/', { product_id: p.id, quantity: 1 });
+      await loadCart();
+      setStatus(`${p.name} added to cart.`);
+    } catch (e: any) {
+      setStatus(e?.response?.data?.detail || 'Could not add to cart.');
+    }
   }
 
   async function updateQty(id: string, qty: number) {
     const item = cart?.items?.find((i: any) => i.product === id || i.product?.id === id);
     if (!item) return;
-    if (qty < 1) { await api.delete(`/demo/cart/item/${item.id}/delete/`); }
-    else { await api.patch(`/demo/cart/item/${item.id}/`, { quantity: qty }); }
-    loadCart();
+    try {
+      if (qty < 1) { await api.delete(`/demo/cart/item/${item.id}/delete/`); }
+      else { await api.patch(`/demo/cart/item/${item.id}/`, { quantity: qty }); }
+      await loadCart();
+    } catch (e: any) {
+      setStatus(e?.response?.data?.detail || 'Could not update cart.');
+    }
   }
 
   const filtered = products
@@ -107,10 +130,11 @@ export default function CustomerHome() {
   async function checkout(e: React.FormEvent) {
     e.preventDefault();
     try {
-      const r = await api.post('/demo/checkout/', checkoutInfo);
-      setStatus(`Order created: ${r.data.order_id || 'success'}`);
-      loadCart();
+      const r = await api.post('/demo/checkout/', { ...checkoutInfo, use_cart: true });
+      setStatus(`Order created: ${r.data.id || r.data.order_id || 'success'}`);
+      await loadCart();
       load();
+      setTab('orders');
     } catch (e: any) { setStatus(e?.response?.data?.detail || 'Checkout failed.'); }
   }
 
@@ -199,9 +223,14 @@ export default function CustomerHome() {
                   </div>
                   <h3 className="font-semibold mb-1">{p.name}</h3>
                   <p className="text-sm text-[var(--text-secondary)] mb-2 line-clamp-2">{p.description}</p>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <span className="text-lg font-bold text-[var(--accent)]">£{p.price}</span>
-                    <button onClick={() => addToCart(p)} className="btn btn-primary text-sm px-3 py-1.5">Add to Cart</button>
+                    <div className="flex items-center gap-2">
+                      {product3DKey(p) && (
+                        <Link to={`/3d?product=${product3DKey(p)}`} className="btn btn-secondary text-sm px-3 py-1.5">View in 3D</Link>
+                      )}
+                      <button onClick={() => addToCart(p)} className="btn btn-primary text-sm px-3 py-1.5">Add to Cart</button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -218,6 +247,9 @@ export default function CustomerHome() {
                     <p className="text-sm text-[var(--text-secondary)] truncate">{p.description}</p>
                   </div>
                   <span className="font-bold text-[var(--accent)]">£{p.price}</span>
+                  {product3DKey(p) && (
+                    <Link to={`/3d?product=${product3DKey(p)}`} className="btn btn-secondary text-sm px-3 py-1.5 shrink-0">3D</Link>
+                  )}
                   <button onClick={() => addToCart(p)} className="btn btn-primary text-sm px-3 py-1.5 shrink-0">Add</button>
                 </div>
               ))}

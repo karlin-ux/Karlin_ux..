@@ -1,11 +1,12 @@
 import uuid
+from django.utils import timezone as dj_timezone
 
-from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.contrib.auth.models import AbstractUser, BaseUserManager, Group, Permission
 from django.db import models
 
 
 class UserManager(BaseUserManager):
-    use_in_migrations = True
+    use_injections = True
 
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -36,6 +37,7 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_STANDARD)
     is_active = models.BooleanField(default=True)
+    is_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -55,6 +57,19 @@ class User(AbstractUser):
         if not self.username:
             self.username = self.email
         super().save(*args, **kwargs)
+
+    # Fix the reverse accessor clash with Django's default Group/Permission models
+    # by providing unique related_name values
+    groups = models.ManyToManyField(
+        Group,
+        related_name="accounts_user_groups",
+        blank=True,
+    )
+    user_permissions = models.ManyToManyField(
+        Permission,
+        related_name="accounts_user_permissions",
+        blank=True,
+    )
 
 
 class CustomerProfile(models.Model):
@@ -119,3 +134,119 @@ class AccountSecurityEvent(models.Model):
 
     def __str__(self):
         return f"{self.event_type} {self.user}"
+
+
+class EmailVerificationToken(models.Model):
+    """Single-use verification tokens for email verification.
+
+    - Each token can only be used once.
+    - Tokens expire after 48 hours.
+    - Tokens are hashed for security.
+    - Single-use only - after use, the token is marked as used.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="verification_tokens")
+    token = models.CharField(max_length=128)  # Stores hashed token
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ["token"]
+        indexes = [
+            models.Index(fields=["-created_at"]),
+        ]
+
+    def __str__(self):
+        return f"Verification token for {self.user.email} (expires {self.expires_at})"
+
+    def is_expired(self) -> bool:
+        """Check if the token has expired."""
+        return dj_timezone.now() > self.expires_at
+
+    def is_used(self) -> bool:
+        """Check if the token has been used."""
+        return self.used
+
+    def mark_used(self) -> None:
+        """Mark this token as used and save."""
+        self.used = True
+        self.save(update_fields=["used"])
+
+class DonationProduct(models.Model):
+    """Donation product catalogue - maximum 5 products.
+
+    These products represent donation amounts, not ordinary retail products.
+    The limit of 5 products is enforced both in the database (unique constraint
+    on amount) and in the admin interface.
+    """
+    class DonationAmount(models.IntegerChoices):
+        SUPPORTER = 25, "$0.25"
+        SMALL = 50, "$0.50"
+        STANDARD = 100, "$1.00"
+        GENEROUS = 250, "$2.50"
+        MAXIMUM = 500, "$5.00"
+
+    name = models.CharField(max_length=120, unique=True)
+    amount_cents = models.IntegerField(choices=DonationAmount.choices)
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    display_order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["display_order", "name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["amount_cents"], name="unique_donation_amount"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.name} - {self.amount_cents // 100}.{self.amount_cents % 100:02d}"
+
+
+class DonationDonation(models.Model):
+    """Individual donation record.
+
+    Tracks donation attempts with status transitions.
+    Never trusts client-submitted payment status.
+    """
+    class PaymentMethod(models.TextChoices):
+        BITCOIN = "bitcoin", "Bitcoin"
+        PAYPAL = "paypal", "PayPal"
+        EFT = "eft", "EFT Bank Transfer"
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        AWAITING_PAYMENT = "awaiting_payment", "Awaiting Payment"
+        SUBMITTED = "submitted", "Submitted"
+        CONFIRMED = "confirmed", "Confirmed"
+        FAILED = "failed", "Failed"
+        CANCELLED = "cancelled", "Cancelled"
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="donations")
+    product = models.ForeignKey(DonationProduct, on_delete=models.RESTRICT)
+    amount_cents = models.IntegerField()
+    payment_method = models.CharField(max_length=20, choices=PaymentMethod.choices)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    reference = models.CharField(max_length=64, unique=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["-created_at"]),
+            models.Index(fields=["status"]),
+        ]
+
+    def __str__(self):
+        return f"Donation {self.reference or chr(8212)} by {self.user.email} — {self.product.name}"
+
+    def save(self, *args, **kwargs):
+        """Ensure reference is generated if not provided."""
+        if not self.reference:
+            import uuid
+            self.reference = f"KRX-{uuid.uuid4().hex[:8].upper()}"
+        super().save(*args, **kwargs)

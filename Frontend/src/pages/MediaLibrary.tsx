@@ -28,7 +28,7 @@ export default function MediaLibrary() {
       const fd = new FormData();
       fd.append('file', f);
       try {
-        await api.post('/media/', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+        await api.post('/media/upload/', fd);
       } catch (err) {
         console.error('Upload failed', err);
       }

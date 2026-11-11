@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Icon from '../components/Icon';
 
 /* ============================================
@@ -109,6 +110,11 @@ const technologies: Technology[] = [
   // Creative and 3D
   { name: 'Blender', category: 'Creative', description: '3D creation suite for modelling, rendering and animation.', status: 'additional', capabilities: '3D modelling, rendering, animation, asset creation', icon: '3d-product-experiences' },
   { name: '3D Modelling', category: 'Creative', description: 'Creating three-dimensional digital models and assets.', status: 'additional', capabilities: '3D assets, product visualization, game assets', icon: '3d-product-experiences' },
+  // Tooling
+  { name: 'Git', category: 'Tools', description: 'Version control system for tracking changes and collaborating on code.', status: 'used', capabilities: 'Branching, merging, history, code review workflows', icon: 'content-management' },
+  { name: 'GitHub', category: 'Tools', description: 'Code hosting and collaboration platform for repositories and delivery workflows.', status: 'used', capabilities: 'Pull requests, code review, issues, Actions', icon: 'content-management' },
+  { name: 'VS Code', category: 'Tools', description: 'Extensible code editor for writing and debugging applications.', status: 'used', capabilities: 'Editing, debugging, extensions, integrated terminal', icon: 'content-management' },
+  { name: 'Insomnia', category: 'Tools', description: 'API client for designing, testing and debugging HTTP requests.', status: 'used', capabilities: 'REST and GraphQL requests, environments, auth testing', icon: 'content-management' },
 
   // === CURRENTLY LEARNING ===
   { name: 'Ruby', category: 'Languages', description: 'Dynamic programming language with elegant syntax.', status: 'learning', capabilities: 'Web development, scripting, automation', icon: 'ai-assisted-interfaces' },
@@ -118,11 +124,16 @@ const technologies: Technology[] = [
   { name: 'AI Integrations', category: 'Backend', description: 'Integrating AI and machine learning capabilities into applications.', status: 'learning', capabilities: 'LLM APIs, embeddings, AI-powered features', icon: 'ai-assisted-interfaces' },
 ];
 
-const categories = ['All', 'Frontend', 'Backend', 'Languages', 'Database', 'API', 'Data', 'Infrastructure', 'Operating Systems', 'Cloud', 'Mobile', 'Testing', 'Creative', 'CI/CD', 'Security'];
+const categories = ['All', 'Frontend', 'Backend', 'Languages', 'Database', 'API', 'Data', 'Infrastructure', 'Operating Systems', 'Cloud', 'Mobile', 'Testing', 'Creative', 'Tools', 'CI/CD', 'Security'];
 
 export default function Technologies() {
+  const [searchParams] = useSearchParams();
+  const categoryParam = searchParams.get('category');
+  const initialCategory =
+    categoryParam && categories.includes(categoryParam) ? categoryParam : 'All';
+
   const [search, setSearch] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [categoryFilter, setCategoryFilter] = useState(initialCategory);
   const [statusFilter, setStatusFilter] = useState<TechStatus | 'all'>('all');
   const [selectedTech, setSelectedTech] = useState<Technology | null>(null);
 

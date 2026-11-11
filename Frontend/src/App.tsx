@@ -3,6 +3,7 @@ import Layout from './layout/Layout';
 import { RequireAuth, RequireSuper } from './components/Protected';
 import Home from './pages/Home';
 import Explore from './pages/Explore';
+import Engineering from './pages/Engineering';
 import Projects from './pages/Projects';
 import Technologies from './pages/Technologies';
 import About from './pages/About';
@@ -25,6 +26,7 @@ export default function App() {
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/explore" element={<Explore />} />
+          <Route path="/engineering" element={<Engineering />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/technologies" element={<Technologies />} />
           <Route path="/about" element={<About />} />

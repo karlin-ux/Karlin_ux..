@@ -23,7 +23,7 @@ function AdminInner() {
       const [s, p, o, c, b, a, m, med] = await Promise.all([
         api.get('/demo/dashboard/'),
         api.get('/demo/products/'),
-        api.get('/demo/orders/'),
+        api.get('/api/demo/orders/'),
         api.get('/demo/customers/'),
         api.get('/demo/bookings/'),
         api.get('/demo/applications/'),
