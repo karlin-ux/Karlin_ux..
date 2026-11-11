@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { MeshoptDecoder } from 'meshoptimizer';
 
 type ProductKey = 'shoe' | 'watch' | 'apple';
 
@@ -215,8 +214,13 @@ export default function ProductViewer3D() {
         } else {
           // Apple: load GLB model
           const loader = new GLTFLoader();
-          await MeshoptDecoder.ready;
-          loader.setMeshoptDecoder(MeshoptDecoder);
+          try {
+            const { MeshoptDecoder } = await import('meshoptimizer');
+            await MeshoptDecoder.ready;
+            loader.setMeshoptDecoder(MeshoptDecoder);
+          } catch (e) {
+            console.warn('Meshopt decoder could not be loaded, loading GLB without it');
+          }
           const apple = track(model.add(new THREE.Group()));
           loader.load(
             '/assets/apple.glb',
