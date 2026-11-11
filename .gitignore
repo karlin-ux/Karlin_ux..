@@ -4,6 +4,16 @@
 !.env.example
 .env.docker
 
+# Local/secret settings
+**/settings_local.py
+**/local_settings.py
+**/*_local.py
+!Backend/demo/management/commands/set_demo_products.py
+secrets/
+*.secret
+*.secrets
+*.token
+
 # Python
 __pycache__/
 *.py[cod]
