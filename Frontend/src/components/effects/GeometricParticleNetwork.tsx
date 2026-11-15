@@ -269,7 +269,7 @@ export default function GeometricParticleNetwork({
         nearest.push({ i, d: dx * dx + dy * dy });
       }
       nearest.sort((a, b) => a.d - b.d);
-      const picks = nearest.slice(0, Math.min(2, nearest.length));
+      const picks = nearest.slice(0, Math.min(11, nearest.length));
       if (picks.length === 0) return;
       // Use same line color as constellation lines
       const lineColor = palette.length === 2 ? palette[1] : (palette[1] ?? palette[0] ?? parseColor("#53F5B0"));
