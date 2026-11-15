@@ -20,18 +20,29 @@ export function useInView<T extends HTMLElement>(options?: IntersectionObserverI
   const [inView, setInView] = useState(false);
   useEffect(() => {
     const el = ref.current;
-    if (!el || typeof IntersectionObserver === 'undefined') {
-      setInView(true);
+    if (!el) return;
+    const reveal = () => setInView(true);
+    if (typeof IntersectionObserver === 'undefined') {
+      reveal();
       return;
     }
+    // Fallback: if already in/near viewport on mount, reveal immediately
+    const check = () => {
+      const r = el.getBoundingClientRect();
+      const vh = window.innerHeight || document.documentElement.clientHeight;
+      if (r.bottom > 0 && r.top < vh) reveal();
+    };
+    check();
     const obs = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) {
-        setInView(true);
+        reveal();
         obs.disconnect();
       }
     }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px', ...options });
     obs.observe(el);
-    return () => obs.disconnect();
+    // Extra safety for top-of-page content
+    const t = window.setTimeout(check, 60);
+    return () => { obs.disconnect(); window.clearTimeout(t); };
   }, [options?.root, options?.rootMargin, options?.threshold]);
   return { ref, inView };
 }
