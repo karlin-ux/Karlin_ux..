@@ -1241,23 +1241,23 @@ header nav a[aria-current="page"]::after { transform: scaleX(1); opacity: 1; }
 }
 @keyframes flash-red-flicker-text {
   0%, 1.935% { opacity: 1; color: #d32f2f; text-shadow: 0 0 10px rgba(211,47,47,0.9), 0 0 22px rgba(211,47,47,0.55); }
-  1.936%, 4.838% { opacity: 0.8; color: rgba(211,47,47,0.4); text-shadow: 0 0 4px rgba(211,47,47,0.2); }
+  1.936%, 4.838% { opacity: 0.92; color: rgba(211,47,47,0.7); text-shadow: 0 0 6px rgba(211,47,47,0.35); }
   4.839%, 6.774% { opacity: 1; color: #d32f2f; text-shadow: 0 0 10px rgba(211,47,47,0.9), 0 0 22px rgba(211,47,47,0.55); }
-  6.775%, 16.451% { opacity: 0.8; color: rgba(211,47,47,0.4); text-shadow: 0 0 4px rgba(211,47,47,0.2); }
+  6.775%, 16.451% { opacity: 0.92; color: rgba(211,47,47,0.7); text-shadow: 0 0 6px rgba(211,47,47,0.35); }
   16.452%, 18.387% { opacity: 1; color: #d32f2f; text-shadow: 0 0 10px rgba(211,47,47,0.9), 0 0 22px rgba(211,47,47,0.55); }
-  18.388%, 23.225% { opacity: 0.8; color: rgba(211,47,47,0.4); text-shadow: 0 0 4px rgba(211,47,47,0.2); }
+  18.388%, 23.225% { opacity: 0.92; color: rgba(211,47,47,0.7); text-shadow: 0 0 6px rgba(211,47,47,0.35); }
   23.226%, 25.161% { opacity: 1; color: #d32f2f; text-shadow: 0 0 10px rgba(211,47,47,0.9), 0 0 22px rgba(211,47,47,0.55); }
-  25.162%, 27.096% { opacity: 0.8; color: rgba(211,47,47,0.4); text-shadow: 0 0 4px rgba(211,47,47,0.2); }
+  25.162%, 27.096% { opacity: 0.92; color: rgba(211,47,47,0.7); text-shadow: 0 0 6px rgba(211,47,47,0.35); }
   27.097%, 29.032% { opacity: 1; color: #d32f2f; text-shadow: 0 0 10px rgba(211,47,47,0.9), 0 0 22px rgba(211,47,47,0.55); }
-  29.033%, 30.967% { opacity: 0.8; color: rgba(211,47,47,0.4); text-shadow: 0 0 4px rgba(211,47,47,0.2); }
+  29.033%, 30.967% { opacity: 0.92; color: rgba(211,47,47,0.7); text-shadow: 0 0 6px rgba(211,47,47,0.35); }
   30.968%, 32.903% { opacity: 1; color: #d32f2f; text-shadow: 0 0 10px rgba(211,47,47,0.9), 0 0 22px rgba(211,47,47,0.55); }
-  32.904%, 39.677% { opacity: 0.8; color: rgba(211,47,47,0.4); text-shadow: 0 0 4px rgba(211,47,47,0.2); }
+  32.904%, 39.677% { opacity: 0.92; color: rgba(211,47,47,0.7); text-shadow: 0 0 6px rgba(211,47,47,0.35); }
   39.678%, 41.612% { opacity: 1; color: #d32f2f; text-shadow: 0 0 10px rgba(211,47,47,0.9), 0 0 22px rgba(211,47,47,0.55); }
-  41.613%, 58.064% { opacity: 0.8; color: rgba(211,47,47,0.4); text-shadow: 0 0 4px rgba(211,47,47,0.2); }
+  41.613%, 58.064% { opacity: 0.92; color: rgba(211,47,47,0.7); text-shadow: 0 0 6px rgba(211,47,47,0.35); }
   58.065%, 60% { opacity: 1; color: #d32f2f; text-shadow: 0 0 10px rgba(211,47,47,0.9), 0 0 22px rgba(211,47,47,0.55); }
-  60.001%, 61.935% { opacity: 0.8; color: rgba(211,47,47,0.4); text-shadow: 0 0 4px rgba(211,47,47,0.2); }
+  60.001%, 61.935% { opacity: 0.92; color: rgba(211,47,47,0.7); text-shadow: 0 0 6px rgba(211,47,47,0.35); }
   61.936%, 63.87% { opacity: 1; color: #d32f2f; text-shadow: 0 0 10px rgba(211,47,47,0.9), 0 0 22px rgba(211,47,47,0.55); }
-  63.871%, 67.741% { opacity: 0.8; color: rgba(211,47,47,0.4); text-shadow: 0 0 4px rgba(211,47,47,0.2); }
+  63.871%, 67.741% { opacity: 0.92; color: rgba(211,47,47,0.7); text-shadow: 0 0 6px rgba(211,47,47,0.35); }
   67.742%, 100% { opacity: 1; color: #d32f2f; text-shadow: 0 0 10px rgba(211,47,47,0.9), 0 0 22px rgba(211,47,47,0.55); }
 }
 
