@@ -199,8 +199,9 @@ export default function GeometricParticleNetwork({
               const alpha = clamp(opacity * (0.05 + strength * depth * 0.4) * (0.85 + boost * 1.1), 0, 0.85);
               if (alpha <= 0.01) continue;
               const col = palette.length === 2 ? palette[1] : (palette[(i + j) % palette.length] ?? palette[0]);
-              ctx.strokeStyle = toRgba(col, alpha);
-              ctx.lineWidth = 0.6 + strength * 0.5;
+              const brightAlpha = clamp(alpha * 1.35, 0, 0.95);
+              ctx.strokeStyle = toRgba(col, brightAlpha);
+              ctx.lineWidth = 0.7 + strength * 0.55;
               ctx.beginPath();
               ctx.moveTo(screenX[i], screenY[i]);
               ctx.lineTo(screenX[j], screenY[j]);
@@ -222,15 +223,15 @@ export default function GeometricParticleNetwork({
       nearest.sort((a, b) => a.d - b.d);
       const picks = nearest.slice(0, Math.min(8, nearest.length));
       if (picks.length === 0) return;
-      // Accent color for cursor connections (lines follow line color in 2-color mode)
-      const accent = palette.length === 2 ? palette[1] : (palette[0] ?? parseColor("#53F5B0"));
-      const dotAccent = palette.length === 2 ? palette[0] : accent;
+      // Use same line color as constellation lines
+      const lineColor = palette.length === 2 ? palette[1] : (palette[1] ?? palette[0] ?? parseColor("#53F5B0"));
+      const dotAccent = palette.length === 2 ? palette[0] : (palette[0] ?? lineColor);
 
       for (let n = 0; n < picks.length; n++) {
         const idx = picks[n].i;
         const fade = 1 - n / Math.max(1, picks.length);
-        ctx.strokeStyle = toRgba(accent, opacity * (0.35 + fade * 0.45));
-        ctx.lineWidth = 0.9 + fade * 0.6;
+        ctx.strokeStyle = toRgba(lineColor, opacity * (0.45 + fade * 0.45));
+        ctx.lineWidth = 1.0 + fade * 0.7;
         ctx.beginPath();
         ctx.moveTo(screenX[idx], screenY[idx]);
         ctx.lineTo(pointer.x, pointer.y);
@@ -243,7 +244,7 @@ export default function GeometricParticleNetwork({
       }
       ctx.beginPath();
       ctx.arc(pointer.x, pointer.y, 2.4, 0, Math.PI * 2);
-      ctx.fillStyle = toRgba(accent, opacity * 0.75);
+      ctx.fillStyle = toRgba(lineColor, opacity * 0.8);
       ctx.fill();
     };
 
