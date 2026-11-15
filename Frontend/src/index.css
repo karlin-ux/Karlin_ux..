@@ -1271,3 +1271,19 @@ header nav a[aria-current="page"]::after { transform: scaleX(1); opacity: 1; }
 .light a:focus-visible {
   outline-offset: 2px;
 }
+
+/* White glow text (stands out over constellation/background) */
+.text-glow-white {
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow:
+    0 0 10px rgba(255, 255, 255, 0.75),
+    0 0 22px rgba(255, 255, 255, 0.4),
+    0 0 36px rgba(255, 255, 255, 0.18);
+}
+.light .text-glow-white {
+  color: rgba(255, 255, 255, 0.98);
+  text-shadow:
+    0 0 8px rgba(255, 255, 255, 0.85),
+    0 0 18px rgba(255, 255, 255, 0.5),
+    0 0 30px rgba(120, 120, 120, 0.18);
+}

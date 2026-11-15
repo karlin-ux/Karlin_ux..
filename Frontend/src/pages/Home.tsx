@@ -134,12 +134,12 @@ export default function Home() {
                 <span className="flash-green-text block text-5xl font-bold leading-[0.98] tracking-tight text-[var(--text)] sm:text-6xl lg:text-7xl xl:text-8xl">
                   Karlheins Lourens
                 </span>
-                <span className="mx-auto mt-4 block max-w-5xl text-2xl font-semibold leading-tight tracking-tight text-gradient sm:text-3xl lg:text-4xl">
+                <span className="text-glow-white mx-auto mt-4 block max-w-5xl text-2xl font-semibold leading-tight tracking-tight sm:text-3xl lg:text-4xl">
                   Software Engineer &amp; Full Stack Developer
                 </span>
               </h1>
 
-              <p className="mx-auto mt-6 max-w-3xl text-base leading-relaxed text-[var(--text-secondary)] sm:text-lg">
+              <p className="text-glow-white mx-auto mt-6 max-w-3xl text-base leading-relaxed sm:text-lg">
                 I design and build full-stack web applications, site-orientated business platforms and
                 interactive engineering experiences — from data models and APIs to responsive
                 interfaces and official Android and Apple apps coming in hot - no longer limited to
