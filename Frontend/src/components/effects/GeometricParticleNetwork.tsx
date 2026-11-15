@@ -240,7 +240,6 @@ export default function GeometricParticleNetwork({
       if (particles.length === 0) return;
       // Use same line color as constellation lines
       const lineColor = palette.length === 2 ? palette[1] : (palette[1] ?? palette[0] ?? parseColor("#53F5B0"));
-      const dotAccent = palette.length === 2 ? palette[0] : (palette[0] ?? lineColor);
 
       for (let i = 0; i < particles.length; i++) {
         const dx = screenX[i] - pointer.x;
@@ -254,11 +253,6 @@ export default function GeometricParticleNetwork({
         ctx.moveTo(screenX[i], screenY[i]);
         ctx.lineTo(pointer.x, pointer.y);
         ctx.stroke();
-
-        ctx.beginPath();
-        ctx.arc(screenX[i], screenY[i], 1.8 + fade * 1.0, 0, Math.PI * 2);
-        ctx.fillStyle = toRgba(dotAccent, clamp(opacity * (0.35 + fade * 0.45), 0, 1));
-        ctx.fill();
       }
       ctx.beginPath();
       ctx.arc(pointer.x, pointer.y, 2.4, 0, Math.PI * 2);
