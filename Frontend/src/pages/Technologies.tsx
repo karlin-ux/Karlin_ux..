@@ -228,15 +228,15 @@ export default function Technologies() {
           />
 
           {/* Status filter */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {(['all', 'used', 'additional', 'learning'] as const).map(s => (
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                className={`rounded-lg text-xs font-medium transition-colors ${
                   statusFilter === s
-                    ? 'bg-[var(--accent-soft)] text-[var(--accent)]'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text)]'
+                    ? 'btn hero-cta-btn !min-w-0 px-4 py-2'
+                    : 'px-3 py-1.5 text-[var(--text-muted)] hover:text-[var(--text)]'
                 }`}
               >
                 {s === 'all' ? 'All Status' : s === 'used' ? 'Used' : s === 'additional' ? 'Additional' : 'Learning'}
