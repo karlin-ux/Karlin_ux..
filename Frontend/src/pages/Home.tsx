@@ -155,7 +155,7 @@ export default function Home() {
               <Reveal delay={340}><div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                 <a
                   href="/Karl-Heins_Lourens_Resume.docx"
-                  className="btn btn-primary motion-reduce:transition-none"
+                  className="btn hero-cta-btn motion-reduce:transition-none"
                   download="Karl-Heins_Lourens_Resume.docx"
                   aria-label="Download Resume"
                 >
@@ -163,7 +163,7 @@ export default function Home() {
                 </a>
                 <Link
                   to="/contact"
-                  className="btn btn-primary motion-reduce:transition-none"
+                  className="btn hero-cta-btn motion-reduce:transition-none"
                   aria-label="Contact Me"
                 >
                   Contact Me

@@ -1232,3 +1232,39 @@ header nav a[aria-current="page"]::after { transform: scaleX(1); opacity: 1; }
     0 0 18px rgba(0, 0, 0, 0.32),
     0 0 30px rgba(0, 0, 0, 0.16);
 }
+
+/* Hero CTA buttons: same size, glowing text, darker bg, neon border glow matching text */
+.hero-cta-btn {
+  min-width: 11rem;
+  justify-content: center;
+  color: var(--accent);
+  background: rgba(8, 12, 18, 0.82);
+  border: 1px solid currentColor;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.25) inset,
+    0 0 10px color-mix(in srgb, currentColor 55%, transparent),
+    0 0 22px color-mix(in srgb, currentColor 28%, transparent);
+  text-shadow:
+    0 0 8px color-mix(in srgb, currentColor 75%, transparent),
+    0 0 18px color-mix(in srgb, currentColor 40%, transparent);
+}
+.hero-cta-btn:hover {
+  background: rgba(8, 12, 18, 0.92);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.2) inset,
+    0 0 14px color-mix(in srgb, currentColor 70%, transparent),
+    0 0 30px color-mix(in srgb, currentColor 38%, transparent);
+  filter: brightness(1.08);
+}
+.light .hero-cta-btn {
+  background: rgba(20, 16, 14, 0.78);
+  outline: none;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35) inset,
+    0 0 10px color-mix(in srgb, currentColor 55%, transparent),
+    0 0 22px color-mix(in srgb, currentColor 28%, transparent),
+    0 0 10px rgba(0, 0, 0, 0.22);
+}
+.light .hero-cta-btn:hover {
+  background: rgba(20, 16, 14, 0.88);
+}
