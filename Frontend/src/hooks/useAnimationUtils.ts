@@ -40,9 +40,10 @@ export function useInView<T extends HTMLElement>(options?: IntersectionObserverI
       }
     }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px', ...options });
     obs.observe(el);
-    // Extra safety for top-of-page content
+    // Extra safety for above-the-fold content
     const t = window.setTimeout(check, 60);
-    return () => { obs.disconnect(); window.clearTimeout(t); };
+    const safety = window.setTimeout(reveal, 900);
+    return () => { obs.disconnect(); window.clearTimeout(t); window.clearTimeout(safety); };
   }, [options?.root, options?.rootMargin, options?.threshold]);
   return { ref, inView };
 }

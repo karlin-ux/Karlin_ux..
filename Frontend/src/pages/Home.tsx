@@ -126,20 +126,20 @@ export default function Home() {
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
             <div className="lg:col-span-12 text-center">
-              <Reveal delay={40}><p className="flash-green-text inline-block text-base font-semibold uppercase tracking-[0.22em] text-[var(--text-secondary)] sm:text-lg">
+              <p className="flash-green-text inline-block text-base font-semibold uppercase tracking-[0.22em] text-[var(--text-secondary)] sm:text-lg">
                 Hi I&apos;m
-              </p></Reveal>
+              </p>
 
               <h1 className="mt-3 text-balance">
-                <Reveal delay={100}><span className="flash-green-text block text-5xl font-bold leading-[0.98] tracking-tight text-[var(--text)] sm:text-6xl lg:text-7xl xl:text-8xl">
+                <span className="flash-green-text block text-5xl font-bold leading-[0.98] tracking-tight text-[var(--text)] sm:text-6xl lg:text-7xl xl:text-8xl">
                   Karlheins Lourens
-                </span></Reveal>
-                <Reveal delay={180}><span className="mx-auto mt-4 block max-w-5xl text-2xl font-semibold leading-tight tracking-tight text-gradient sm:text-3xl lg:text-4xl">
+                </span>
+                <span className="mx-auto mt-4 block max-w-5xl text-2xl font-semibold leading-tight tracking-tight text-gradient sm:text-3xl lg:text-4xl">
                   Software Engineer &amp; Full Stack Developer
-                </span></Reveal>
+                </span>
               </h1>
 
-              <Reveal delay={260}><p className="mx-auto mt-6 max-w-3xl text-base leading-relaxed text-[var(--text-secondary)] sm:text-lg">
+              <p className="mx-auto mt-6 max-w-3xl text-base leading-relaxed text-[var(--text-secondary)] sm:text-lg">
                 I design and build full-stack web applications, site-orientated business platforms and
                 interactive engineering experiences — from data models and APIs to responsive
                 interfaces and official Android and Apple apps coming in hot - no longer limited to
@@ -150,7 +150,7 @@ export default function Home() {
                   contact me
                 </Link>{' '}
                 for any requests!
-              </p></Reveal>
+              </p>
 
               <Reveal delay={340}><div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                 <a

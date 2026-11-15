@@ -306,9 +306,21 @@ export default function GeometricParticleNetwork({
           if (p.y < -20) p.y = height + 20;
           if (p.y > height + 20) p.y = -20;
         }
-        // No ripple/repel effect: dots keep their natural drift
-        screenX[i] = p.x;
-        screenY[i] = p.y;
+        let x = p.x, y = p.y;
+        const pointerActive = interactive && pointer.active && !reducedMotion.matches && !mobile();
+        if (pointerActive) {
+          const dx = pointer.x - x;
+          const dy = pointer.y - y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          // Gentle follow toward cursor
+          if (dist < 220 && dist > 0.001) {
+            const pull = (1 - dist / 220) * (0.35 + p.z * 0.25);
+            x += (dx / dist) * pull;
+            y += (dy / dist) * pull;
+          }
+        }
+        screenX[i] = x;
+        screenY[i] = y;
         proximity[i] = 0;
       }
 
