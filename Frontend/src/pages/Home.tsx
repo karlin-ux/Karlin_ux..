@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from '../components/Icon';
 import Reveal from '../components/Reveal';
@@ -101,11 +101,27 @@ function JourneyStat({ item, active }: { item: typeof developmentJourney[number]
   );
 }
 
-function TypewriterOnView({ text, className = '' }: { text: string; className?: string }) {
+function TypewriterOnView({
+  text,
+  className = '',
+  link,
+}: {
+  text: string;
+  className?: string;
+  link?: { label: string; to: string; className?: string; insertAfter: string };
+}) {
   const { ref, inView } = useInView<HTMLParagraphElement>({ threshold: 0.4 });
   const prefersReduced = usePrefersReducedMotion();
   const [count, setCount] = useState(0);
   const [started, setStarted] = useState(false);
+
+  const parts = (() => {
+    if (!link) return null;
+    const idx = text.indexOf(link.insertAfter);
+    if (idx === -1) return null;
+    const splitAt = idx + link.insertAfter.length;
+    return { before: text.slice(0, splitAt), label: link.label, after: text.slice(splitAt + link.label.length) };
+  })();
 
   useEffect(() => {
     if (!inView || started) return;
@@ -128,9 +144,32 @@ function TypewriterOnView({ text, className = '' }: { text: string; className?: 
 
   const visible = text.slice(0, count);
   const done = count >= text.length;
+
+  let content: ReactNode = visible;
+  if (parts) {
+    const bEnd = parts.before.length;
+    const lEnd = bEnd + parts.label.length;
+    const before = text.slice(0, Math.min(count, bEnd));
+    const labelCount = Math.max(0, Math.min(count - bEnd, parts.label.length));
+    const labelVis = parts.label.slice(0, labelCount);
+    const afterCount = Math.max(0, count - lEnd);
+    const afterVis = parts.after.slice(0, afterCount);
+    content = (
+      <>
+        {before}
+        {labelCount > 0 && (
+          <Link to={link!.to} className={link!.className}>
+            {labelVis}
+          </Link>
+        )}
+        {afterVis}
+      </>
+    );
+  }
+
   return (
     <p ref={ref} className={className} aria-label={text}>
-      <span aria-hidden="true">{visible}</span>
+      <span aria-hidden="true">{content}</span>
       {!done && started && !prefersReduced && <span aria-hidden="true" className="animate-pulse">|</span>}
       <span className="sr-only">{text}</span>
     </p>
@@ -176,18 +215,16 @@ export default function Home() {
                 </span>
               </h1>
 
-              <p className="text-glow-white mx-auto mt-6 max-w-3xl text-base leading-relaxed sm:text-lg">
-                I design and build full-stack web applications, site-orientated business platforms and
-                interactive engineering experiences — from data models and APIs to responsive
-                interfaces and official Android and Apple apps coming in hot - no longer limited to
-                web installed applications - and I&apos;m pretty hands on with the cybersecurity that
-                is required to back these puppies up and secure databases. - PS I&apos;m not limited
-                to do only that, feel free to{' '}
-                <Link to="/contact" className="flash-green-text font-semibold underline-offset-4 hover:underline">
-                  contact me
-                </Link>{' '}
-                for any requests!
-              </p>
+              <TypewriterOnView
+                className="text-glow-white mx-auto mt-6 max-w-3xl text-base leading-relaxed sm:text-lg"
+                text="I design and build full-stack web applications, site-orientated business platforms and interactive engineering experiences — from data models and APIs to responsive interfaces and official Android and Apple apps coming in hot - no longer limited to web installed applications - and I'm pretty hands on with the cybersecurity that is required to back these puppies up and secure databases. - PS I'm not limited to do only that, feel free to contact me for any requests!"
+                link={{
+                  label: 'contact me',
+                  to: '/contact',
+                  className: 'flash-green-text font-semibold underline-offset-4 hover:underline',
+                  insertAfter: 'feel free to ',
+                }}
+              />
 
               <Reveal delay={340}><div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                 <a
