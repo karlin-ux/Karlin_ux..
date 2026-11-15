@@ -221,6 +221,8 @@ export default function GeometricParticleNetwork({
       for (let i = 0; i < particles.length; i++) {
         const cx = clamp(Math.floor(screenX[i] / cellSize), 0, gridCols - 1);
         const cy = clamp(Math.floor(screenY[i] / cellSize), 0, gridRows - 1);
+        let bestJ = -1;
+        let bestD2 = maxDistSq;
         for (let oy = -1; oy <= 1; oy++) {
           const ny = cy + oy;
           if (ny < 0 || ny >= gridRows) continue;
@@ -234,23 +236,27 @@ export default function GeometricParticleNetwork({
               const dx = screenX[j] - screenX[i];
               const dy = screenY[j] - screenY[i];
               const d2 = dx * dx + dy * dy;
-              if (d2 >= maxDistSq) continue;
-              const dist = Math.sqrt(d2);
-              const strength = 1 - dist / connectionDistance;
-              const boost = Math.max(proximity[i], proximity[j]);
-              const alpha = clamp(opacity * (0.08 + strength * 0.35) * (0.85 + boost * 1.1), 0, 0.85);
-              if (alpha <= 0.01) continue;
-              const col = palette.length === 2 ? palette[1] : (palette[(i + j) % palette.length] ?? palette[0]);
-              const brightAlpha = clamp(alpha * 1.35, 0, 0.95);
-              ctx.strokeStyle = toRgba(col, brightAlpha);
-              ctx.lineWidth = 0.7 + strength * 0.55;
-              ctx.beginPath();
-              ctx.moveTo(screenX[i], screenY[i]);
-              ctx.lineTo(screenX[j], screenY[j]);
-              ctx.stroke();
+              if (d2 < bestD2) {
+                bestD2 = d2;
+                bestJ = j;
+              }
             }
           }
         }
+        if (bestJ === -1) continue;
+        const dist = Math.sqrt(bestD2);
+        const strength = 1 - dist / connectionDistance;
+        const boost = Math.max(proximity[i], proximity[bestJ]);
+        const alpha = clamp(opacity * (0.08 + strength * 0.35) * (0.85 + boost * 1.1), 0, 0.85);
+        if (alpha <= 0.01) continue;
+        const col = palette.length === 2 ? palette[1] : (palette[(i + bestJ) % palette.length] ?? palette[0]);
+        const brightAlpha = clamp(alpha * 1.35, 0, 0.95);
+        ctx.strokeStyle = toRgba(col, brightAlpha);
+        ctx.lineWidth = 0.7 + strength * 0.55;
+        ctx.beginPath();
+        ctx.moveTo(screenX[i], screenY[i]);
+        ctx.lineTo(screenX[bestJ], screenY[bestJ]);
+        ctx.stroke();
       }
     };
 
@@ -335,8 +341,6 @@ export default function GeometricParticleNetwork({
           p.phase += 0.008 * delta;
           p.x += p.vx * delta;
           p.y += p.vy * delta;
-          p.x += Math.sin(p.phase) * 0.04;
-          p.y += Math.cos(p.phase * 0.7) * 0.04;
           if (p.x < -20) p.x = width + 20;
           if (p.x > width + 20) p.x = -20;
           if (p.y < -20) p.y = height + 20;
