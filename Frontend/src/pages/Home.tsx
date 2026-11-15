@@ -229,7 +229,7 @@ export default function Home() {
               <Reveal delay={340}><div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                 <a
                   href="/Karl-Heins_Lourens_Resume.docx"
-                  className="btn hero-cta-btn motion-reduce:transition-none"
+                  className="btn hero-cta-btn flash-green motion-reduce:transition-none"
                   download="Karl-Heins_Lourens_Resume.docx"
                   aria-label="Download Resume"
                 >
@@ -237,7 +237,7 @@ export default function Home() {
                 </a>
                 <Link
                   to="/contact"
-                  className="btn hero-cta-btn motion-reduce:transition-none"
+                  className="btn hero-cta-btn flash-green motion-reduce:transition-none"
                   aria-label="Contact Me"
                 >
                   Contact Me
@@ -278,11 +278,11 @@ export default function Home() {
             </div>
             <Reveal delay={120}><Link
               to="/technologies"
-              className="neon-perimeter flash-green relative inline-flex items-center justify-center overflow-visible rounded-xl border border-[var(--accent)]/25 bg-[var(--bg-elevated)] px-5 py-3 text-sm font-semibold text-[var(--text)] shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 sm:px-6 sm:py-3.5 sm:text-base"
+              className="btn hero-cta-btn flash-green motion-reduce:transition-none"
             >
-              <span className="relative z-10 inline-flex items-center">
+              <span className="inline-flex items-center">
                 View My Skills
-                <span aria-hidden="true" className="ml-2 text-[var(--accent)]">→</span>
+                <span aria-hidden="true" className="ml-2">→</span>
               </span>
             </Link></Reveal>
           </div>
@@ -541,7 +541,7 @@ export default function Home() {
                 text="Whether you need a customer portal, a business management system or a custom web application, I'd be glad to help."
               />
               <div className="mt-8 flex flex-wrap justify-center gap-3">
-                <Link to="/contact" className="btn btn-primary">
+                <Link to="/contact" className="btn hero-cta-btn flash-green">
                   Start a conversation
                 </Link>
                 <Link to="/projects" className="btn btn-secondary">
