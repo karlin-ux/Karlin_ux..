@@ -108,8 +108,8 @@ export default function GeometricParticleNetwork({
     const createParticleAt = (x: number, y: number): Particle => ({
       x,
       y,
-      vx: random(-0.2, 0.2),
-      vy: random(-0.2, 0.2),
+      vx: random(-0.55, 0.55),
+      vy: random(-0.55, 0.55),
       z: 1,
       radius: 1.4,
       phase: random(0, Math.PI * 2),
@@ -339,6 +339,11 @@ export default function GeometricParticleNetwork({
         const p = particles[i];
         if (animate) {
           p.phase += 0.008 * delta;
+          // Occasional gentle steering so dots roam across the map
+          if (Math.random() < 0.02 * delta) {
+            p.vx = clamp(p.vx + random(-0.12, 0.12), -0.7, 0.7);
+            p.vy = clamp(p.vy + random(-0.12, 0.12), -0.7, 0.7);
+          }
           p.x += p.vx * delta;
           p.y += p.vy * delta;
           if (p.x < -20) p.x = width + 20;
