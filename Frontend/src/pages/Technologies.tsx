@@ -251,10 +251,10 @@ export default function Technologies() {
             <button
               key={c}
               onClick={() => setCategoryFilter(c)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              className={`rounded-lg text-xs font-medium transition-colors ${
                 categoryFilter === c
-                  ? 'bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--accent)]/30'
-                  : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[var(--text)] border border-[var(--border)]'
+                  ? 'btn hero-cta-btn !min-w-0 px-4 py-2'
+                  : 'px-3 py-1.5 bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[var(--text)] border border-[var(--border)]'
               }`}
             >
               {c}
