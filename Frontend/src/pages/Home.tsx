@@ -309,7 +309,7 @@ export default function Home() {
                       {['Full-stack', 'API-first', 'Database-first', 'Accessible'].map((tag) => (
                         <span
                           key={tag}
-                          className="inline-flex items-center rounded-md border border-[var(--border)] bg-[var(--bg-surface)]/60 px-2 py-1 text-[11px] font-medium text-[var(--text-secondary)]"
+                          className="btn hero-cta-btn"
                         >
                           {tag}
                         </span>
@@ -393,15 +393,15 @@ export default function Home() {
               </div>
               <div className="relative">
                 <div className="text-gradient text-3xl font-bold leading-tight sm:text-4xl">Karlheins Lourens</div>
-                <p className="mt-3 text-sm font-medium text-[var(--text-secondary)]">
-                  Full-stack platform
+                <p className="mt-3 inline-flex">
+                  <span className="btn hero-cta-btn">Full-stack platform</span>
                 </p>
               </div>
               <div className="relative flex flex-wrap gap-1.5">
                 {featuredProject.tech.map((tech) => (
                   <span
                     key={tech}
-                    className="inline-flex items-center rounded-md border border-[var(--border)] bg-[var(--bg-elevated)]/70 px-2 py-1 text-[11px] font-medium text-[var(--text-secondary)]"
+                    className="btn hero-cta-btn"
                   >
                     {tech}
                   </span>
