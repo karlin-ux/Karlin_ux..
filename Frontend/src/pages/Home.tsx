@@ -125,8 +125,8 @@ export default function Home() {
 
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
-            <div className="lg:col-span-12 text-center">
-              <p className="flash-green-text inline-block text-base font-semibold uppercase tracking-[0.22em] text-[var(--text-secondary)] sm:text-lg">
+            <div className="lg:col-span-12 text-center" style={{ opacity: 1, visibility: 'visible' }}>
+              <p className="flash-green-text inline-block text-base font-semibold uppercase tracking-[0.22em] text-[var(--text-secondary)] sm:text-lg" style={{ opacity: 1 }}>
                 Hi I&apos;m
               </p>
 
