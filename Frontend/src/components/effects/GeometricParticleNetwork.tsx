@@ -16,6 +16,10 @@ type Particle = {
   z: number;
   radius: number;
   phase: number;
+  mode: "spiral" | "zigzag" | "wander";
+  modeT: number;
+  turn: number;
+  teleportIn: number;
 };
 
 type RGB = { r: number; g: number; b: number };
@@ -105,14 +109,25 @@ export default function GeometricParticleNetwork({
     const mobile = () => window.innerWidth < 768 || coarsePointer.matches;
     const random = (min: number, max: number) => Math.random() * (max - min) + min;
 
+    const pickMode = (): Particle["mode"] => {
+      const r = Math.random();
+      if (r < 0.34) return "spiral";
+      if (r < 0.67) return "zigzag";
+      return "wander";
+    };
+
     const createParticleAt = (x: number, y: number): Particle => ({
       x,
       y,
-      vx: random(-0.55, 0.55),
-      vy: random(-0.55, 0.55),
+      vx: random(-1.4, 1.4),
+      vy: random(-1.4, 1.4),
       z: 1,
       radius: 1.4,
       phase: random(0, Math.PI * 2),
+      mode: pickMode(),
+      modeT: random(20, 90),
+      turn: Math.random() < 0.5 ? -1 : 1,
+      teleportIn: random(90, 240),
     });
 
     const particleCount = () => {
@@ -217,12 +232,28 @@ export default function GeometricParticleNetwork({
     };
 
     const renderConnections = (palette: RGB[]) => {
-      const maxDistSq = connectionDistance * connectionDistance;
-      for (let i = 0; i < particles.length; i++) {
+      const n = particles.length;
+      const deg = new Array<number>(n).fill(0);
+      const edges: Array<[number, number]> = [];
+      const connected = new Set<string>();
+
+      const tryAdd = (i: number, j: number) => {
+        if (i === j) return false;
+        const a = i < j ? i : j;
+        const b = i < j ? j : i;
+        const key = `${a}-${b}`;
+        if (connected.has(key)) return false;
+        if (deg[a] >= 2 || deg[b] >= 2) return false;
+        connected.add(key);
+        deg[a]++; deg[b]++;
+        edges.push([a, b]);
+        return true;
+      };
+
+      const nearestCandidates = (i: number, limit = 12) => {
         const cx = clamp(Math.floor(screenX[i] / cellSize), 0, gridCols - 1);
         const cy = clamp(Math.floor(screenY[i] / cellSize), 0, gridRows - 1);
-        let bestJ = -1;
-        let bestD2 = maxDistSq;
+        const cand: Array<{ j: number; d2: number }> = [];
         for (let oy = -1; oy <= 1; oy++) {
           const ny = cy + oy;
           if (ny < 0 || ny >= gridRows) continue;
@@ -232,30 +263,60 @@ export default function GeometricParticleNetwork({
             const bucket = cellBuckets[ny * gridCols + nx];
             for (let k = 0; k < bucket.length; k++) {
               const j = bucket[k];
-              if (j <= i) continue;
+              if (j === i || deg[j] >= 2) continue;
               const dx = screenX[j] - screenX[i];
               const dy = screenY[j] - screenY[i];
-              const d2 = dx * dx + dy * dy;
-              if (d2 < bestD2) {
-                bestD2 = d2;
-                bestJ = j;
-              }
+              cand.push({ j, d2: dx * dx + dy * dy });
             }
           }
         }
-        if (bestJ === -1) continue;
-        const dist = Math.sqrt(bestD2);
-        const strength = 1 - dist / connectionDistance;
-        const boost = Math.max(proximity[i], proximity[bestJ]);
-        const alpha = clamp(opacity * (0.08 + strength * 0.35) * (0.85 + boost * 1.1), 0, 0.85);
+        cand.sort((a, b) => a.d2 - b.d2);
+        return cand.slice(0, limit);
+      };
+
+      // Ensure every dot gets at least 1 connection when possible, max 2 per dot
+      for (let pass = 0; pass < 2; pass++) {
+        for (let i = 0; i < n; i++) {
+          if (deg[i] >= 2) continue;
+          if (pass === 0 && deg[i] >= 1) continue;
+          const cands = nearestCandidates(i, 16);
+          for (const c of cands) {
+            if (deg[i] >= 2) break;
+            tryAdd(i, c.j);
+          }
+        }
+      }
+      // Fallback: connect any still-unconnected dots globally (small groups/chains possible)
+      for (let i = 0; i < n; i++) {
+        if (deg[i] > 0) continue;
+        let bestJ = -1;
+        let bestD2 = Infinity;
+        for (let j = 0; j < n; j++) {
+          if (i === j || deg[j] >= 2) continue;
+          const dx = screenX[j] - screenX[i];
+          const dy = screenY[j] - screenY[i];
+          const d2 = dx * dx + dy * dy;
+          if (d2 < bestD2) { bestD2 = d2; bestJ = j; }
+        }
+        if (bestJ !== -1) tryAdd(i, bestJ);
+      }
+
+      for (const [i, j] of edges) {
+        const dx = screenX[j] - screenX[i];
+        const dy = screenY[j] - screenY[i];
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        const denom = Math.max(connectionDistance, dist);
+        const strength = clamp(1 - dist / denom, 0.2, 1);
+        const boost = Math.max(proximity[i], proximity[j]);
+        const alpha = clamp(opacity * (0.12 + strength * 0.3) * (0.9 + boost * 1.0), 0, 0.9);
         if (alpha <= 0.01) continue;
-        const col = palette.length === 2 ? palette[1] : (palette[(i + bestJ) % palette.length] ?? palette[0]);
-        const brightAlpha = clamp(alpha * 1.35, 0, 0.95);
+        const col = palette.length === 2 ? palette[1] : (palette[(i + j) % palette.length] ?? palette[0]);
+        const brightAlpha = clamp(alpha * 1.25, 0, 0.95);
         ctx.strokeStyle = toRgba(col, brightAlpha);
-        ctx.lineWidth = 0.7 + strength * 0.55;
+        ctx.lineWidth = 0.8 + strength * 0.45;
         ctx.beginPath();
         ctx.moveTo(screenX[i], screenY[i]);
-        ctx.lineTo(screenX[bestJ], screenY[bestJ]);
+        ctx.lineTo(screenX[j], screenY[j]);
         ctx.stroke();
       }
     };
@@ -338,12 +399,64 @@ export default function GeometricParticleNetwork({
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
         if (animate) {
-          p.phase += 0.008 * delta;
-          // Occasional gentle steering so dots roam across the map
-          if (Math.random() < 0.02 * delta) {
-            p.vx = clamp(p.vx + random(-0.12, 0.12), -0.7, 0.7);
-            p.vy = clamp(p.vy + random(-0.12, 0.12), -0.7, 0.7);
+          p.phase += 0.03 * delta;
+          p.modeT -= delta;
+          p.teleportIn -= delta;
+
+          if (p.teleportIn <= 0) {
+            p.x = random(0, width);
+            p.y = random(0, height);
+            p.vx = random(-1.6, 1.6);
+            p.vy = random(-1.6, 1.6);
+            p.teleportIn = random(80, 260);
+            p.mode = pickMode();
+            p.modeT = random(18, 80);
           }
+
+          if (p.modeT <= 0) {
+            p.mode = pickMode();
+            p.modeT = random(18, 80);
+            p.turn = Math.random() < 0.5 ? -1 : 1;
+          }
+
+          let speed = Math.hypot(p.vx, p.vy) || 1;
+          if (p.mode === "spiral") {
+            // Spiral: rotate velocity and pulse speed
+            const ang = 0.08 * p.turn * delta;
+            const cos = Math.cos(ang), sin = Math.sin(ang);
+            const nx = p.vx * cos - p.vy * sin;
+            const ny = p.vx * sin + p.vy * cos;
+            const target = 1.1 + 0.5 * Math.sin(p.phase * 1.3);
+            speed = clamp(speed * 0.97 + target * 0.08, 0.5, 2.2);
+            p.vx = (nx / (Math.hypot(nx, ny) || 1)) * speed;
+            p.vy = (ny / (Math.hypot(nx, ny) || 1)) * speed;
+          } else if (p.mode === "zigzag") {
+            // Zig-zag: periodic sharp turns
+            if (Math.random() < 0.08 * delta) {
+              const ang = (Math.PI / 2.2) * p.turn * (0.7 + Math.random() * 0.8);
+              const cos = Math.cos(ang), sin = Math.sin(ang);
+              const nx = p.vx * cos - p.vy * sin;
+              const ny = p.vx * sin + p.vy * cos;
+              speed = clamp(1.2 + Math.random() * 1.0, 0.8, 2.4);
+              p.vx = (nx / (Math.hypot(nx, ny) || 1)) * speed;
+              p.vy = (ny / (Math.hypot(nx, ny) || 1)) * speed;
+              p.turn *= -1;
+            } else {
+              speed = clamp(speed * 0.995 + 1.4 * 0.01, 0.7, 2.3);
+              p.vx = (p.vx / (Math.hypot(p.vx, p.vy) || 1)) * speed;
+              p.vy = (p.vy / (Math.hypot(p.vx, p.vy) || 1)) * speed;
+            }
+          } else {
+            // Fast random wander
+            if (Math.random() < 0.12 * delta) {
+              p.vx = clamp(p.vx + random(-0.5, 0.5), -2.2, 2.2);
+              p.vy = clamp(p.vy + random(-0.5, 0.5), -2.2, 2.2);
+            }
+            speed = clamp(Math.hypot(p.vx, p.vy) || 1, 0.6, 2.2);
+            p.vx = (p.vx / (Math.hypot(p.vx, p.vy) || 1)) * speed;
+            p.vy = (p.vy / (Math.hypot(p.vx, p.vy) || 1)) * speed;
+          }
+
           p.x += p.vx * delta;
           p.y += p.vy * delta;
           if (p.x < -20) p.x = width + 20;
