@@ -1,7 +1,8 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from '../components/Icon';
 import Reveal from '../components/Reveal';
-import { useCountUp, useInView } from '../hooks/useAnimationUtils';
+import { useCountUp, useInView, usePrefersReducedMotion } from '../hooks/useAnimationUtils';
 
 /* ============================================
    HOME CONTENT
@@ -97,6 +98,42 @@ function JourneyStat({ item, active }: { item: typeof developmentJourney[number]
         {item.area}
       </div>
     </div>
+  );
+}
+
+function TypewriterOnView({ text, className = '' }: { text: string; className?: string }) {
+  const { ref, inView } = useInView<HTMLParagraphElement>({ threshold: 0.4 });
+  const prefersReduced = usePrefersReducedMotion();
+  const [count, setCount] = useState(0);
+  const [started, setStarted] = useState(false);
+
+  useEffect(() => {
+    if (!inView || started) return;
+    if (prefersReduced) {
+      setCount(text.length);
+      setStarted(true);
+      return;
+    }
+    setStarted(true);
+  }, [inView, started, prefersReduced, text.length]);
+
+  useEffect(() => {
+    if (!started || prefersReduced) return;
+    if (count >= text.length) return;
+    const id = window.setTimeout(() => {
+      setCount((c) => Math.min(text.length, c + 2));
+    }, 28);
+    return () => window.clearTimeout(id);
+  }, [started, count, prefersReduced, text.length]);
+
+  const visible = text.slice(0, count);
+  const done = count >= text.length;
+  return (
+    <p ref={ref} className={className} aria-label={text}>
+      <span aria-hidden="true">{visible}</span>
+      {!done && started && !prefersReduced && <span aria-hidden="true" className="animate-pulse">|</span>}
+      <span className="sr-only">{text}</span>
+    </p>
   );
 }
 
@@ -462,10 +499,10 @@ export default function Home() {
                 Have a project in mind?{' '}
                 <span className="text-gradient">Let&apos;s talk.</span>
               </h2>
-              <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-[var(--text-secondary)] sm:text-base">
-                Whether you need a customer portal, a business management system or a custom web
-                application, I&apos;d be glad to help.
-              </p>
+              <TypewriterOnView
+                className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-[var(--text-secondary)] sm:text-base"
+                text="Whether you need a customer portal, a business management system or a custom web application, I'd be glad to help."
+              />
               <div className="mt-8 flex flex-wrap justify-center gap-3">
                 <Link to="/contact" className="btn btn-primary">
                   Start a conversation
