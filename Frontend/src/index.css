@@ -114,12 +114,12 @@
    DESIGN TOKENS — LIGHT THEME
    ============================================ */
 .light {
-  /* Red and very light grey theme */
-  --bg: #F3F4F6;
-  --bg-secondary: #F7F7F8;
-  --bg-elevated: #F8F9FA;
-  --bg-surface: #EEF0F2;
-  --bg-overlay: rgba(243, 244, 246, 0.92);
+  /* Cream/beige light theme with neon effects */
+  --bg: #F6F1E7;
+  --bg-secondary: #FBF7EF;
+  --bg-elevated: #FFFBF3;
+  --bg-surface: #F1EBDD;
+  --bg-overlay: rgba(246, 241, 231, 0.92);
 
   --text: #1F1A1A;
   --text-secondary: #5C4B4B;
@@ -598,11 +598,11 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 }
 
 .light .neon-perimeter::before {
-  opacity: 0.75;
+  opacity: 0.9;
 }
 
 .light .neon-perimeter::after {
-  opacity: 0.55;
+  opacity: 0.75;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1186,79 +1186,23 @@ header nav a[aria-current="page"]::after { transform: scaleX(1); opacity: 1; }
     box-shadow: 0 0 0 2px rgba(83, 245, 176, 0.35), 0 0 18px rgba(83, 245, 176, 0.35);
   }
 }
-/* Light theme accent overrides (red/white/orange) */
+/* Light theme: keep same neon effects as dark theme, adapted for light bg */
 .light .skills-marquee-item {
-  border-color: rgba(255, 23, 68, 0.28);
-  background: rgba(255, 23, 68, 0.08);
-  color: var(--accent);
-  text-shadow: 0 0 14px rgba(0, 0, 0, 0.35), 0 0 16px rgba(255, 23, 68, 0.22);
+  border-color: rgba(83, 245, 176, 0.3);
+  background: rgba(83, 245, 176, 0.08);
+  color: #0f5132;
+  text-shadow: 0 0 12px rgba(83, 245, 176, 0.35), 0 0 20px rgba(83, 245, 176, 0.18);
 }
-.light .flash-green-text {
-  --flash-on: #ff1744;
-  --flash-on-glow: rgba(255, 23, 68, 0.95);
-  --flash-dim: rgba(255, 23, 68, 0.35);
-  --flash-dim-glow: rgba(0, 0, 0, 0.2);
-}
+.light .flash-green-text,
 .light .flash-green {
-  --flash-border-on: rgba(255, 23, 68, 0.85);
-  --flash-border-dim: rgba(255, 23, 68, 0.24);
-  --flash-glow: rgba(255, 23, 68, 0.55);
-}
-
-/* Flashing elements red in light mode */
-.light .flash-green,
-.light .flash-green-text {
   color: var(--accent);
 }
+/* Use same green neon flicker animations as dark theme in light mode */
 .light .flash-green {
-  animation-name: flash-red-flicker;
+  animation-name: flash-green-flicker;
 }
 .light .flash-green-text {
-  animation-name: flash-red-flicker-text;
-}
-
-/* Red flicker variants for light mode (same rhythm) */
-@keyframes flash-red-flicker {
-  0%, 1.935% { opacity: 1; filter: brightness(1.25) saturate(1.2); box-shadow: 0 0 0 2px rgba(255,23,68,0.6), 0 0 24px rgba(255,23,68,0.7), 0 0 44px rgba(255,23,68,0.28), 0 0 14px rgba(0,0,0,0.35); }
-  1.936%, 4.838% { opacity: 0.78; filter: brightness(0.95) saturate(1); box-shadow: 0 0 0 1px rgba(255,23,68,0.28), 0 0 10px rgba(255,23,68,0.28), 0 0 8px rgba(0,0,0,0.22); }
-  4.839%, 6.774% { opacity: 1; filter: brightness(1.25) saturate(1.2); box-shadow: 0 0 0 2px rgba(255,23,68,0.6), 0 0 24px rgba(255,23,68,0.7), 0 0 44px rgba(255,23,68,0.28), 0 0 14px rgba(0,0,0,0.35); }
-  6.775%, 16.451% { opacity: 0.78; filter: brightness(0.95) saturate(1); box-shadow: 0 0 0 1px rgba(255,23,68,0.28), 0 0 10px rgba(255,23,68,0.28), 0 0 8px rgba(0,0,0,0.22); }
-  16.452%, 18.387% { opacity: 1; filter: brightness(1.25) saturate(1.2); box-shadow: 0 0 0 2px rgba(255,23,68,0.6), 0 0 24px rgba(255,23,68,0.7), 0 0 44px rgba(255,23,68,0.28), 0 0 14px rgba(0,0,0,0.35); }
-  18.388%, 23.225% { opacity: 0.78; filter: brightness(0.95) saturate(1); box-shadow: 0 0 0 1px rgba(255,23,68,0.28), 0 0 10px rgba(255,23,68,0.28), 0 0 8px rgba(0,0,0,0.22); }
-  23.226%, 25.161% { opacity: 1; filter: brightness(1.25) saturate(1.2); box-shadow: 0 0 0 2px rgba(255,23,68,0.6), 0 0 24px rgba(255,23,68,0.7), 0 0 44px rgba(255,23,68,0.28), 0 0 14px rgba(0,0,0,0.35); }
-  25.162%, 27.096% { opacity: 0.78; filter: brightness(0.95) saturate(1); box-shadow: 0 0 0 1px rgba(255,23,68,0.28), 0 0 10px rgba(255,23,68,0.28), 0 0 8px rgba(0,0,0,0.22); }
-  27.097%, 29.032% { opacity: 1; filter: brightness(1.25) saturate(1.2); box-shadow: 0 0 0 2px rgba(255,23,68,0.6), 0 0 24px rgba(255,23,68,0.7), 0 0 44px rgba(255,23,68,0.28), 0 0 14px rgba(0,0,0,0.35); }
-  29.033%, 30.967% { opacity: 0.78; filter: brightness(0.95) saturate(1); box-shadow: 0 0 0 1px rgba(255,23,68,0.28), 0 0 10px rgba(255,23,68,0.28), 0 0 8px rgba(0,0,0,0.22); }
-  30.968%, 32.903% { opacity: 1; filter: brightness(1.25) saturate(1.2); box-shadow: 0 0 0 2px rgba(255,23,68,0.6), 0 0 24px rgba(255,23,68,0.7), 0 0 44px rgba(255,23,68,0.28), 0 0 14px rgba(0,0,0,0.35); }
-  32.904%, 39.677% { opacity: 0.78; filter: brightness(0.95) saturate(1); box-shadow: 0 0 0 1px rgba(255,23,68,0.28), 0 0 10px rgba(255,23,68,0.28), 0 0 8px rgba(0,0,0,0.22); }
-  39.678%, 41.612% { opacity: 1; filter: brightness(1.25) saturate(1.2); box-shadow: 0 0 0 2px rgba(255,23,68,0.6), 0 0 24px rgba(255,23,68,0.7), 0 0 44px rgba(255,23,68,0.28), 0 0 14px rgba(0,0,0,0.35); }
-  41.613%, 58.064% { opacity: 0.78; filter: brightness(0.95) saturate(1); box-shadow: 0 0 0 1px rgba(255,23,68,0.28), 0 0 10px rgba(255,23,68,0.28), 0 0 8px rgba(0,0,0,0.22); }
-  58.065%, 60% { opacity: 1; filter: brightness(1.25) saturate(1.2); box-shadow: 0 0 0 2px rgba(255,23,68,0.6), 0 0 24px rgba(255,23,68,0.7), 0 0 44px rgba(255,23,68,0.28), 0 0 14px rgba(0,0,0,0.35); }
-  60.001%, 61.935% { opacity: 0.78; filter: brightness(0.95) saturate(1); box-shadow: 0 0 0 1px rgba(255,23,68,0.28), 0 0 10px rgba(255,23,68,0.28), 0 0 8px rgba(0,0,0,0.22); }
-  61.936%, 63.87% { opacity: 1; filter: brightness(1.25) saturate(1.2); box-shadow: 0 0 0 2px rgba(255,23,68,0.6), 0 0 24px rgba(255,23,68,0.7), 0 0 44px rgba(255,23,68,0.28), 0 0 14px rgba(0,0,0,0.35); }
-  63.871%, 67.741% { opacity: 0.78; filter: brightness(0.95) saturate(1); box-shadow: 0 0 0 1px rgba(255,23,68,0.28), 0 0 10px rgba(255,23,68,0.28), 0 0 8px rgba(0,0,0,0.22); }
-  67.742%, 100% { opacity: 1; filter: brightness(1.25) saturate(1.2); box-shadow: 0 0 0 2px rgba(255,23,68,0.6), 0 0 24px rgba(255,23,68,0.7), 0 0 44px rgba(255,23,68,0.28), 0 0 14px rgba(0,0,0,0.35); }
-}
-@keyframes flash-red-flicker-text {
-  0%, 1.935% { opacity: 1; color: #ff1744; text-shadow: 0 0 10px rgba(0,0,0,0.45), 0 0 12px rgba(255,23,68,0.95), 0 0 24px rgba(255,23,68,0.6); }
-  1.936%, 4.838% { opacity: 0.92; color: rgba(255,23,68,0.78); text-shadow: 0 0 6px rgba(0,0,0,0.28), 0 0 8px rgba(255,23,68,0.4); }
-  4.839%, 6.774% { opacity: 1; color: #ff1744; text-shadow: 0 0 10px rgba(0,0,0,0.45), 0 0 12px rgba(255,23,68,0.95), 0 0 24px rgba(255,23,68,0.6); }
-  6.775%, 16.451% { opacity: 0.92; color: rgba(255,23,68,0.78); text-shadow: 0 0 6px rgba(0,0,0,0.28), 0 0 8px rgba(255,23,68,0.4); }
-  16.452%, 18.387% { opacity: 1; color: #ff1744; text-shadow: 0 0 10px rgba(0,0,0,0.45), 0 0 12px rgba(255,23,68,0.95), 0 0 24px rgba(255,23,68,0.6); }
-  18.388%, 23.225% { opacity: 0.92; color: rgba(255,23,68,0.78); text-shadow: 0 0 6px rgba(0,0,0,0.28), 0 0 8px rgba(255,23,68,0.4); }
-  23.226%, 25.161% { opacity: 1; color: #ff1744; text-shadow: 0 0 10px rgba(0,0,0,0.45), 0 0 12px rgba(255,23,68,0.95), 0 0 24px rgba(255,23,68,0.6); }
-  25.162%, 27.096% { opacity: 0.92; color: rgba(255,23,68,0.78); text-shadow: 0 0 6px rgba(0,0,0,0.28), 0 0 8px rgba(255,23,68,0.4); }
-  27.097%, 29.032% { opacity: 1; color: #ff1744; text-shadow: 0 0 10px rgba(0,0,0,0.45), 0 0 12px rgba(255,23,68,0.95), 0 0 24px rgba(255,23,68,0.6); }
-  29.033%, 30.967% { opacity: 0.92; color: rgba(255,23,68,0.78); text-shadow: 0 0 6px rgba(0,0,0,0.28), 0 0 8px rgba(255,23,68,0.4); }
-  30.968%, 32.903% { opacity: 1; color: #ff1744; text-shadow: 0 0 10px rgba(0,0,0,0.45), 0 0 12px rgba(255,23,68,0.95), 0 0 24px rgba(255,23,68,0.6); }
-  32.904%, 39.677% { opacity: 0.92; color: rgba(255,23,68,0.78); text-shadow: 0 0 6px rgba(0,0,0,0.28), 0 0 8px rgba(255,23,68,0.4); }
-  39.678%, 41.612% { opacity: 1; color: #ff1744; text-shadow: 0 0 10px rgba(0,0,0,0.45), 0 0 12px rgba(255,23,68,0.95), 0 0 24px rgba(255,23,68,0.6); }
-  41.613%, 58.064% { opacity: 0.92; color: rgba(255,23,68,0.78); text-shadow: 0 0 6px rgba(0,0,0,0.28), 0 0 8px rgba(255,23,68,0.4); }
-  58.065%, 60% { opacity: 1; color: #ff1744; text-shadow: 0 0 10px rgba(0,0,0,0.45), 0 0 12px rgba(255,23,68,0.95), 0 0 24px rgba(255,23,68,0.6); }
-  60.001%, 61.935% { opacity: 0.92; color: rgba(255,23,68,0.78); text-shadow: 0 0 6px rgba(0,0,0,0.28), 0 0 8px rgba(255,23,68,0.4); }
-  61.936%, 63.87% { opacity: 1; color: #ff1744; text-shadow: 0 0 10px rgba(0,0,0,0.45), 0 0 12px rgba(255,23,68,0.95), 0 0 24px rgba(255,23,68,0.6); }
-  63.871%, 67.741% { opacity: 0.92; color: rgba(255,23,68,0.78); text-shadow: 0 0 6px rgba(0,0,0,0.28), 0 0 8px rgba(255,23,68,0.4); }
-  67.742%, 100% { opacity: 1; color: #ff1744; text-shadow: 0 0 10px rgba(0,0,0,0.45), 0 0 12px rgba(255,23,68,0.95), 0 0 24px rgba(255,23,68,0.6); }
+  animation-name: flash-green-flicker-text;
 }
 
 /* Black glow on top of red borders in light mode */
@@ -1282,9 +1226,9 @@ header nav a[aria-current="page"]::after { transform: scaleX(1); opacity: 1; }
     0 0 36px rgba(255, 255, 255, 0.18);
 }
 .light .text-glow-white {
-  color: rgba(255, 255, 255, 0.98);
+  color: #111111;
   text-shadow:
-    0 0 8px rgba(255, 255, 255, 0.85),
-    0 0 18px rgba(255, 255, 255, 0.5),
-    0 0 30px rgba(120, 120, 120, 0.18);
+    0 0 8px rgba(0, 0, 0, 0.55),
+    0 0 18px rgba(0, 0, 0, 0.32),
+    0 0 30px rgba(0, 0, 0, 0.16);
 }
