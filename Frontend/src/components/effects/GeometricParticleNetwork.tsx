@@ -110,8 +110,8 @@ export default function GeometricParticleNetwork({
       y,
       vx: random(-0.2, 0.2),
       vy: random(-0.2, 0.2),
-      z: random(0.35, 1),
-      radius: random(1.0, 2.0),
+      z: 1,
+      radius: 1.4,
       phase: random(0, Math.PI * 2),
     });
 
@@ -237,9 +237,8 @@ export default function GeometricParticleNetwork({
               if (d2 >= maxDistSq) continue;
               const dist = Math.sqrt(d2);
               const strength = 1 - dist / connectionDistance;
-              const depth = (particles[i].z + particles[j].z) / 2;
               const boost = Math.max(proximity[i], proximity[j]);
-              const alpha = clamp(opacity * (0.05 + strength * depth * 0.4) * (0.85 + boost * 1.1), 0, 0.85);
+              const alpha = clamp(opacity * (0.08 + strength * 0.35) * (0.85 + boost * 1.1), 0, 0.85);
               if (alpha <= 0.01) continue;
               const col = palette.length === 2 ? palette[1] : (palette[(i + j) % palette.length] ?? palette[0]);
               const brightAlpha = clamp(alpha * 1.35, 0, 0.95);
@@ -294,17 +293,11 @@ export default function GeometricParticleNetwork({
     const renderParticles = (palette: RGB[], time: number) => {
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
-        const twinkle = 0.75 + 0.25 * (0.5 + 0.5 * Math.sin(time * 0.0014 + p.phase * 3.1));
-        const boost = 1 + proximity[i] * 0.7;
-        const r = p.radius * (0.7 + p.z * 0.85);
-        const alpha = clamp(opacity * (0.4 + p.z * 0.45) * twinkle * boost, 0, 1);
+        const twinkle = 0.9 + 0.1 * (0.5 + 0.5 * Math.sin(time * 0.0012 + p.phase * 2.4));
+        const boost = 1 + proximity[i] * 0.5;
+        const r = p.radius;
+        const alpha = clamp(opacity * 0.75 * twinkle * boost, 0, 1);
         const col = palette.length === 2 ? palette[0] : (palette[i % palette.length] ?? palette[0]);
-        if (p.z > 0.45) {
-          ctx.beginPath();
-          ctx.arc(screenX[i], screenY[i], r * 2.4, 0, Math.PI * 2);
-          ctx.fillStyle = toRgba(col, alpha * 0.12);
-          ctx.fill();
-        }
         ctx.beginPath();
         ctx.arc(screenX[i], screenY[i], r, 0, Math.PI * 2);
         ctx.fillStyle = toRgba(col, alpha);
@@ -357,7 +350,7 @@ export default function GeometricParticleNetwork({
           const dist = Math.sqrt(dx * dx + dy * dy);
           // Gentle follow toward cursor/touch
           if (dist < 220 && dist > 0.001) {
-            const pull = (1 - dist / 220) * (0.35 + p.z * 0.25);
+            const pull = (1 - dist / 220) * 0.45;
             x += (dx / dist) * pull;
             y += (dy / dist) * pull;
           }
