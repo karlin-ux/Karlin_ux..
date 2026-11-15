@@ -105,9 +105,9 @@ export default function GeometricParticleNetwork({
     const mobile = () => window.innerWidth < 768 || coarsePointer.matches;
     const random = (min: number, max: number) => Math.random() * (max - min) + min;
 
-    const createParticle = (): Particle => ({
-      x: random(0, width),
-      y: random(0, height),
+    const createParticleAt = (x: number, y: number): Particle => ({
+      x,
+      y,
       vx: random(-0.2, 0.2),
       vy: random(-0.2, 0.2),
       z: random(0.35, 1),
@@ -117,9 +117,53 @@ export default function GeometricParticleNetwork({
 
     const particleCount = () => {
       const area = Math.max(1, width * height);
-      const base = mobile() ? 1.4 : 1.9;
-      const scaled = (area / 9000) * base * clamp(density, 0.6, 1.8);
-      return clamp(Math.floor(scaled), mobile() ? 50 : 90, mobile() ? 110 : 220);
+      const base = mobile() ? 1.3 : 1.75;
+      const scaled = (area / 10000) * base * clamp(density, 0.6, 1.8);
+      return clamp(Math.floor(scaled), mobile() ? 45 : 80, mobile() ? 95 : 190);
+    };
+
+    const placeParticles = (count: number) => {
+      particles.length = 0;
+      const area = Math.max(1, width * height);
+      const spacing = Math.sqrt(area / Math.max(1, count));
+      // Space dots ~25% further apart to avoid tight groups
+      const minDist = spacing * 0.72;
+      const minDistSq = minDist * minDist;
+      for (let i = 0; i < count; i++) {
+        let x = random(0, width);
+        let y = random(0, height);
+        let bestX = x;
+        let bestY = y;
+        let bestScore = -1;
+        const attempts = 18;
+        for (let a = 0; a < attempts; a++) {
+          const tx = random(0, width);
+          const ty = random(0, height);
+          let nearestSq = Infinity;
+          // check against placed particles (best-effort)
+          for (let j = 0; j < particles.length; j++) {
+            const dx = tx - particles[j].x;
+            const dy = ty - particles[j].y;
+            const d2 = dx * dx + dy * dy;
+            if (d2 < nearestSq) nearestSq = d2;
+          }
+          if (particles.length === 0) nearestSq = Infinity;
+          if (nearestSq >= minDistSq) {
+            bestX = tx;
+            bestY = ty;
+            bestScore = nearestSq;
+            break;
+          }
+          if (nearestSq > bestScore) {
+            bestScore = nearestSq;
+            bestX = tx;
+            bestY = ty;
+          }
+        }
+        x = bestX;
+        y = bestY;
+        particles.push(createParticleAt(x, y));
+      }
     };
 
     const resize = () => {
@@ -134,14 +178,13 @@ export default function GeometricParticleNetwork({
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       const count = particleCount();
-      while (particles.length < count) particles.push(createParticle());
-      particles.length = count;
+      placeParticles(count);
       screenX.length = count;
       screenY.length = count;
       proximity.length = count;
 
       const spacing = Math.sqrt((width * height) / Math.max(1, count));
-      connectionDistance = clamp(spacing * 2.1, mobile() ? 85 : 100, mobile() ? 120 : 155);
+      connectionDistance = clamp(spacing * 2.35, mobile() ? 95 : 115, mobile() ? 135 : 175);
       cellSize = connectionDistance;
       gridCols = Math.max(1, Math.ceil(width / cellSize));
       gridRows = Math.max(1, Math.ceil(height / cellSize));
