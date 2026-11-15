@@ -231,127 +231,33 @@ export default function GeometricParticleNetwork({
       }
     };
 
-    const renderConnections = (palette: RGB[]) => {
-      const n = particles.length;
-      const deg = new Array<number>(n).fill(0);
-      const edges: Array<[number, number]> = [];
-      const connected = new Set<string>();
-
-      const tryAdd = (i: number, j: number) => {
-        if (i === j) return false;
-        const a = i < j ? i : j;
-        const b = i < j ? j : i;
-        const key = `${a}-${b}`;
-        if (connected.has(key)) return false;
-        if (deg[a] >= 5 || deg[b] >= 5) return false;
-        connected.add(key);
-        deg[a]++; deg[b]++;
-        edges.push([a, b]);
-        return true;
-      };
-
-      const nearestCandidates = (i: number, limit = 16) => {
-        const cx = clamp(Math.floor(screenX[i] / cellSize), 0, gridCols - 1);
-        const cy = clamp(Math.floor(screenY[i] / cellSize), 0, gridRows - 1);
-        const cand: Array<{ j: number; d2: number }> = [];
-        for (let oy = -1; oy <= 1; oy++) {
-          const ny = cy + oy;
-          if (ny < 0 || ny >= gridRows) continue;
-          for (let ox = -1; ox <= 1; ox++) {
-            const nx = cx + ox;
-            if (nx < 0 || nx >= gridCols) continue;
-            const bucket = cellBuckets[ny * gridCols + nx];
-            for (let k = 0; k < bucket.length; k++) {
-              const j = bucket[k];
-              if (j === i || deg[j] >= 5) continue;
-              const dx = screenX[j] - screenX[i];
-              const dy = screenY[j] - screenY[i];
-              cand.push({ j, d2: dx * dx + dy * dy });
-            }
-          }
-        }
-        cand.sort((a, b) => a.d2 - b.d2);
-        return cand.slice(0, limit);
-      };
-
-      // Ensure each dot gets 2-5 connections (prefer filling to 2, then up to 5)
-      for (let target = 1; target <= 5; target++) {
-        for (let i = 0; i < n; i++) {
-          if (deg[i] >= 5 || deg[i] >= target) continue;
-          const cands = nearestCandidates(i, 20);
-          for (const c of cands) {
-            if (deg[i] >= target) break;
-            tryAdd(i, c.j);
-          }
-        }
-      }
-      // Fallback: connect any still-underconnected dots globally
-      for (let i = 0; i < n; i++) {
-        if (deg[i] >= 2) continue;
-        while (deg[i] < 2) {
-          let bestJ = -1;
-          let bestD2 = Infinity;
-          for (let j = 0; j < n; j++) {
-            if (i === j || deg[j] >= 5) continue;
-            const key = `${i < j ? i : j}-${i < j ? j : i}`;
-            if (connected.has(key)) continue;
-            const dx = screenX[j] - screenX[i];
-            const dy = screenY[j] - screenY[i];
-            const d2 = dx * dx + dy * dy;
-            if (d2 < bestD2) { bestD2 = d2; bestJ = j; }
-          }
-          if (bestJ === -1 || !tryAdd(i, bestJ)) break;
-        }
-      }
-
-      for (const [i, j] of edges) {
-        const dx = screenX[j] - screenX[i];
-        const dy = screenY[j] - screenY[i];
-        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-        const denom = Math.max(connectionDistance, dist);
-        const strength = clamp(1 - dist / denom, 0.2, 1);
-        const boost = Math.max(proximity[i], proximity[j]);
-        const alpha = clamp(opacity * (0.12 + strength * 0.3) * (0.9 + boost * 1.0), 0, 0.9);
-        if (alpha <= 0.01) continue;
-        const col = palette.length === 2 ? palette[1] : (palette[(i + j) % palette.length] ?? palette[0]);
-        const brightAlpha = clamp(alpha * 1.25, 0, 0.95);
-        ctx.strokeStyle = toRgba(col, brightAlpha);
-        ctx.lineWidth = 0.8 + strength * 0.45;
-        ctx.beginPath();
-        ctx.moveTo(screenX[i], screenY[i]);
-        ctx.lineTo(screenX[j], screenY[j]);
-        ctx.stroke();
-      }
+    const renderConnections = (_palette: RGB[]) => {
+      // Dot-to-dot lines removed: cursor connects to dots instead
     };
 
     const renderCursorNearest = (palette: RGB[]) => {
       if (!interactive || !pointer.active || reducedMotion.matches) return;
-      const nearest: Array<{ i: number; d: number }> = [];
-      for (let i = 0; i < particles.length; i++) {
-        const dx = screenX[i] - pointer.x;
-        const dy = screenY[i] - pointer.y;
-        nearest.push({ i, d: dx * dx + dy * dy });
-      }
-      nearest.sort((a, b) => a.d - b.d);
-      const picks = nearest.slice(0, Math.min(11, nearest.length));
-      if (picks.length === 0) return;
+      if (particles.length === 0) return;
       // Use same line color as constellation lines
       const lineColor = palette.length === 2 ? palette[1] : (palette[1] ?? palette[0] ?? parseColor("#53F5B0"));
       const dotAccent = palette.length === 2 ? palette[0] : (palette[0] ?? lineColor);
 
-      for (let n = 0; n < picks.length; n++) {
-        const idx = picks[n].i;
-        const fade = 1 - n / Math.max(1, picks.length);
-        ctx.strokeStyle = toRgba(lineColor, opacity * (0.45 + fade * 0.45));
-        ctx.lineWidth = 1.0 + fade * 0.7;
+      for (let i = 0; i < particles.length; i++) {
+        const dx = screenX[i] - pointer.x;
+        const dy = screenY[i] - pointer.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const maxDist = Math.max(width, height) * 0.9;
+        const fade = clamp(1 - dist / maxDist, 0.15, 1);
+        ctx.strokeStyle = toRgba(lineColor, opacity * (0.18 + fade * 0.5));
+        ctx.lineWidth = 0.7 + fade * 0.8;
         ctx.beginPath();
-        ctx.moveTo(screenX[idx], screenY[idx]);
+        ctx.moveTo(screenX[i], screenY[i]);
         ctx.lineTo(pointer.x, pointer.y);
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.arc(screenX[idx], screenY[idx], 2.2 + fade * 1.0, 0, Math.PI * 2);
-        ctx.fillStyle = toRgba(dotAccent, clamp(opacity * (0.5 + fade * 0.4), 0, 1));
+        ctx.arc(screenX[i], screenY[i], 1.8 + fade * 1.0, 0, Math.PI * 2);
+        ctx.fillStyle = toRgba(dotAccent, clamp(opacity * (0.35 + fade * 0.45), 0, 1));
         ctx.fill();
       }
       ctx.beginPath();
