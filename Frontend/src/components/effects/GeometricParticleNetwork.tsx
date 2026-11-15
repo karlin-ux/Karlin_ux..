@@ -243,14 +243,14 @@ export default function GeometricParticleNetwork({
         const b = i < j ? j : i;
         const key = `${a}-${b}`;
         if (connected.has(key)) return false;
-        if (deg[a] >= 2 || deg[b] >= 2) return false;
+        if (deg[a] >= 5 || deg[b] >= 5) return false;
         connected.add(key);
         deg[a]++; deg[b]++;
         edges.push([a, b]);
         return true;
       };
 
-      const nearestCandidates = (i: number, limit = 12) => {
+      const nearestCandidates = (i: number, limit = 16) => {
         const cx = clamp(Math.floor(screenX[i] / cellSize), 0, gridCols - 1);
         const cy = clamp(Math.floor(screenY[i] / cellSize), 0, gridRows - 1);
         const cand: Array<{ j: number; d2: number }> = [];
@@ -263,7 +263,7 @@ export default function GeometricParticleNetwork({
             const bucket = cellBuckets[ny * gridCols + nx];
             for (let k = 0; k < bucket.length; k++) {
               const j = bucket[k];
-              if (j === i || deg[j] >= 2) continue;
+              if (j === i || deg[j] >= 5) continue;
               const dx = screenX[j] - screenX[i];
               const dy = screenY[j] - screenY[i];
               cand.push({ j, d2: dx * dx + dy * dy });
@@ -274,31 +274,34 @@ export default function GeometricParticleNetwork({
         return cand.slice(0, limit);
       };
 
-      // Ensure every dot gets at least 1 connection when possible, max 2 per dot
-      for (let pass = 0; pass < 2; pass++) {
+      // Ensure each dot gets 2-5 connections (prefer filling to 2, then up to 5)
+      for (let target = 1; target <= 5; target++) {
         for (let i = 0; i < n; i++) {
-          if (deg[i] >= 2) continue;
-          if (pass === 0 && deg[i] >= 1) continue;
-          const cands = nearestCandidates(i, 16);
+          if (deg[i] >= 5 || deg[i] >= target) continue;
+          const cands = nearestCandidates(i, 20);
           for (const c of cands) {
-            if (deg[i] >= 2) break;
+            if (deg[i] >= target) break;
             tryAdd(i, c.j);
           }
         }
       }
-      // Fallback: connect any still-unconnected dots globally (small groups/chains possible)
+      // Fallback: connect any still-underconnected dots globally
       for (let i = 0; i < n; i++) {
-        if (deg[i] > 0) continue;
-        let bestJ = -1;
-        let bestD2 = Infinity;
-        for (let j = 0; j < n; j++) {
-          if (i === j || deg[j] >= 2) continue;
-          const dx = screenX[j] - screenX[i];
-          const dy = screenY[j] - screenY[i];
-          const d2 = dx * dx + dy * dy;
-          if (d2 < bestD2) { bestD2 = d2; bestJ = j; }
+        if (deg[i] >= 2) continue;
+        while (deg[i] < 2) {
+          let bestJ = -1;
+          let bestD2 = Infinity;
+          for (let j = 0; j < n; j++) {
+            if (i === j || deg[j] >= 5) continue;
+            const key = `${i < j ? i : j}-${i < j ? j : i}`;
+            if (connected.has(key)) continue;
+            const dx = screenX[j] - screenX[i];
+            const dy = screenY[j] - screenY[i];
+            const d2 = dx * dx + dy * dy;
+            if (d2 < bestD2) { bestD2 = d2; bestJ = j; }
+          }
+          if (bestJ === -1 || !tryAdd(i, bestJ)) break;
         }
-        if (bestJ !== -1) tryAdd(i, bestJ);
       }
 
       for (const [i, j] of edges) {
