@@ -148,7 +148,7 @@ export default function Layout() {
             colors={theme === 'light' ? NETWORK_COLORS_LIGHT : NETWORK_COLORS}
             className="absolute inset-0 h-full w-full"
             density={1}
-            opacity={theme === 'light' ? 0.75 : 0.9}
+            opacity={theme === 'light' ? 0.85 : 0.9}
             interactive
           />
         </div>
