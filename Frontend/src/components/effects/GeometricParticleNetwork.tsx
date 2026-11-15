@@ -151,8 +151,7 @@ export default function GeometricParticleNetwork({
     };
 
     const updatePointer = (event: PointerEvent) => {
-      if (!interactive || reducedMotion.matches || mobile()) return;
-      if (event.pointerType === "touch") return;
+      if (!interactive || reducedMotion.matches) return;
       const rect = parent.getBoundingClientRect();
       const firstEntry = !pointer.active;
       pointer.targetX = event.clientX - rect.left;
@@ -213,7 +212,7 @@ export default function GeometricParticleNetwork({
     };
 
     const renderCursorNearest = (palette: RGB[]) => {
-      if (!interactive || !pointer.active || reducedMotion.matches || mobile()) return;
+      if (!interactive || !pointer.active || reducedMotion.matches) return;
       const nearest: Array<{ i: number; d: number }> = [];
       for (let i = 0; i < particles.length; i++) {
         const dx = screenX[i] - pointer.x;
@@ -307,12 +306,12 @@ export default function GeometricParticleNetwork({
           if (p.y > height + 20) p.y = -20;
         }
         let x = p.x, y = p.y;
-        const pointerActive = interactive && pointer.active && !reducedMotion.matches && !mobile();
+        const pointerActive = interactive && pointer.active && !reducedMotion.matches;
         if (pointerActive) {
           const dx = pointer.x - x;
           const dy = pointer.y - y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          // Gentle follow toward cursor
+          // Gentle follow toward cursor/touch
           if (dist < 220 && dist > 0.001) {
             const pull = (1 - dist / 220) * (0.35 + p.z * 0.25);
             x += (dx / dist) * pull;
