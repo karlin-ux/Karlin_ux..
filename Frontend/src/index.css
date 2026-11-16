@@ -1284,3 +1284,19 @@ html:not(.lights-on) .lights-switch {
   transform: translateX(-50%) !important;
   margin: 0 !important;
 }
+
+/* Neon glow borders for boxes/cards (site-wide) */
+.card,
+.spotlight-card,
+.neon-perimeter,
+article[class*="rounded"][class*="border"],
+section[class*="rounded"][class*="border"],
+div[class*="rounded"][class*="border"],
+li[class*="rounded"][class*="border"],
+a[class*="rounded"][class*="border"] {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent),
+    0 0 10px color-mix(in srgb, var(--accent) 22%, transparent),
+    0 0 22px color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border)) !important;
+}
