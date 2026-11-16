@@ -130,11 +130,12 @@
   --border-subtle: #1E2A3A;
   --border-strong: #3A4F6B;
 
-  --accent: #53F5B0;
-  --accent-hover: #3DE89A;
-  --accent-active: #2DD48A;
-  --accent-soft: #123B31;
-  --accent-glow: rgba(83, 245, 176, 0.15);
+  /* Dark green accents for light theme (still neon/glowing) */
+  --accent: #0B7A3B;
+  --accent-hover: #096332;
+  --accent-active: #074D27;
+  --accent-soft: #D8F3E3;
+  --accent-glow: rgba(11, 122, 59, 0.22);
 
   --accent-2: #5C9DFF;
   --accent-2-hover: #4A8AEF;
@@ -143,8 +144,8 @@
   --accent-3: #9B85FF;
   --accent-3-soft: #30294F;
 
-  --success: #35D39A;
-  --success-soft: #0D3B2A;
+  --success: #0B7A3B;
+  --success-soft: #D8F3E3;
   --warning: #F5BD58;
   --warning-soft: #3B2F12;
   --error: #FF6B78;
@@ -155,7 +156,7 @@
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 20px rgba(83, 245, 176, 0.1);
+  --shadow-glow: 0 0 20px rgba(11, 122, 59, 0.18);
   --shadow-glow-blue: 0 0 20px rgba(92, 157, 255, 0.1);
 }
 
@@ -1114,11 +1115,11 @@ header nav a[aria-current="page"]::after { transform: scaleX(1); opacity: 1; }
 }
 /* Light theme: yellow glows and border glows */
 .light .skills-marquee-item {
-  border-color: rgba(83, 245, 176, 0.38);
-  background: rgba(83, 245, 176, 0.12);
+  border-color: rgba(11, 122, 59, 0.45);
+  background: rgba(11, 122, 59, 0.14);
   color: var(--accent);
-  text-shadow: 0 0 12px rgba(83, 245, 176, 0.55), 0 0 24px rgba(83, 245, 176, 0.28);
-  box-shadow: 0 0 10px rgba(83, 245, 176, 0.18), 0 0 22px rgba(83, 245, 176, 0.12);
+  text-shadow: 0 0 12px rgba(11, 122, 59, 0.55), 0 0 24px rgba(11, 122, 59, 0.28);
+  box-shadow: 0 0 10px rgba(11, 122, 59, 0.22), 0 0 22px rgba(11, 122, 59, 0.14);
 }
 .light .flash-green-text,
 .light .flash-green {
@@ -1139,15 +1140,15 @@ header nav a[aria-current="page"]::after { transform: scaleX(1); opacity: 1; }
 
 /* Border glows in light mode (same color scheme as dark theme) */
 .light :where(.card, .btn, .btn-primary, .btn-secondary, .input, .skills-marquee-item, .neon-perimeter, .spotlight-card, [class*="rounded"][class*="border"]) {
-  outline: 1px solid rgba(83, 245, 176, 0.35);
+  outline: 1px solid rgba(11, 122, 59, 0.4);
   outline-offset: 1px;
-  box-shadow: 0 0 10px rgba(83, 245, 176, 0.18);
+  box-shadow: 0 0 10px rgba(11, 122, 59, 0.22);
 }
 .light .input:focus,
 .light .btn:focus-visible,
 .light a:focus-visible {
   outline-offset: 2px;
-  box-shadow: 0 0 12px rgba(83, 245, 176, 0.25);
+  box-shadow: 0 0 12px rgba(11, 122, 59, 0.3);
 }
 
 @keyframes flash-yellow-flicker {
@@ -1204,9 +1205,20 @@ header nav a[aria-current="page"]::after { transform: scaleX(1); opacity: 1; }
 .light .text-glow-white {
   color: #111111;
   text-shadow:
-    0 0 8px rgba(0, 0, 0, 0.55),
-    0 0 18px rgba(0, 0, 0, 0.32),
-    0 0 30px rgba(0, 0, 0, 0.16);
+    0 0 8px rgba(0, 0, 0, 0.6),
+    0 0 18px rgba(0, 0, 0, 0.35),
+    0 0 30px rgba(11, 122, 59, 0.18);
+}
+
+/* Light theme: white neon text becomes black neon */
+.light .text-white {
+  color: #111111 !important;
+}
+.light .text-white\/90,
+.light .text-white\/95,
+.light .text-white\/80,
+.light .text-white\/70 {
+  color: rgba(17, 17, 17, 0.92) !important;
 }
 
 /* Hero CTA sizing helper */
