@@ -879,15 +879,20 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 .skills-marquee-item {
   flex: 0 0 auto;
   padding: 0.35rem 0.75rem;
-  border: 1px solid rgba(83, 245, 176, 0.38);
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
   border-radius: 999px;
-  background: rgba(83, 245, 176, 0.12);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--accent);
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.01em;
-  text-shadow: 0 0 12px rgba(83, 245, 176, 0.55), 0 0 24px rgba(83, 245, 176, 0.28);
-  box-shadow: 0 0 10px rgba(83, 245, 176, 0.18), 0 0 22px rgba(83, 245, 176, 0.12);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 70%, transparent), 0 0 24px color-mix(in srgb, var(--accent) 40%, transparent);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent) 55%, transparent),
+    0 0 26px color-mix(in srgb, var(--accent) 65%, transparent),
+    0 0 46px color-mix(in srgb, var(--accent) 28%, transparent);
+  position: relative;
+  z-index: 2;
 }
 @keyframes skills-marquee-scroll {
   0% { transform: translateX(0); }

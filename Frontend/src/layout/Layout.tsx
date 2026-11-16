@@ -10,6 +10,7 @@ const NETWORK_COLORS = ['#53F5B0', '#5C9DFF', '#9B85FF'];
 const navLinks = [
   { to: '/', label: 'Home' },
   { to: '/projects', label: 'Projects' },
+  { to: '/technologies', label: 'Skills' },
   { to: '/contact', label: 'Contact' },
 ];
 
@@ -195,29 +196,39 @@ export default function Layout() {
       {/* Top Navigation */}
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--bg)]/80 backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex min-h-16 items-center justify-between gap-3 py-2">
-            {/* Logo */}
-            <Link to="/" className="btn hero-cta-btn !min-w-0 flex shrink-0 items-center gap-2 px-3 py-2 text-lg font-bold sm:text-xl">
-              <span>Karlin_ux</span>
-            </Link>
+          <div className="flex min-h-16 flex-col items-center justify-center gap-2 py-2 md:gap-3">
+            <div className="flex w-full items-center justify-between md:justify-center">
+              {/* Logo */}
+              <Link to="/" className="btn hero-cta-btn !min-w-0 flex shrink-0 items-center gap-2 px-3 py-2 text-lg font-bold sm:text-xl">
+                <span>Karlin_ux</span>
+              </Link>
 
-            {/* Desktop nav */}
-            <nav className="hidden items-center gap-1 md:flex">
-              {navLinks.map((link) => (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  end={link.to === '/'}
-                  className={({ isActive }) => `${navItemClass(isActive)} whitespace-nowrap`}
-                >
-                  {link.label}
-                </NavLink>
-              ))}
-            </nav>
+              {/* Mobile menu button */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className={`${iconButtonClass} md:hidden`}
+                aria-label="Toggle menu"
+                aria-expanded={mobileMenuOpen}
+              >
+                {mobileMenuOpen ? '✕' : '☰'}
+              </button>
+            </div>
 
-            {/* Right side */}
-            <div className="flex items-center gap-2">
-              <div className="hidden items-center gap-2 md:flex">
+            {/* Desktop nav + actions (symmetrical/centred) */}
+            <div className="hidden w-full flex-wrap items-center justify-center gap-2 md:flex">
+              <nav className="flex flex-wrap items-center justify-center gap-1">
+                {navLinks.map((link) => (
+                  <NavLink
+                    key={link.to}
+                    to={link.to}
+                    end={link.to === '/'}
+                    className={({ isActive }) => `${navItemClass(isActive)} whitespace-nowrap`}
+                  >
+                    {link.label}
+                  </NavLink>
+                ))}
+              </nav>
+              <div className="flex flex-wrap items-center justify-center gap-2">
                 {user ? (
                   <>
                     {user.is_superadmin && (
@@ -243,16 +254,6 @@ export default function Layout() {
                   </>
                 )}
               </div>
-
-              {/* Mobile menu button */}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className={`${iconButtonClass} md:hidden`}
-                aria-label="Toggle menu"
-                aria-expanded={mobileMenuOpen}
-              >
-                {mobileMenuOpen ? '✕' : '☰'}
-              </button>
             </div>
           </div>
         </div>
