@@ -263,9 +263,9 @@ export default function Home() {
                   href="/Karl-Heins_Lourens_Resume.docx"
                   className="btn hero-cta-btn flash-green motion-reduce:transition-none"
                   download="Karl-Heins_Lourens_Resume.docx"
-                  aria-label="Download Resume"
+                  aria-label="Download CV"
                 >
-                  Resume
+                  CV
                 </a>
                 <button
                   type="button"
