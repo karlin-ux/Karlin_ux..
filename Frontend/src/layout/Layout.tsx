@@ -39,6 +39,18 @@ export default function Layout() {
   const location = useLocation();
   const mainRef = useRef<HTMLElement | null>(null);
   const [routeKey, setRouteKey] = useState(location.pathname);
+  const [lightsReady, setLightsReady] = useState(
+    typeof document !== 'undefined' && document.documentElement.classList.contains('lights-ready')
+  );
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const update = () => setLightsReady(root.classList.contains('lights-ready'));
+    update();
+    const obs = new MutationObserver(update);
+    obs.observe(root, { attributes: true, attributeFilter: ['class'] });
+    return () => obs.disconnect();
+  }, []);
 
   useEffect(() => {
     setRouteKey(location.pathname);
