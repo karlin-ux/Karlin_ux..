@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { useTheme } from '../auth/ThemeContext';
 import GeometricParticleNetwork from '../components/effects/GeometricParticleNetwork';
 import ScrollProgress from '../components/ScrollProgress';
 
 // Karlin_ux design tokens: --accent, --accent-2, --accent-3
 const NETWORK_COLORS = ['#53F5B0', '#5C9DFF', '#9B85FF'];
-const NETWORK_COLORS_LIGHT = NETWORK_COLORS; // same colors as dark theme (background remains light)
 
 const navLinks = [
   { to: '/', label: 'Home' },
@@ -34,7 +32,6 @@ const iconButtonClass =
 
 export default function Layout() {
   const { user, logout } = useAuth();
-  const { theme, toggle } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const mainRef = useRef<HTMLElement | null>(null);
@@ -172,10 +169,10 @@ export default function Layout() {
         <div className="relative h-full w-full">
           {lightsOn && (
             <GeometricParticleNetwork
-              colors={theme === 'light' ? NETWORK_COLORS_LIGHT : NETWORK_COLORS}
+              colors={NETWORK_COLORS}
               className="absolute inset-0 h-full w-full"
               density={1}
-              opacity={theme === 'light' ? 0.85 : 0.9}
+              opacity={0.9}
               interactive
             />
           )}
@@ -220,14 +217,6 @@ export default function Layout() {
 
             {/* Right side */}
             <div className="flex flex-wrap items-center justify-end gap-2">
-              <button
-                onClick={toggle}
-                className={iconButtonClass}
-                aria-label="Toggle theme"
-              >
-                {theme === 'dark' ? '☀' : '☾'}
-              </button>
-
               <div className="flex flex-wrap items-center gap-2">
                 {user ? (
                   <>

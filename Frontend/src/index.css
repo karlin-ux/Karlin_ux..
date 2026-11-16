@@ -1220,6 +1220,15 @@ header nav a[aria-current="page"]::after { transform: scaleX(1); opacity: 1; }
 .light .text-white\/70 {
   color: rgba(17, 17, 17, 0.92) !important;
 }
+/* Keep lights toggle button text neon white in light theme */
+.light .lights-switch,
+.light .lights-switch.text-white {
+  color: #ffffff !important;
+  text-shadow:
+    0 0 10px rgba(255, 255, 255, 0.75),
+    0 0 22px rgba(255, 255, 255, 0.4),
+    0 0 36px rgba(255, 255, 255, 0.18) !important;
+}
 
 /* Hero CTA sizing helper */
 .hero-cta-btn {
@@ -1310,7 +1319,7 @@ html:not(.lights-on) .lights-switch {
   margin: 0 !important;
 }
 
-/* Neon glow borders for boxes/cards (site-wide) */
+/* Neon glow borders for boxes/cards (site-wide, same as button glow) */
 .card,
 .spotlight-card,
 .neon-perimeter,
@@ -1320,8 +1329,8 @@ div[class*="rounded"][class*="border"],
 li[class*="rounded"][class*="border"],
 a[class*="rounded"][class*="border"] {
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent),
-    0 0 10px color-mix(in srgb, var(--accent) 22%, transparent),
-    0 0 22px color-mix(in srgb, var(--accent) 12%, transparent);
-  border-color: color-mix(in srgb, var(--accent) 40%, var(--border)) !important;
+    0 0 0 2px color-mix(in srgb, var(--accent) 55%, transparent),
+    0 0 26px color-mix(in srgb, var(--accent) 65%, transparent),
+    0 0 46px color-mix(in srgb, var(--accent) 28%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border)) !important;
 }
