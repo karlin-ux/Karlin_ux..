@@ -333,30 +333,27 @@ export default function Home() {
               <Link
                 to={`/technologies?category=${encodeURIComponent(domain.category)}`}
                 aria-label={`Explore ${domain.title} technologies`}
-                className="spotlight-card tilt-card group flex h-full min-h-[320px] flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)]/80 transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--accent)]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
-                style={{ backgroundImage: `linear-gradient(rgba(8,17,31,0.45), rgba(8,17,31,0.45)), url(${domain.background})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}
+                className="spotlight-card tilt-card group flex h-full min-h-[13rem] flex-col rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)]/80 p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--accent)]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
               >
-                <div className="flex h-full flex-col p-5 text-glow-white text-white">
-                  <div className="flex items-center gap-3">
-                    <div className="icon-float flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-black/30" style={{ animationDelay: `${idx * 0.25}s` }}>
-                      <Icon name={domain.icon} size={20} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="truncate text-sm font-semibold text-white">{domain.title}</h3>
-                      <div className="flex items-center gap-2">
-                        <p className="text-xs text-white/90">{domain.items.length} tools</p>
-                        <span aria-hidden="true" className="text-xs text-white/90 transition-transform duration-300 group-hover:translate-x-0.5">→</span>
-                      </div>
+                <div className="flex items-center gap-3">
+                  <div className="icon-float flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface)]" style={{ animationDelay: `${idx * 0.25}s` }}>
+                    <Icon name={domain.icon} size={20} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-glow-white truncate text-sm font-semibold text-white">{domain.title}</h3>
+                    <div className="flex items-center gap-2">
+                      <p className="text-glow-white text-xs text-white/90">{domain.items.length} tools</p>
+                      <span aria-hidden="true" className="text-glow-white text-xs text-white/90 transition-transform duration-300 group-hover:translate-x-0.5">→</span>
                     </div>
                   </div>
-                  <p className="mt-3 min-h-[2.5rem] text-xs leading-relaxed text-white/95">{domain.blurb}</p>
-                  <div className="mt-4 flex flex-wrap gap-1.5">
-                    {domain.items.map((item) => (
-                      <span key={item} className="inline-flex items-center rounded-md border border-white/25 bg-black/25 px-2 py-1 text-[11px] font-medium leading-none text-white">
-                        {item}
-                      </span>
-                    ))}
-                  </div>
+                </div>
+                <p className="text-glow-white mt-3 min-h-[2.5rem] text-xs leading-relaxed text-white/95">{domain.blurb}</p>
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {domain.items.map((item) => (
+                    <span key={item} className="text-glow-white inline-flex items-center rounded-md border border-white/25 bg-black/25 px-2 py-1 text-[11px] font-medium leading-none text-white">
+                      {item}
+                    </span>
+                  ))}
                 </div>
               </Link>
               </Reveal>
@@ -383,16 +380,7 @@ export default function Home() {
                 </div>
 
                 <div className="grid items-start gap-8 lg:grid-cols-2">
-                  <div
-                    ref={journeyView.ref}
-                    className="rounded-2xl border border-[var(--border)] p-4 sm:p-5"
-                    style={{
-                      backgroundImage: 'linear-gradient(rgba(8,17,31,0.55), rgba(8,17,31,0.55)), url(/years_journey.svg)',
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                      backgroundRepeat: 'no-repeat',
-                    }}
-                  >
+                  <div ref={journeyView.ref}>
                     <p className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
                       Years Spent on My Developer Journey
                     </p>
