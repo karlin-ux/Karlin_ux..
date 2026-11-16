@@ -511,8 +511,8 @@ export default function Home() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
                 Case study
               </p>
-              <h3 className="mt-2 text-2xl font-bold tracking-tight">{featuredProject.name}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-[var(--text-secondary)]">
+              <h3 className="mt-2 text-2xl font-bold tracking-tight text-white">{featuredProject.name}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-white">
                 {featuredProject.summary}
               </p>
 
@@ -520,7 +520,7 @@ export default function Home() {
                 {featuredProject.points.map((point) => (
                   <li
                     key={point}
-                    className="flex gap-2 text-sm leading-relaxed text-[var(--text-secondary)]"
+                    className="flex gap-2 text-sm leading-relaxed text-white"
                   >
                     <span className="text-[var(--accent)]">—</span>
                     <span>{point}</span>
