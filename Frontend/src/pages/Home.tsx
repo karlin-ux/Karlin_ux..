@@ -94,13 +94,13 @@ function JourneyStat({ item, active }: { item: typeof developmentJourney[number]
   const years = useCountUp(item.years, active);
   return (
     <div className="spotlight-card rounded-xl border border-[var(--border)] bg-[var(--bg-surface)]/50 p-3 text-center transition-transform duration-300 hover:-translate-y-0.5">
-      <div className="mb-1 flex justify-center icon-float">
+      <div className="mb-1 flex justify-center icon-float text-glow-white text-white">
         <Icon name={item.icon} size={18} />
       </div>
-      <div className="text-lg font-bold leading-none" style={{ color: item.color }}>
+      <div className="text-glow-white text-lg font-bold leading-none text-white">
         {years}+
       </div>
-      <div className="mt-1 text-[10px] font-medium leading-snug text-[var(--text-secondary)]">
+      <div className="text-glow-white mt-1 text-[10px] font-medium leading-snug text-white">
         {item.area}
       </div>
     </div>
@@ -374,14 +374,14 @@ export default function Home() {
                   <img
                     src="/26376263.png"
                     alt="Karlheins Lourens"
-                    className="aspect-square w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--bg-surface)]/60 object-cover"
+                    className="hero-cta-btn flash-green aspect-square w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--bg-surface)]/60 object-cover"
                     loading="lazy"
                   />
                 </div>
 
                 <div className="grid items-start gap-8 lg:grid-cols-2">
                   <div ref={journeyView.ref}>
-                    <p className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
+                    <p className="text-glow-white mb-3 text-center text-xs font-semibold uppercase tracking-[0.18em] text-white">
                       Years Spent on My Developer Journey
                     </p>
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
