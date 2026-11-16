@@ -55,19 +55,6 @@ export default function Layout() {
     return () => obs.disconnect();
   }, []);
 
-  const toggleLights = () => {
-    const root = document.documentElement;
-    const next = !root.classList.contains('lights-on');
-    if (next) {
-      root.classList.remove('lights-on');
-      void root.offsetHeight;
-      root.classList.add('lights-on');
-    } else {
-      root.classList.remove('lights-on');
-      root.classList.remove('lights-ready');
-    }
-  };
-
   useEffect(() => {
     setRouteKey(location.pathname);
     mainRef.current?.scrollTo?.({ top: 0, behavior: 'auto' });
