@@ -2,6 +2,99 @@ import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Icon from '../components/Icon';
 
+const TECH_SVG_MAP: Record<string, string> = {
+  'Performance Testing': '/tech-svgs/performance-testing.svg',
+  'Pytest': '/tech-svgs/pytest.svg',
+  'Selenium': '/tech-svgs/selenium.svg',
+  'Cypress': '/tech-svgs/cypress.svg',
+  'Static Code Analysis': '/tech-svgs/static-code-analysis.svg',
+  'Debugging': '/tech-svgs/debugging.svg',
+  'Blender': '/tech-svgs/blender.svg',
+  '3D Modeling': '/tech-svgs/3d-modeling.svg',
+  '3D Modelling': '/tech-svgs/3d-modeling.svg',
+  'Git': '/tech-svgs/git.svg',
+  'GitHub': '/tech-svgs/github.svg',
+  'VS Code': '/tech-svgs/vs-code.svg',
+  'Ruby': '/tech-svgs/ruby.svg',
+  'API Development': '/tech-svgs/api-development.svg',
+  'Software Deployment': '/tech-svgs/software-deployment.svg',
+  'AI Integrations': '/tech-svgs/ai-integrations.svg',
+  'Arch Linux': '/tech-svgs/arch-linux.svg',
+  'Linux Servers': '/tech-svgs/linux-servers.svg',
+  'Kubernetes': '/tech-svgs/kubernetes.svg',
+  'Google Cloud': '/tech-svgs/google-cloud.svg',
+  'WireGuard': '/tech-svgs/wireguard.svg',
+  'CI/CD Pipelines': '/tech-svgs/ci-cd-pipelines.svg',
+  'Android Studio': '/tech-svgs/android-studio.svg',
+  'Android SDK': '/tech-svgs/android-sdk.svg',
+  'Kotlin Android Development': '/tech-svgs/kotlin-android-development.svg',
+  'Unit Testing': '/tech-svgs/unit-testing.svg',
+  'Integration Testing': '/tech-svgs/integration-testing.svg',
+  'End-to-End Testing': '/tech-svgs/end-to-end-testing.svg',
+  'Regression Testing': '/tech-svgs/regression-testing.svg',
+  'Manual Testing': '/tech-svgs/manual-testing.svg',
+  'Load Testing': '/tech-svgs/load-testing.svg',
+  'Java': '/tech-svgs/java.svg',
+  'Kotlin': '/tech-svgs/kotlin.svg',
+  'C': '/tech-svgs/c.svg',
+  'C++': '/tech-svgs/cpp.svg',
+  'C#': '/tech-svgs/csharp.svg',
+  'Lua': '/tech-svgs/lua.svg',
+  'Roblox Luau': '/tech-svgs/roblox-luau.svg',
+  'MySQL': '/tech-svgs/mysql.svg',
+  'REST APIs': '/tech-svgs/rest-apis.svg',
+  'GraphQL': '/tech-svgs/graphql.svg',
+  'WebSockets': '/tech-svgs/websockets.svg',
+  'JSON': '/tech-svgs/json.svg',
+  'XML': '/tech-svgs/xml.svg',
+  'Third-Party Integrations': '/tech-svgs/third-party-integrations.svg',
+  'Third-Party Integration': '/tech-svgs/third-party-integrations.svg',
+  'Windows': '/tech-svgs/windows.svg',
+  'Linux': '/tech-svgs/linux.svg',
+  'Ubuntu': '/tech-svgs/ubuntu.svg',
+  'Debian': '/tech-svgs/debian.svg',
+  'React': '/tech-svgs/react.svg',
+  'TypeScript': '/tech-svgs/typescript.svg',
+  'JavaScript': '/tech-svgs/javascript.svg',
+  'Vite': '/tech-svgs/vite.svg',
+  'Tailwind CSS': '/tech-svgs/tailwind-css.svg',
+  'HTML5': '/tech-svgs/html5.svg',
+  'CSS3': '/tech-svgs/css3.svg',
+  'Python': '/tech-svgs/python.svg',
+  'Django': '/tech-svgs/django.svg',
+  'Django REST Framework': '/tech-svgs/django-rest-framework.svg',
+  'PostgreSQL': '/tech-svgs/postgresql.svg',
+  'SQL': '/tech-svgs/sql.svg',
+  'Docker': '/tech-svgs/docker.svg',
+  'Docker Compose': '/tech-svgs/docker-compose.svg',
+  'Caddy': '/tech-svgs/caddy.svg',
+  'GitHub Actions': '/tech-svgs/github-actions.svg',
+  'Gitleaks': '/tech-svgs/gitleaks.svg',
+  'Bandit': '/tech-svgs/bandit.svg',
+  'CSRF Protection': '/tech-svgs/csrf-protection.svg',
+  'Session Authentication': '/tech-svgs/session-authentication.svg',
+  'Rate Limiting': '/tech-svgs/rate-limiting.svg',
+  'Workspace Isolation': '/tech-svgs/workspace-isolation.svg',
+  'CORS Configuration': '/tech-svgs/cors-configuration.svg',
+  'HSTS': '/tech-svgs/hsts.svg',
+  'Django Test Framework': '/tech-svgs/django-test-framework.svg',
+  'TypeScript Compiler': '/tech-svgs/typescript-compiler.svg',
+  'ESLint (Oxlint)': '/tech-svgs/eslint-oxlint.svg',
+  'WhiteNoise': '/tech-svgs/whitenoise.svg',
+  'Gunicorn': '/tech-svgs/gunicorn.svg',
+  'Health Checks': '/tech-svgs/health-checks.svg',
+  'Docker Security': '/tech-svgs/docker-security.svg',
+  'Pillow': '/tech-svgs/pillow.svg',
+  'Responsive Web Design': '/tech-svgs/responsive-web-design.svg',
+  'Frontend Development': '/tech-svgs/frontend-development.svg',
+  'Backend Development': '/tech-svgs/backend-development.svg',
+  'Full-Stack Development': '/tech-svgs/full-stack-development.svg',
+};
+
+function getTechSvg(name: string) {
+  return TECH_SVG_MAP[name];
+}
+
 /* ============================================
    TECHNOLOGY DATA MODEL
    ============================================ */
@@ -277,7 +370,17 @@ export default function Technologies() {
               key={i}
               onClick={() => setSelectedTech(tech)}
               className="card p-5 cursor-pointer hover:border-[var(--border-strong)] transition-all duration-300 group"
-              style={{ borderLeft: `3px solid ${colors.border}` }}
+              style={{
+                borderLeft: `3px solid ${colors.border}`,
+                ...(getTechSvg(tech.name)
+                  ? {
+                      backgroundImage: `linear-gradient(rgba(8,17,31,0.62), rgba(8,17,31,0.62)), url(${getTechSvg(tech.name)})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      backgroundRepeat: 'no-repeat',
+                    }
+                  : {}),
+              }}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">

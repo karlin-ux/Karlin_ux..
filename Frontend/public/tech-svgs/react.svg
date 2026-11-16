@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700">
+  <defs>
+    <linearGradient id="b" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#07111f"/>
+      <stop offset="100%" stop-color="#101826"/>
+    </linearGradient>
+    <radialGradient id="g" cx="50%" cy="45%" r="72%">
+      <stop offset="0%" stop-color="#61dafb" stop-opacity=".15"/>
+      <stop offset="100%" stop-color="#61dafb" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="18"/></filter>
+  </defs>
+  <rect width="1200" height="700" fill="url(#b)"/>
+  <rect width="1200" height="700" fill="url(#g)"/>
+  <g fill="none" stroke="#61dafb" stroke-opacity=".18" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">M600 180 C430 180 330 300 390 430 C450 560 650 560 720 430 C790 300 680 180 510 180 M470 350 C470 250 520 200 600 200 C680 200 730 250 730 350 C730 450 680 500 600 500 C520 500 470 450 470 350 M390 250 L810 450 M390 450 L810 250</g>
+  <g filter="url(#blur)" fill="#61dafb" fill-opacity=".12"><circle cx="930" cy="180" r="105"/><circle cx="320" cy="560" r="85"/></g>
+  <text x="80" y="100" fill="#eaf7ff" font-family="Inter, Arial, sans-serif" font-size="54" font-weight="700">React</text>
+</svg>

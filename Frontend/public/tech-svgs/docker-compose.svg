@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700">
+  <defs>
+    <linearGradient id="b" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#07111f"/>
+      <stop offset="100%" stop-color="#101826"/>
+    </linearGradient>
+    <radialGradient id="g" cx="50%" cy="45%" r="72%">
+      <stop offset="0%" stop-color="#39d7ff" stop-opacity=".15"/>
+      <stop offset="100%" stop-color="#39d7ff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="18"/></filter>
+  </defs>
+  <rect width="1200" height="700" fill="url(#b)"/>
+  <rect width="1200" height="700" fill="url(#g)"/>
+  <g fill="none" stroke="#39d7ff" stroke-opacity=".18" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">M300 350 H470 V250 H640 V350 H810 V450 H640 V530 H470 V450 H300 Z M470 350 H640 M640 350 H810</g>
+  <g filter="url(#blur)" fill="#39d7ff" fill-opacity=".12"><circle cx="930" cy="180" r="105"/><circle cx="320" cy="560" r="85"/></g>
+  <text x="80" y="100" fill="#eaf7ff" font-family="Inter, Arial, sans-serif" font-size="54" font-weight="700">Docker Compose</text>
+</svg>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700">
+  <defs>
+    <linearGradient id="b" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#07111f"/>
+      <stop offset="100%" stop-color="#101826"/>
+    </linearGradient>
+    <radialGradient id="g" cx="50%" cy="45%" r="72%">
+      <stop offset="0%" stop-color="#b48cff" stop-opacity=".15"/>
+      <stop offset="100%" stop-color="#b48cff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="18"/></filter>
+  </defs>
+  <rect width="1200" height="700" fill="url(#b)"/>
+  <rect width="1200" height="700" fill="url(#g)"/>
+  <g fill="none" stroke="#b48cff" stroke-opacity=".18" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">M280 250 H650 V470 H280 Z M700 290 H900 V470 H700 Z M420 500 H520 M500 470 V500 M760 500 H840</g>
+  <g filter="url(#blur)" fill="#b48cff" fill-opacity=".12"><circle cx="930" cy="180" r="105"/><circle cx="320" cy="560" r="85"/></g>
+  <text x="80" y="100" fill="#eaf7ff" font-family="Inter, Arial, sans-serif" font-size="54" font-weight="700">Responsive Web Design</text>
+</svg>

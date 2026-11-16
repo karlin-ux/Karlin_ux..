@@ -41,6 +41,7 @@ const technicalDomains = [
     category: 'Frontend',
     blurb: 'Accessible, type-safe interfaces built to feel effortless.',
     items: ['React 19', 'TypeScript', 'Tailwind CSS', 'Vite', 'HTML5', 'CSS3'],
+    background: '/frontend.svg',
   },
   {
     title: 'Backend',
@@ -48,6 +49,7 @@ const technicalDomains = [
     category: 'Backend',
     blurb: 'API-first services with clear contracts and secure defaults.',
     items: ['Python', 'Django', 'Django REST Framework', 'REST APIs'],
+    background: '/backend.svg',
   },
   {
     title: 'Database',
@@ -55,6 +57,7 @@ const technicalDomains = [
     category: 'Database',
     blurb: 'Relational modelling, constraints and dependable migrations.',
     items: ['PostgreSQL', 'SQL', 'Schema design', 'Migrations', 'Constraints'],
+    background: '/database.svg',
   },
   {
     title: 'Infrastructure',
@@ -62,6 +65,7 @@ const technicalDomains = [
     category: 'Infrastructure',
     blurb: 'Containers, reverse proxy and repeatable delivery pipelines.',
     items: ['Docker', 'Docker Compose', 'Caddy', 'Linux', 'GitHub Actions'],
+    background: '/infrastructure.svg',
   },
   {
     title: 'Quality',
@@ -69,6 +73,7 @@ const technicalDomains = [
     category: 'Testing',
     blurb: 'Automated checks backed by thoughtful manual verification.',
     items: ['Unit testing', 'Integration testing', 'E2E testing', 'Static analysis', 'Debugging'],
+    background: '/quality.svg',
   },
   {
     title: 'Tooling & Creative',
@@ -76,6 +81,7 @@ const technicalDomains = [
     category: 'Tools',
     blurb: 'Everyday engineering tools plus 3D and visual experiments.',
     items: ['Git', 'GitHub', 'VS Code', 'Insomnia', 'Blender', '3D modelling'],
+    background: '/tooling_creative.svg',
   },
 ];
 
@@ -327,43 +333,30 @@ export default function Home() {
               <Link
                 to={`/technologies?category=${encodeURIComponent(domain.category)}`}
                 aria-label={`Explore ${domain.title} technologies`}
-                className="spotlight-card tilt-card group flex h-full min-h-[13rem] flex-col rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)]/80 p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--accent)]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
+                className="spotlight-card tilt-card group flex h-full min-h-[320px] flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)]/80 transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--accent)]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
+                style={{ backgroundImage: `linear-gradient(rgba(8,17,31,0.45), rgba(8,17,31,0.45)), url(${domain.background})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}
               >
-                <div className="flex items-center gap-3">
-                  <div className="icon-float flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface)]" style={{ animationDelay: `${idx * 0.25}s` }}>
-                    <Icon name={domain.icon} size={20} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-sm font-semibold text-[var(--text)]">
-                      {domain.title}
-                    </h3>
-                    <div className="flex items-center gap-2">
-                      <p className="text-xs text-[var(--text-muted)]">
-                        {domain.items.length} tools
-                      </p>
-                      <span
-                        aria-hidden="true"
-                        className="text-xs text-[var(--text-muted)] transition-transform duration-300 group-hover:translate-x-0.5 group-hover:text-[var(--accent)]"
-                      >
-                        →
-                      </span>
+                <div className="flex h-full flex-col p-5 text-glow-white text-white">
+                  <div className="flex items-center gap-3">
+                    <div className="icon-float flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-black/30" style={{ animationDelay: `${idx * 0.25}s` }}>
+                      <Icon name={domain.icon} size={20} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="truncate text-sm font-semibold text-white">{domain.title}</h3>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs text-white/90">{domain.items.length} tools</p>
+                        <span aria-hidden="true" className="text-xs text-white/90 transition-transform duration-300 group-hover:translate-x-0.5">→</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                <p className="mt-3 min-h-[2.5rem] text-xs leading-relaxed text-[var(--text-muted)]">
-                  {domain.blurb}
-                </p>
-
-                <div className="mt-4 flex flex-wrap gap-1.5">
-                  {domain.items.map((item) => (
-                    <span
-                      key={item}
-                      className="inline-flex items-center rounded-md border border-[var(--border)] bg-[var(--bg-surface)]/60 px-2 py-1 text-[11px] font-medium leading-none text-[var(--text-secondary)] transition-colors group-hover:border-[var(--accent)]/15 group-hover:text-[var(--text)]"
-                    >
-                      {item}
-                    </span>
-                  ))}
+                  <p className="mt-3 min-h-[2.5rem] text-xs leading-relaxed text-white/95">{domain.blurb}</p>
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {domain.items.map((item) => (
+                      <span key={item} className="inline-flex items-center rounded-md border border-white/25 bg-black/25 px-2 py-1 text-[11px] font-medium leading-none text-white">
+                        {item}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </Link>
               </Reveal>
@@ -390,7 +383,16 @@ export default function Home() {
                 </div>
 
                 <div className="grid items-start gap-8 lg:grid-cols-2">
-                  <div ref={journeyView.ref}>
+                  <div
+                    ref={journeyView.ref}
+                    className="rounded-2xl border border-[var(--border)] p-4 sm:p-5"
+                    style={{
+                      backgroundImage: 'linear-gradient(rgba(8,17,31,0.55), rgba(8,17,31,0.55)), url(/years_journey.svg)',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      backgroundRepeat: 'no-repeat',
+                    }}
+                  >
                     <p className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
                       Years Spent on My Developer Journey
                     </p>
@@ -405,7 +407,7 @@ export default function Home() {
                     <p className="text-center text-xs font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
                       About Me
                     </p>
-                    <p className="mt-1 text-center text-sm font-medium text-[var(--text-secondary)]">
+                    <p className="text-glow-white mt-1 text-center text-sm font-medium text-white">
                       Senior Software Engineer &amp; Full Stack Developer
                     </p>
                     <h2 className="mt-5 text-center text-2xl font-bold leading-tight tracking-tight sm:text-3xl">
@@ -429,13 +431,13 @@ export default function Home() {
 
               <div className="grid gap-6 sm:grid-cols-2 lg:col-span-12">
                 <div className="space-y-4">
-                  <p className="text-sm leading-relaxed text-[var(--text-secondary)]">
+                  <p className="text-glow-white text-sm leading-relaxed text-white">
                     I&apos;m a self-taught developer with experience across web development,
                     databases, software testing and Android applications. I enjoy building
                     practical software, exploring new technologies and understanding how
                     everything works together.
                   </p>
-                  <p className="text-sm leading-relaxed text-[var(--text-secondary)]">
+                  <p className="text-glow-white text-sm leading-relaxed text-white">
                     Across the stack, I favour clear boundaries, typed contracts and pragmatic
                     decisions — systems that are straightforward to extend, operate and hand over.
                   </p>
@@ -448,8 +450,8 @@ export default function Home() {
                         ✓
                       </span>
                       <div>
-                        <p className="text-sm font-semibold text-[var(--text)]">{item.title}</p>
-                        <p className="mt-0.5 text-xs leading-relaxed text-[var(--text-muted)]">
+                        <p className="text-glow-white text-sm font-semibold text-white">{item.title}</p>
+                        <p className="text-glow-white mt-0.5 text-xs leading-relaxed text-white/95">
                           {item.desc}
                         </p>
                       </div>
@@ -571,7 +573,7 @@ export default function Home() {
                 <span className="text-gradient">Let&apos;s talk.</span>
               </h2>
               <TypewriterOnView
-                className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-[var(--text-secondary)] sm:text-base"
+                className="text-glow-white mx-auto mt-4 max-w-xl text-sm leading-relaxed text-white sm:text-base"
                 text="Whether you need a customer portal, a business management system or a custom web application, I'd be glad to help."
               />
               <div className="mt-8 flex flex-wrap justify-center gap-3">
