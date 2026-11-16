@@ -20,8 +20,9 @@ if [ "${SEED_SHOWCASE}" = "true" ]; then
 fi
 
 if [ -n "${OWNER_EMAIL}" ] && [ -n "${OWNER_PASSWORD}" ]; then
-  echo "Creating/updating owner account..."
-  python manage.py create_owner --email "${OWNER_EMAIL}" --password "${OWNER_PASSWORD}" || true
+  echo "Creating/updating owner account for: ${OWNER_EMAIL}"
+  python manage.py create_owner --email "${OWNER_EMAIL}" --password "${OWNER_PASSWORD}"
+  echo "Owner account step completed."
 fi
 
 echo "Starting application..."
