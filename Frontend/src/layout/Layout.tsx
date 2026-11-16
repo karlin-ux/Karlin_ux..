@@ -186,8 +186,8 @@ export default function Layout() {
       <button
         type="button"
         onClick={toggleLights}
-        className="lights-switch fixed left-1/2 top-1/2 z-[1000] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-xl border-2 border-[var(--accent)] bg-black/90 px-8 py-4 text-lg font-bold tracking-wide text-white shadow-[0_0_20px_rgba(83,245,176,0.5),0_0_40px_rgba(83,245,176,0.25)]"
-        style={{ color: '#fff', textShadow: '0 0 10px rgba(83,245,176,0.8), 0 0 20px rgba(83,245,176,0.4)' }}
+        className="lights-switch fixed left-1/2 top-1/2 z-[1000] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-2xl border-4 border-[#53F5B0] bg-black px-10 py-5 text-xl font-extrabold tracking-wide shadow-[0_0_24px_rgba(83,245,176,0.7),0_0_48px_rgba(83,245,176,0.35)] sm:text-2xl"
+        style={{ color: '#FFFFFF', textShadow: '0 2px 0 #000, 0 0 4px #000' }}
         aria-pressed={lightsOn}
       >
         {lightsOn ? 'Turn the lights off' : 'Turn the lights on'}
