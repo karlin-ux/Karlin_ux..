@@ -114,49 +114,49 @@
    DESIGN TOKENS — LIGHT THEME
    ============================================ */
 .light {
-  /* Light grey theme with neon effects */
+  /* Same colors as dark theme, light background only */
   --bg: #F2F3F5;
   --bg-secondary: #F7F8FA;
   --bg-elevated: #FCFCFD;
   --bg-surface: #E9EBEE;
   --bg-overlay: rgba(242, 243, 245, 0.92);
 
-  --text: #1F1A1A;
-  --text-secondary: #5C4B4B;
-  --text-muted: #8A6E6E;
-  --text-inverse: #FFFFFF;
+  --text: #F4F7FB;
+  --text-secondary: #A4B1C3;
+  --text-muted: #718096;
+  --text-inverse: #090D16;
 
-  --border: #E6D2D2;
-  --border-subtle: #EDE3E3;
-  --border-strong: #D9B8B8;
+  --border: #263449;
+  --border-subtle: #1E2A3A;
+  --border-strong: #3A4F6B;
 
-  --accent: #FFD400;
-  --accent-hover: #E6BF00;
-  --accent-active: #CCAA00;
-  --accent-soft: #FFF8CC;
-  --accent-glow: rgba(255, 212, 0, 0.18);
+  --accent: #53F5B0;
+  --accent-hover: #3DE89A;
+  --accent-active: #2DD48A;
+  --accent-soft: #123B31;
+  --accent-glow: rgba(83, 245, 176, 0.15);
 
-  --accent-2: #B8860B;
-  --accent-2-hover: #A67700;
-  --accent-2-soft: #FFF3C4;
+  --accent-2: #5C9DFF;
+  --accent-2-hover: #4A8AEF;
+  --accent-2-soft: #1A2D4F;
 
-  --accent-3: #B8860B;
-  --accent-3-soft: #FFF3C4;
+  --accent-3: #9B85FF;
+  --accent-3-soft: #30294F;
 
-  --success: #2D8A5E;
-  --success-soft: #D8EDE3;
-  --warning: #E65100;
-  --warning-soft: #FFE9D6;
-  --error: #FF6B6B;
-  --error-soft: #FFE3E3;
-  --info: #FFD400;
-  --info-soft: #FFF8CC;
+  --success: #35D39A;
+  --success-soft: #0D3B2A;
+  --warning: #F5BD58;
+  --warning-soft: #3B2F12;
+  --error: #FF6B78;
+  --error-soft: #3B1A1F;
+  --info: #62A9FF;
+  --info-soft: #1A2D4F;
 
-  --shadow-sm: 0 1px 2px rgba(90, 100, 20, 0.05);
-  --shadow-md: 0 4px 12px rgba(90, 100, 20, 0.08);
-  --shadow-lg: 0 8px 32px rgba(90, 100, 20, 0.10);
-  --shadow-glow: 0 0 20px rgba(255, 212, 0, 0.16);
-  --shadow-glow-blue: 0 0 20px rgba(184, 134, 11, 0.16);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px rgba(83, 245, 176, 0.1);
+  --shadow-glow-blue: 0 0 20px rgba(92, 157, 255, 0.1);
 }
 
 /* ============================================
@@ -614,28 +614,10 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 
 .light .neon-perimeter::before {
   opacity: 0.9;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0%,
-    transparent 55%,
-    rgba(184, 134, 11, 0.25) 68%,
-    rgba(255, 212, 0, 0.95) 76%,
-    rgba(184, 134, 11, 0.9) 84%,
-    rgba(255, 212, 0, 0.45) 92%,
-    transparent 100%
-  );
 }
 
 .light .neon-perimeter::after {
   opacity: 0.75;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0%,
-    transparent 60%,
-    rgba(255, 212, 0, 0.2) 78%,
-    rgba(184, 134, 11, 0.22) 86%,
-    transparent 100%
-  );
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1089,11 +1071,11 @@ header nav a[aria-current="page"]::after { transform: scaleX(1); opacity: 1; }
 }
 /* Light theme: yellow glows and border glows */
 .light .skills-marquee-item {
-  border-color: rgba(255, 212, 0, 0.5);
-  background: rgba(255, 212, 0, 0.12);
-  color: #5c4a00;
-  text-shadow: 0 0 12px rgba(255, 212, 0, 0.65), 0 0 22px rgba(255, 212, 0, 0.35);
-  box-shadow: 0 0 10px rgba(255, 212, 0, 0.28), 0 0 22px rgba(255, 212, 0, 0.16);
+  border-color: rgba(83, 245, 176, 0.38);
+  background: rgba(83, 245, 176, 0.12);
+  color: var(--accent);
+  text-shadow: 0 0 12px rgba(83, 245, 176, 0.55), 0 0 24px rgba(83, 245, 176, 0.28);
+  box-shadow: 0 0 10px rgba(83, 245, 176, 0.18), 0 0 22px rgba(83, 245, 176, 0.12);
 }
 .light .flash-green-text,
 .light .flash-green {
@@ -1106,23 +1088,23 @@ header nav a[aria-current="page"]::after { transform: scaleX(1); opacity: 1; }
 .light .btn-ghost,
 .light .btn-danger,
 .light .hero-cta-btn {
-  --flash-box: flash-yellow-flicker;
+  --flash-box: flash-green-flicker;
 }
 .light .flash-green-text {
-  --flash-text: flash-yellow-flicker-text;
+  --flash-text: flash-green-flicker-text;
 }
 
-/* Yellow border glows in light mode */
+/* Border glows in light mode (same color scheme as dark theme) */
 .light :where(.card, .btn, .btn-primary, .btn-secondary, .input, .skills-marquee-item, .neon-perimeter, .spotlight-card, [class*="rounded"][class*="border"]) {
-  outline: 1px solid rgba(255, 212, 0, 0.55);
+  outline: 1px solid rgba(83, 245, 176, 0.35);
   outline-offset: 1px;
-  box-shadow: 0 0 10px rgba(255, 212, 0, 0.28);
+  box-shadow: 0 0 10px rgba(83, 245, 176, 0.18);
 }
 .light .input:focus,
 .light .btn:focus-visible,
 .light a:focus-visible {
   outline-offset: 2px;
-  box-shadow: 0 0 12px rgba(255, 212, 0, 0.35);
+  box-shadow: 0 0 12px rgba(83, 245, 176, 0.25);
 }
 
 @keyframes flash-yellow-flicker {
