@@ -879,20 +879,20 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 .skills-marquee-item {
   flex: 0 0 auto;
   padding: 0.35rem 0.75rem;
-  border: 1px solid color-mix(in srgb, var(--accent) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 80%, transparent);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  background: transparent;
   color: var(--accent);
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.01em;
-  filter: brightness(1.15) saturate(1.1);
-  text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 85%, transparent), 0 0 24px color-mix(in srgb, var(--accent) 55%, transparent), 0 0 40px color-mix(in srgb, var(--accent) 30%, transparent);
+  filter: brightness(1.2) saturate(1.15);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--accent) 90%, transparent), 0 0 28px color-mix(in srgb, var(--accent) 60%, transparent), 0 0 44px color-mix(in srgb, var(--accent) 35%, transparent);
   box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent),
-    0 0 30px color-mix(in srgb, var(--accent) 85%, transparent),
-    0 0 60px color-mix(in srgb, var(--accent) 45%, transparent),
-    0 0 90px color-mix(in srgb, var(--accent) 25%, transparent);
+    0 0 0 2px color-mix(in srgb, var(--accent) 75%, transparent),
+    0 0 32px color-mix(in srgb, var(--accent) 90%, transparent),
+    0 0 64px color-mix(in srgb, var(--accent) 50%, transparent),
+    0 0 96px color-mix(in srgb, var(--accent) 28%, transparent);
   position: relative;
   z-index: 2;
 }
@@ -1122,11 +1122,16 @@ header nav a[aria-current="page"]::after { transform: scaleX(1); opacity: 1; }
 }
 /* Light theme: yellow glows and border glows */
 .light .skills-marquee-item {
-  border-color: rgba(11, 122, 59, 0.45);
-  background: rgba(11, 122, 59, 0.14);
+  border-color: color-mix(in srgb, var(--accent) 85%, transparent);
+  background: transparent;
   color: var(--accent);
-  text-shadow: 0 0 12px rgba(11, 122, 59, 0.55), 0 0 24px rgba(11, 122, 59, 0.28);
-  box-shadow: 0 0 10px rgba(11, 122, 59, 0.22), 0 0 22px rgba(11, 122, 59, 0.14);
+  filter: brightness(1.25) saturate(1.2);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--accent) 90%, transparent), 0 0 28px color-mix(in srgb, var(--accent) 60%, transparent), 0 0 44px color-mix(in srgb, var(--accent) 35%, transparent);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent) 80%, transparent),
+    0 0 32px color-mix(in srgb, var(--accent) 95%, transparent),
+    0 0 64px color-mix(in srgb, var(--accent) 55%, transparent),
+    0 0 96px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 .light .flash-green-text,
 .light .flash-green {
@@ -1146,7 +1151,7 @@ header nav a[aria-current="page"]::after { transform: scaleX(1); opacity: 1; }
 }
 
 /* Border glows in light mode (same color scheme as dark theme) */
-.light :where(.card, .btn, .btn-primary, .btn-secondary, .input, .skills-marquee-item, .neon-perimeter, .spotlight-card, [class*="rounded"][class*="border"]) {
+.light :where(.card, .btn, .btn-primary, .btn-secondary, .input, .neon-perimeter, .spotlight-card, [class*="rounded"][class*="border"]) {
   outline: 1px solid rgba(11, 122, 59, 0.4);
   outline-offset: 1px;
   box-shadow: 0 0 10px rgba(11, 122, 59, 0.22);
