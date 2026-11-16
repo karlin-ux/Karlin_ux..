@@ -45,6 +45,18 @@ export default function Layout() {
     mainRef.current?.scrollTo?.({ top: 0, behavior: 'auto' });
   }, [location.pathname]);
 
+  // Sync all flashing animations to the same global cycle
+  useEffect(() => {
+    const setSync = () => {
+      const cycle = 6.2;
+      const offset = -((Date.now() % (cycle * 1000)) / 1000);
+      document.documentElement.style.setProperty('--flash-sync-delay', `${offset}s`);
+    };
+    setSync();
+    const id = window.setInterval(setSync, 6200);
+    return () => window.clearInterval(id);
+  }, []);
+
   // Magnetic cursor on CTAs/buttons (respects reduced motion)
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
