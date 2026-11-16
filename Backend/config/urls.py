@@ -1,11 +1,17 @@
 from django.contrib import admin
+from django.http import JsonResponse
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
 from .health import liveness, readiness
 
+
+def healthz(request):
+    return JsonResponse({"status": "ok"})
+
 urlpatterns = [
+    path("healthz/", healthz, name="healthz"),
     # Health checks (public, minimal)
     path("api/health/", liveness, name="health-liveness"),
     path("api/health/ready/", readiness, name="health-readiness"),
