@@ -186,7 +186,7 @@ export default function Layout() {
       <button
         type="button"
         onClick={toggleLights}
-        className="lights-switch btn hero-cta-btn flash-green fixed bottom-6 left-1/2 -translate-x-1/2 !min-w-0 px-5 py-3"
+        className="lights-switch btn hero-cta-btn flash-green fixed left-1/2 top-24 z-[1000] -translate-x-1/2 !min-w-0 whitespace-nowrap px-6 py-3 text-base font-semibold"
         aria-pressed={lightsOn}
       >
         {lightsOn ? 'Turn the lights off' : 'Turn the lights on'}
