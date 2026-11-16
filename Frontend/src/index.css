@@ -1170,24 +1170,19 @@ header nav a[aria-current="page"]::after { transform: scaleX(1); opacity: 1; }
   --flash-box: flash-green-flicker;
   --flash-text: flash-green-flicker-text;
 }
-.lights-switch {
-  animation: var(--flash-box) 5.5s steps(1, end) 1 forwards;
-  animation-delay: var(--flash-sync-delay, 0s);
-}
-.lights-switch.flash-green-text {
-  animation-name: var(--flash-text);
-}
 .lights-on .btn,
 .lights-on .btn-primary,
 .lights-on .btn-secondary,
 .lights-on .btn-ghost,
 .lights-on .btn-danger,
 .lights-on .hero-cta-btn,
-.lights-on .flash-green {
+.lights-on .flash-green,
+.lights-on .lights-switch {
   animation: var(--flash-box) 5.5s steps(1, end) 1 forwards;
   animation-delay: var(--flash-sync-delay, 0s);
 }
-.lights-on .flash-green-text {
+.lights-on .flash-green-text,
+.lights-on .lights-switch.flash-green-text {
   animation: var(--flash-text) 5.5s steps(1, end) 1 forwards;
   animation-delay: var(--flash-sync-delay, 0s);
 }
@@ -1203,4 +1198,40 @@ header nav a[aria-current="page"]::after { transform: scaleX(1); opacity: 1; }
   .lights-on .flash-green-text {
     animation: none !important;
   }
+}
+
+/* Lights-off mode: hide all colors except the lights switch */
+html:not(.lights-on),
+html:not(.lights-on) body {
+  background: var(--bg) !important;
+}
+html:not(.lights-on) body *:not(.lights-switch):not(.lights-switch *) {
+  color: var(--bg) !important;
+  border-color: var(--bg) !important;
+  outline-color: var(--bg) !important;
+  text-decoration-color: var(--bg) !important;
+  caret-color: var(--bg) !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  fill: var(--bg) !important;
+  stroke: var(--bg) !important;
+}
+html:not(.lights-on) img,
+html:not(.lights-on) svg,
+html:not(.lights-on) video,
+html:not(.lights-on) canvas {
+  opacity: 0 !important;
+}
+html:not(.lights-on) .lights-switch,
+html:not(.lights-on) .lights-switch * {
+  color: var(--accent) !important;
+  border-color: currentColor !important;
+  fill: currentColor !important;
+  stroke: currentColor !important;
+  opacity: 1 !important;
+  text-shadow: 0 0 8px color-mix(in srgb, var(--accent) 70%, transparent), 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent) !important;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.25) inset, 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent), 0 0 22px color-mix(in srgb, var(--accent) 28%, transparent) !important;
+  background-color: rgba(8,12,18,0.82) !important;
 }
