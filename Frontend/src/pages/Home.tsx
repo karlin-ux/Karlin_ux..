@@ -252,7 +252,7 @@ export default function Home() {
                 }}
               />
 
-              <Reveal delay={340}><div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                 <a
                   href="/Karl-Heins_Lourens_Resume.docx"
                   className="btn hero-cta-btn flash-green motion-reduce:transition-none"
@@ -264,7 +264,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={toggleLights}
-                  className="btn hero-cta-btn flash-green lights-switch motion-reduce:transition-none"
+                  className="btn hero-cta-btn flash-green lights-switch relative z-[1000] motion-reduce:transition-none"
                   aria-pressed={lightsOn}
                 >
                   {lightsOn ? 'Turn the lights off' : 'Turn the lights on'}
@@ -276,7 +276,7 @@ export default function Home() {
                 >
                   Contact Me
                 </Link>
-              </div></Reveal>
+              </div>
 
               <Reveal delay={460}><div className="skills-marquee" aria-label="Skills and technologies">
                 <div className="skills-marquee-viewport">

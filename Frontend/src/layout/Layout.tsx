@@ -183,15 +183,6 @@ export default function Layout() {
       </div>
       {/* Gradual reveal: hides everything (except lights switch) until lights warm up */}
       <div className="lights-blackout fixed inset-0 bg-[var(--bg)]" aria-hidden="true" />
-      <button
-        type="button"
-        onClick={toggleLights}
-        className="lights-switch fixed left-1/2 top-1/2 z-[1000] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-2xl border-4 border-[#53F5B0] bg-black px-10 py-5 text-xl font-extrabold tracking-wide shadow-[0_0_24px_rgba(83,245,176,0.7),0_0_48px_rgba(83,245,176,0.35)] sm:text-2xl"
-        style={{ color: '#FFFFFF', textShadow: '0 2px 0 #000, 0 0 4px #000' }}
-        aria-pressed={lightsOn}
-      >
-        {lightsOn ? 'Turn the lights off' : 'Turn the lights on'}
-      </button>
 
       {/* Top Navigation */}
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--bg)]/80 backdrop-blur-xl">
