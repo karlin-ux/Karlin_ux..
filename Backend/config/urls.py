@@ -10,7 +10,12 @@ from .health import liveness, readiness
 def healthz(request):
     return JsonResponse({"status": "ok"})
 
+
+def index(request):
+    return JsonResponse({"status": "ok", "service": "karlin-ux-api", "healthz": "/healthz/"})
+
 urlpatterns = [
+    path("", index, name="index"),
     path("healthz/", healthz, name="healthz"),
     # Health checks (public, minimal)
     path("api/health/", liveness, name="health-liveness"),
