@@ -20,6 +20,9 @@ type Particle = {
   modeT: number;
   turn: number;
   teleportIn: number;
+  glow: number;
+  glowTarget: number;
+  glowChangeAt: number;
 };
 
 type RGB = { r: number; g: number; b: number };
@@ -116,7 +119,7 @@ export default function GeometricParticleNetwork({
       return "wander";
     };
 
-    const createParticleAt = (x: number, y: number): Particle => ({
+    const createParticleAt = (x: number, y: number, i = 0): Particle => ({
       x,
       y,
       vx: random(-1.4, 1.4),
@@ -128,6 +131,9 @@ export default function GeometricParticleNetwork({
       modeT: random(20, 90),
       turn: Math.random() < 0.5 ? -1 : 1,
       teleportIn: random(90, 240),
+      glow: 0,
+      glowTarget: Math.random() < 0.3 ? 1 : 0,
+      glowChangeAt: performance.now() + random(800, 2600) + i * 3,
     });
 
     const particleCount = () => {
@@ -177,7 +183,7 @@ export default function GeometricParticleNetwork({
         }
         x = bestX;
         y = bestY;
-        particles.push(createParticleAt(x, y));
+        particles.push(createParticleAt(x, y, i));
       }
     };
 
@@ -268,6 +274,20 @@ export default function GeometricParticleNetwork({
         const r = p.radius;
         const alpha = clamp(opacity * 0.75 * twinkle * boost, 0, 1);
         const col = palette.length === 2 ? palette[0] : (palette[i % palette.length] ?? palette[0]);
+
+        // Random rotating neon glow (~30% over time)
+        if (p.glow > 0.01) {
+          const g = p.glow;
+          ctx.save();
+          ctx.shadowBlur = 10 + g * 18;
+          ctx.shadowColor = toRgba(col, clamp(alpha * (0.35 + g * 0.55), 0, 1));
+          ctx.beginPath();
+          ctx.arc(screenX[i], screenY[i], r + g * 1.6, 0, Math.PI * 2);
+          ctx.fillStyle = toRgba(col, clamp(alpha * (0.5 + g * 0.5), 0, 1));
+          ctx.fill();
+          ctx.restore();
+        }
+
         ctx.beginPath();
         ctx.arc(screenX[i], screenY[i], r, 0, Math.PI * 2);
         ctx.fillStyle = toRgba(col, alpha);
@@ -302,6 +322,14 @@ export default function GeometricParticleNetwork({
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
         if (animate) {
+          // Random rotating glow: ~30% glowing on average, changes over time
+          if (time >= p.glowChangeAt) {
+            p.glowTarget = Math.random() < 0.3 ? 1 : 0;
+            p.glowChangeAt = time + random(700, 3200);
+          }
+          const glowStep = 1 - Math.pow(0.08, delta);
+          p.glow += (p.glowTarget - p.glow) * glowStep;
+
           p.phase += 0.03 * delta;
           p.modeT -= delta;
           p.teleportIn -= delta;
