@@ -7,7 +7,7 @@ import ScrollProgress from '../components/ScrollProgress';
 
 // Karlin_ux design tokens: --accent, --accent-2, --accent-3
 const NETWORK_COLORS = ['#53F5B0', '#5C9DFF', '#9B85FF'];
-const NETWORK_COLORS_LIGHT = ['#FF4FA3', '#FFCC00']; // pink dots, yellow lines
+const NETWORK_COLORS_LIGHT = ['#76FF03', '#FFD400']; // lime green dots, yellow lines
 
 const navLinks = [
   { to: '/', label: 'Home' },
@@ -18,23 +18,19 @@ const navLinks = [
 // Every header action shares the same pill shape and the same hover border so
 // navigation and auth controls read as one consistent set.
 const navItemBase =
-  'inline-flex items-center rounded-lg border px-3 py-2 text-sm font-medium transition-colors';
+  'btn hero-cta-btn !min-w-0 inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors';
 
-const navItemClass = (isActive: boolean) =>
-  `${navItemBase} nav-magnetic ${
-    isActive
-      ? 'border-[var(--accent)]/40 bg-[var(--accent-soft)] text-[var(--accent)] hover:border-[var(--accent)]/50'
-      : 'border-transparent text-[var(--text-secondary)] hover:border-[var(--accent)]/50 hover:text-[var(--text)]'
-  }`;
+const navItemClass = (_isActive: boolean) =>
+  `${navItemBase} nav-magnetic`;
 
 const authLinkClass =
-  'inline-flex items-center rounded-lg border border-transparent px-3 py-2 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:border-[var(--accent)]/50 hover:text-[var(--text)]';
+  'btn hero-cta-btn !min-w-0 inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors';
 
 const authPrimaryClass =
-  'inline-flex items-center rounded-lg border border-[var(--accent)]/30 bg-[var(--accent-soft)] px-3 py-2 text-sm font-semibold text-[var(--accent)] transition-colors hover:border-[var(--accent)]/50';
+  'btn hero-cta-btn !min-w-0 inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold transition-colors';
 
 const iconButtonClass =
-  'rounded-lg border border-transparent p-2 text-[var(--text-secondary)] transition-colors hover:border-[var(--accent)]/50 hover:text-[var(--text)]';
+  'btn hero-cta-btn !min-w-0 rounded-lg p-2 transition-colors';
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -159,8 +155,8 @@ export default function Layout() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2 font-bold text-xl">
-              <span className="text-gradient">Karlin_ux</span>
+            <Link to="/" className="btn hero-cta-btn !min-w-0 flex items-center gap-2 font-bold text-xl px-3 py-2">
+              <span>Karlin_ux</span>
             </Link>
 
             {/* Desktop Nav */}
