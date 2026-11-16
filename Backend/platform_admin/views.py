@@ -1,8 +1,10 @@
 from django.db.models import Count
 from django.contrib.auth import get_user_model
+from django.utils.dateparse import parse_datetime
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle, ScopedRateThrottle
 
 from accounts.models import User
 from .models import GlobalSetting, PlatformAnalyticsEvent, PlatformAuditLog, PlatformNotification, SecurityEvent
@@ -71,10 +73,28 @@ class PlatformUserViewSet(viewsets.ReadOnlyModelViewSet):
         user = self.get_object()
         from django.contrib.sessions.models import Session
         from django.utils import timezone
-        # best-effort: delete all sessions (cannot target user easily without session data)
-        Session.objects.filter(expire_date__gte=timezone.now()).delete()
-        _audit(request, "revoke_sessions", target=str(user.id))
-        return Response({"detail": "Sessions revoked."})
+
+        # Targeted revocation: decode active sessions and remove only those belonging to the target user.
+        # This preserves other users' sessions. If a session cannot be decoded safely, it is left untouched.
+        revoked = 0
+        target_id = str(user.pk)
+        for session in Session.objects.filter(expire_date__gte=timezone.now()).iterator():
+            try:
+                data = session.get_decoded()
+            except Exception:
+                continue
+            if str(data.get("_auth_user_id")) == target_id:
+                session.delete()
+                revoked += 1
+
+        _audit(
+            request,
+            "revoke_sessions",
+            target=str(user.id),
+            metadata={"revoked_sessions": revoked, "target_user_id": target_id},
+            outcome="success",
+        )
+        return Response({"detail": "Sessions revoked for target user.", "revoked_sessions": revoked})
 
 
 class PlatformAnalyticsSummaryView(generics.GenericAPIView):
@@ -174,17 +194,67 @@ class ContactMessageViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ContactMessageReadSerializer
 
 
+class TrackEventThrottle(AnonRateThrottle):
+    scope = "track"
+    rate = "60/min"
+
+
 class TrackEventView(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [TrackEventThrottle]
+
+    ALLOWED_EVENT_TYPES = {"page_view"}
+    MAX_PATH_LENGTH = 300
+    MAX_USER_AGENT_LENGTH = 512
+    MAX_METADATA_KEYS = 10
+    MAX_METADATA_VALUE_LENGTH = 200
 
     def post(self, request):
+        data = request.data if isinstance(request.data, dict) else {}
+        event_type = data.get("event_type", "page_view")
+        if event_type not in self.ALLOWED_EVENT_TYPES:
+            return Response({"detail": "Invalid event type."}, status=status.HTTP_400_BAD_REQUEST)
+
+        path = data.get("path", "")
+        if not isinstance(path, str):
+            return Response({"detail": "Invalid path."}, status=status.HTTP_400_BAD_REQUEST)
+        path = path.strip()
+        if not path.startswith("/") or len(path) > self.MAX_PATH_LENGTH:
+            return Response({"detail": "Invalid path."}, status=status.HTTP_400_BAD_REQUEST)
+
+        raw_metadata = data.get("metadata", {})
+        if raw_metadata in (None, ""):
+            raw_metadata = {}
+        if not isinstance(raw_metadata, dict):
+            return Response({"detail": "Invalid metadata."}, status=status.HTTP_400_BAD_REQUEST)
+        if len(raw_metadata) > self.MAX_METADATA_KEYS:
+            return Response({"detail": "Metadata too large."}, status=status.HTTP_400_BAD_REQUEST)
+
+        metadata = {}
+        for k, v in raw_metadata.items():
+            if not isinstance(k, str) or len(k) > 40:
+                return Response({"detail": "Invalid metadata."}, status=status.HTTP_400_BAD_REQUEST)
+            if isinstance(v, bool):
+                metadata[k] = v
+            elif isinstance(v, int) and not isinstance(v, bool):
+                metadata[k] = v
+            elif isinstance(v, str):
+                if len(v) > self.MAX_METADATA_VALUE_LENGTH:
+                    return Response({"detail": "Invalid metadata."}, status=status.HTTP_400_BAD_REQUEST)
+                metadata[k] = v
+            else:
+                return Response({"detail": "Invalid metadata."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user_agent = (request.META.get("HTTP_USER_AGENT", "") or "")[: self.MAX_USER_AGENT_LENGTH]
+        session_key = request.session.session_key or ""
+
         PlatformAnalyticsEvent.objects.create(
-            event_type=request.data.get("event_type", "page_view"),
-            path=request.data.get("path", ""),
-            session_key=request.session.session_key or "",
+            event_type=event_type,
+            path=path,
+            session_key=session_key,
             user=request.user if request.user.is_authenticated else None,
             ip_address=_ip(request),
-            user_agent=request.META.get("HTTP_USER_AGENT", ""),
-            metadata=request.data.get("metadata", {}) or {},
+            user_agent=user_agent,
+            metadata=metadata,
         )
         return Response({"ok": True})

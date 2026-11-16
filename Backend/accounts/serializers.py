@@ -17,8 +17,9 @@ class RegisterSerializer(serializers.Serializer):
 
     def validate_email(self, value):
         from .models import User
+        # Generic message to reduce account enumeration; still prevents duplicate account creation.
         if User.objects.filter(email__iexact=value).exists():
-            raise serializers.ValidationError("An account with this email already exists.")
+            raise serializers.ValidationError("Registration could not be completed with this email address.")
         return value
 
     def validate(self, data):
@@ -53,7 +54,7 @@ class DonationProductSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "amount_cents", "amount_dollars", "description", "is_active", "display_order"]
 
     def get_amount_dollars(self, obj):
-        return obj.amount_dollars
+        return f"{obj.amount_cents / 100:.2f}"
 
 
 class DonationDonationSerializer(serializers.ModelSerializer):
@@ -62,6 +63,7 @@ class DonationDonationSerializer(serializers.ModelSerializer):
     user_email = serializers.CharField(source="user.email", read_only=True)
     payment_method_display = serializers.CharField(source="get_payment_method_display", read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
+    amount_dollars = serializers.SerializerMethodField()
 
     class Meta:
         model = DonationDonation
@@ -70,5 +72,30 @@ class DonationDonationSerializer(serializers.ModelSerializer):
             "amount_dollars", "payment_method", "payment_method_display",
             "status", "status_display", "created_at", "updated_at"
         ]
-        read_only_fields = ["reference", "created_at", "updated_at", "user_email", "payment_method_display", "status_display"]
+        read_only_fields = [
+            "reference", "amount_cents", "amount_dollars", "status",
+            "created_at", "updated_at", "user_email", "product_name",
+            "payment_method_display", "status_display",
+        ]
+
+    def get_amount_dollars(self, obj):
+        return f"{obj.amount_cents / 100:.2f}"
+
+    def validate_product(self, product):
+        if not product.is_active:
+            raise serializers.ValidationError("Selected donation product is not available.")
+        return product
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        product = validated_data["product"]
+        # Bind ownership and trusted amount server-side; never trust client user/status/amount.
+        donation = DonationDonation.objects.create(
+            user=request.user,
+            product=product,
+            amount_cents=product.amount_cents,
+            payment_method=validated_data["payment_method"],
+            status=DonationDonation.Status.PENDING,
+        )
+        return donation
 

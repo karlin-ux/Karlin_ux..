@@ -224,6 +224,7 @@ REST_FRAMEWORK = {
         "user": "300/min",
         "login": "100/min",
         "contact": "100/hour",
+        "track": "60/min",
     },
 }
 
@@ -279,6 +280,9 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", default=True)
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@localhost")
 CONTACT_RECIPIENT_EMAIL = os.environ.get("CONTACT_RECIPIENT_EMAIL", "contact@localhost")
+
+# Frontend / verification
+FRONTEND_BASE_URL = os.environ.get("FRONTEND_BASE_URL", "http://localhost:5173")
 
 # Import production security checks (registers with Django's check framework)
 try:

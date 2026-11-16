@@ -1,5 +1,9 @@
+from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
+from django.core.mail import send_mail
+from django.db import transaction
 from django.middleware.csrf import get_token
+from django.utils import timezone as dj_timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from rest_framework import generics, permissions, status
@@ -123,154 +127,161 @@ class ChangePasswordView(APIView):
         return Response({"detail": "Password changed."})
 
 
-# Google OAuth Login (initiate OAuth flow)
-class GoogleOAuthLoginView(APIView):
-    """Initiate Google OAuth 2.0 authorization code flow."""
+# Google OAuth (disabled until safely and fully implemented/configured)
+class GoogleOAuthUnavailableMixin:
     permission_classes = [permissions.AllowAny]
 
-    def get(self, request):
-        import urllib.parse
-        client_id = getattr(settings, "GOOGLE_CLIENT_ID", "")
-        redirect_uri = getattr(settings, "GOOGLE_REDIRECT_URI", "")
-
-        if not client_id or not redirect_uri:
-            from django.core.exceptions import ImproperlyConfigured
-            raise ImproperlyConfigured("Google OAuth credentials not configured.")
-
-        params = {
-            "client_id": client_id,
-            "redirect_uri": redirect_uri,
-            "response_type": "code",
-            "scope": "openid email profile",
-            "access_type": "offline",
-            "prompt": "select_account",
-        }
-        auth_url = "https://accounts.google.com/o/oauth2/v2/auth?" + urllib.parse.urlencode(params)
-        from django.shortcuts import redirect
-        return redirect(auth_url)
+    def _unavailable(self, request=None):
+        return Response(
+            {"detail": "Google sign-in is not available."},
+            status=status.HTTP_501_NOT_IMPLEMENTED,
+        )
 
 
-# Google OAuth Callback (handle authorization code)
-class GoogleOAuthCallbackView(APIView):
-    """Handle Google OAuth callback with authorization code."""
-    permission_classes = [permissions.AllowAny]
+class GoogleOAuthLoginView(GoogleOAuthUnavailableMixin, APIView):
+    """Disabled: unfinished/insecure Google OAuth path must not be exposed as functional."""
 
     def get(self, request):
-        import urllib.request, urllib.parse, json
-        code = request.GET.get("code")
-        if not code:
-            return Response({"detail": "Missing authorization code"}, status=400)
+        return self._unavailable(request)
 
-        # Exchange authorization code for tokens
-        token_url = "https://oauth2.googleapis.com/token"
-        payload = {
-            "code": code,
-            "client_id": getattr(settings, "GOOGLE_CLIENT_ID", ""),
-            "client_secret": getattr(settings, "GOOGLE_CLIENT_SECRET", ""),
-            "redirect_uri": getattr(settings, "GOOGLE_REDIRECT_URI", ""),
-            "grant_type": "authorization_code",
-        }
-        req = urllib.request.Request(token_url, data=urllib.parse.urlencode(payload).encode())
-        try:
-            with urllib.request.urlopen(req, timeout=10) as response:
-                token_data = json.loads(response.read().decode())
-        except Exception:
-            return Response({"detail": "Token exchange failed"}, status=400)
-
-        id_token = token_data.get("id_token", "")
-        if not id_token:
-            return Response({"detail": "No ID token in response"}, status=400)
-
-        # Authenticate using the ID token
-        user = authenticate(request, credential=id_token)
-        if user is None:
-            return Response({"detail": "Google ID token validation failed"}, status=400)
-
-        login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-        from rest_framework.response import Response
-        from .serializers import UserSerializer
-        serializer = UserSerializer(user)
-        return Response(serializer.data)
+    def post(self, request):
+        return self._unavailable(request)
 
 
-# Email Verification Request
+class GoogleOAuthCallbackView(GoogleOAuthUnavailableMixin, APIView):
+    """Disabled: unfinished/insecure Google OAuth path must not be exposed as functional."""
+
+    def get(self, request):
+        return self._unavailable(request)
+
+    def post(self, request):
+        return self._unavailable(request)
+
+
+def _verification_frontend_url(raw_token: str) -> str:
+    base = getattr(settings, "FRONTEND_BASE_URL", "http://localhost:5173").rstrip("/")
+    return f"{base}/verify-email?token={raw_token}"
+
+
+def _send_verification_email(user, raw_token: str) -> None:
+    verification_url = _verification_frontend_url(raw_token)
+    send_mail(
+        subject="Verify your email address",
+        message=f"Please verify your email address by visiting: {verification_url}",
+        from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@localhost"),
+        recipient_list=[user.email],
+        fail_silently=False,
+    )
+
+
 class EmailVerificationRequestView(APIView):
-    """Send email verification request during registration."""
+    """Request/send an email verification token.
+
+    - Accepts {"email": "..."} for an existing unverified account.
+    - Preserves legacy behavior: if valid registration data is provided, creates the user
+      (unverified) and sends a verification token. Standard /register/ flow remains available.
+    - Responses avoid confirming whether an account exists.
+    """
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "login"
 
-    def post(self, request):
-        from .models import User, EmailVerificationToken
-        from django.utils.crypto import get_random_string
-        from django.utils import timezone as dj_timezone
-        from django.core.mail import send_mail
-        from rest_framework.response import Response
+    def post(self, request, token=None):
+        # Dedicated confirm endpoint handles token confirmation.
+        if token is not None:
+            return Response({"detail": "Use the verification confirmation endpoint."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-        ser = RegisterSerializer(data=request.data)
-        ser.is_valid(raise_exception=True)
-        user = ser.save(is_verified=False)
+        email = request.data.get("email")
 
-        token = get_random_string(64)
-        EmailVerificationToken.objects.create(user=user, token=token,
-                                              expires_at=dj_timezone.now() + dj_timezone.timedelta(hours=48))
-
-        frontend_base = getattr(settings, "FRONTEND_BASE_URL", "http://localhost:5173")
-        verification_url = f"{frontend_base}/verify-email?token={token}"
-
-        try:
-            send_mail(
-                subject="Verify your email address",
-                message=f"Please click the link to verify your email address: {verification_url}",
-                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@localhost"),
-                recipient_list=[user.email],
-                fail_silently=False,
+        # Legacy/compat path: registration payload -> create unverified user and send token.
+        if request.data.get("password") is not None and request.data.get("password_confirm") is not None:
+            ser = RegisterSerializer(data=request.data)
+            ser.is_valid(raise_exception=True)
+            with transaction.atomic():
+                user = ser.save()
+                if user.is_verified:
+                    # Preserve consistent state if customized; do not lock out.
+                    user.is_verified = False
+                    user.email_verified_at = None
+                    user.save(update_fields=["is_verified", "email_verified_at", "updated_at"])
+                EmailVerificationToken.objects.filter(user=user, used=False).update(used=True)
+                raw_token, _ = EmailVerificationToken.issue_for_user(user)
+            try:
+                _send_verification_email(user, raw_token)
+            except Exception:
+                return Response({"detail": "If the request is valid, a verification email will be sent."}, status=status.HTTP_200_OK)
+            return Response(
+                {"detail": "If the request is valid, a verification email will be sent.", "user": UserSerializer(user).data},
+                status=status.HTTP_201_CREATED,
             )
-        except Exception:
-            EmailVerificationToken.objects.filter(user=user).delete()
-            return Response({"detail": "Email could not be sent"}, status=500)
 
-        serializer = UserSerializer(user)
-        return Response({"detail": "Verification email sent", "user": serializer.data})
+        # Safe request-by-email path (no account enumeration).
+        if email:
+            try:
+                user = User.objects.get(email__iexact=email, is_active=True, is_verified=False)
+            except User.DoesNotExist:
+                user = None
+            if user is not None:
+                EmailVerificationToken.objects.filter(user=user, used=False).update(used=True)
+                raw_token, _ = EmailVerificationToken.issue_for_user(user)
+                try:
+                    _send_verification_email(user, raw_token)
+                except Exception:
+                    pass
+        return Response({"detail": "If the request is valid, a verification email will be sent."}, status=status.HTTP_200_OK)
 
 
-# Resend Verification
+class EmailVerificationConfirmView(APIView):
+    """Confirm email verification with a single-use, expiring, hashed token."""
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "login"
+
+    def post(self, request, token=None):
+        raw_token = token or request.data.get("token")
+        if not raw_token or not isinstance(raw_token, str):
+            return Response({"detail": "Invalid or expired verification token."}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            token_obj = EmailVerificationToken.find_valid_for_raw_token(raw_token)
+            if token_obj is None:
+                return Response({"detail": "Invalid or expired verification token."}, status=status.HTTP_400_BAD_REQUEST)
+
+            user = token_obj.user
+            # Mark token used first (single-use), then record verification timestamp.
+            token_obj.mark_used()
+            if not user.is_verified:
+                user.is_verified = True
+                user.email_verified_at = dj_timezone.now()
+                user.save(update_fields=["is_verified", "email_verified_at", "updated_at"])
+            # Invalidate any other outstanding tokens for this user.
+            EmailVerificationToken.objects.filter(user=user, used=False).exclude(pk=token_obj.pk).update(used=True)
+
+        return Response({"detail": "Email verified successfully."}, status=status.HTTP_200_OK)
+
+
 class ResendVerificationView(APIView):
-    """Resend verification email."""
+    """Resend verification email safely (no account enumeration)."""
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "login"
 
     def post(self, request):
-        from .models import User, EmailVerificationToken
-        from django.utils.crypto import get_random_string
-        from django.utils import timezone as dj_timezone
-
         email = request.data.get("email", "")
+        generic_detail = {"detail": "If the request is valid, a verification email will be sent."}
         try:
-            user = User.objects.get(email__iexact=email, is_verified=False)
+            user = User.objects.get(email__iexact=email, is_active=True, is_verified=False)
         except User.DoesNotExist:
-            return Response({"detail": "If an account with that email exists, a verification email has been sent."})
+            return Response(generic_detail, status=status.HTTP_200_OK)
 
-        # Revoke old tokens
-        EmailVerificationToken.objects.filter(user=user).delete()
-
-        token = get_random_string(64)
-        EmailVerificationToken.objects.create(user=user, token=token,
-                                              expires_at=dj_timezone.now() + dj_timezone.timedelta(hours=48))
-
-        frontend_base = getattr(settings, "FRONTEND_BASE_URL", "http://localhost:5173")
-        verification_url = f"{frontend_base}/verify-email?token={token}"
-
+        EmailVerificationToken.objects.filter(user=user, used=False).update(used=True)
+        raw_token, _ = EmailVerificationToken.issue_for_user(user)
         try:
-            send_mail(
-                subject="Verify your email address",
-                message=f"Please click the link to verify your email address: {verification_url}",
-                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@localhost"),
-                recipient_list=[user.email],
-                fail_silently=False,
-            )
+            _send_verification_email(user, raw_token)
         except Exception:
-            EmailVerificationToken.objects.filter(user=user).delete()
-            return Response({"detail": "Email could not be sent"}, status=500)
-
-        return Response({"detail": "Verification email sent"})
+            # Do not leak delivery/internal errors.
+            pass
+        return Response(generic_detail, status=status.HTTP_200_OK)
 
 
 # Donation Product List
@@ -287,6 +298,14 @@ class DonationCreateView(generics.CreateAPIView):
     queryset = DonationDonation.objects.all()
     serializer_class = DonationDonationSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # Users can only access their own donations
+        return DonationDonation.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        # Ownership, amount, and initial status are enforced server-side in the serializer.
+        serializer.save()
 
 
 def _ip(request):

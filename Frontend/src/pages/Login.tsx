@@ -61,10 +61,6 @@ export default function Login() {
           <p className="text-center text-sm text-[var(--text-muted)] mt-6">
             Don't have an account? <a href="/register" className="text-[var(--accent)] hover:underline">Create Account</a>
           </p>
-          <div className="grid grid-cols-2 gap-2 mt-4">
-            <button onClick={() => window.location.href="/auth/google"} className="btn-ghost w-full text-sm">Continue with Google</button>
-            <p className="text-xs text-[var(--text-muted)]">Google accounts with verified email are treated as verified</p>
-          </div>
         </div>
       </div>
     </div>

@@ -38,6 +38,7 @@ class User(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_STANDARD)
     is_active = models.BooleanField(default=True)
     is_verified = models.BooleanField(default=False)
+    email_verified_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -141,11 +142,11 @@ class EmailVerificationToken(models.Model):
 
     - Each token can only be used once.
     - Tokens expire after 48 hours.
-    - Tokens are hashed for security.
-    - Single-use only - after use, the token is marked as used.
+    - Only a secure hash of the token is stored.
+    - Raw tokens are sent to the user and never persisted.
     """
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="verification_tokens")
-    token = models.CharField(max_length=128)  # Stores hashed token
+    token = models.CharField(max_length=128)  # Stores hashed token (hex digest)
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
     used = models.BooleanField(default=False)
@@ -154,18 +155,46 @@ class EmailVerificationToken(models.Model):
         unique_together = ["token"]
         indexes = [
             models.Index(fields=["-created_at"]),
+            models.Index(fields=["user", "used", "expires_at"]),
         ]
 
     def __str__(self):
         return f"Verification token for {self.user.email} (expires {self.expires_at})"
 
+    @staticmethod
+    def hash_token(raw_token: str) -> str:
+        import hashlib
+
+        return hashlib.sha256((raw_token or "").encode("utf-8")).hexdigest()
+
+    @classmethod
+    def issue_for_user(cls, user, ttl_hours: int = 48):
+        """Create and return (raw_token, token_instance) for a user."""
+        import secrets
+
+        raw_token = secrets.token_urlsafe(32)
+        token_hash = cls.hash_token(raw_token)
+        instance = cls.objects.create(
+            user=user,
+            token=token_hash,
+            expires_at=dj_timezone.now() + dj_timezone.timedelta(hours=ttl_hours),
+        )
+        return raw_token, instance
+
+    @classmethod
+    def find_valid_for_raw_token(cls, raw_token: str):
+        """Return a valid, unused, unexpired token instance for the raw token, or None."""
+        token_hash = cls.hash_token(raw_token)
+        now = dj_timezone.now()
+        return (
+            cls.objects.select_related("user")
+            .filter(token=token_hash, used=False, expires_at__gt=now)
+            .first()
+        )
+
     def is_expired(self) -> bool:
         """Check if the token has expired."""
         return dj_timezone.now() > self.expires_at
-
-    def is_used(self) -> bool:
-        """Check if the token has been used."""
-        return self.used
 
     def mark_used(self) -> None:
         """Mark this token as used and save."""
