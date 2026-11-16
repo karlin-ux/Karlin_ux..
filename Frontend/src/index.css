@@ -1224,18 +1224,19 @@ html.lights-on .lights-blackout {
 
 /* Lights switch must always be visible and glowing */
 .lights-switch {
+  position: relative;
   z-index: 1000 !important;
   color: var(--accent) !important;
   border-color: currentColor !important;
-  background: rgba(8, 12, 18, 0.9) !important;
+  background: rgba(8, 12, 18, 0.9);
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0.25) inset,
     0 0 12px color-mix(in srgb, var(--accent) 60%, transparent),
-    0 0 26px color-mix(in srgb, var(--accent) 30%, transparent) !important;
+    0 0 26px color-mix(in srgb, var(--accent) 30%, transparent);
   text-shadow:
     0 0 8px color-mix(in srgb, var(--accent) 75%, transparent),
-    0 0 18px color-mix(in srgb, var(--accent) 40%, transparent) !important;
+    0 0 18px color-mix(in srgb, var(--accent) 40%, transparent);
 }
 .light .lights-switch {
-  background: rgba(20, 16, 14, 0.85) !important;
+  background: rgba(20, 16, 14, 0.85);
 }
