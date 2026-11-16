@@ -335,8 +335,8 @@ export default function Layout() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-[var(--border)] py-8 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-[var(--text-muted)]">
+      <footer className="py-8 mt-12">
+        <div className="mx-auto max-w-7xl px-4 text-center text-sm text-[var(--text-muted)] sm:px-6 lg:px-8">
           <p>© {new Date().getFullYear()} Karlin_ux. Built with Django, React, PostgreSQL, and Tailwind CSS.</p>
         </div>
       </footer>

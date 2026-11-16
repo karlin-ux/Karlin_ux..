@@ -305,7 +305,7 @@ export default function Home() {
       {/* ============================================
           TECHNOLOGIES AND SKILLS
           ============================================ */}
-      <section className="relative border-y border-[var(--border)] bg-[var(--bg-secondary)] py-14 sm:py-16">
+      <section className="relative bg-transparent py-14 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center gap-4 text-center">
             <div>
