@@ -190,6 +190,14 @@ const featuredProject = {
 
 export default function Home() {
   const journeyView = useInView<HTMLDivElement>();
+  const [lightsOn, setLightsOn] = useState(false);
+
+  const turnLightsOn = () => {
+    if (lightsOn) return;
+    setLightsOn(true);
+    document.documentElement.classList.add('lights-on');
+  };
+
   return (
     <div className="flex flex-col">
       {/* ============================================
@@ -235,6 +243,14 @@ export default function Home() {
                 >
                   Resume
                 </a>
+                <button
+                  type="button"
+                  onClick={turnLightsOn}
+                  className="btn hero-cta-btn flash-green lights-switch motion-reduce:transition-none"
+                  aria-pressed={lightsOn}
+                >
+                  {lightsOn ? 'Lights On' : 'Turn the lights on'}
+                </button>
                 <Link
                   to="/contact"
                   className="btn hero-cta-btn flash-green motion-reduce:transition-none"
