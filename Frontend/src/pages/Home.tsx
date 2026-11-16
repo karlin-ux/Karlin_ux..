@@ -306,7 +306,7 @@ export default function Home() {
               <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
                 The stack I chose for my portfolio site
               </h2>
-              <p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-[var(--text-secondary)]">
+              <p className="text-glow-white mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-white">
                 Tools and areas I used them in — PS view my skills to see full tech stack and I will always be aiming to learn a few new ones!
               </p>
             </div>

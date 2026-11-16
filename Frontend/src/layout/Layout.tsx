@@ -219,7 +219,7 @@ export default function Layout() {
             </nav>
 
             {/* Right side */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
               <button
                 onClick={toggle}
                 className={iconButtonClass}
@@ -228,7 +228,7 @@ export default function Layout() {
                 {theme === 'dark' ? '☀' : '☾'}
               </button>
 
-              <div className="hidden items-center gap-2 md:flex">
+              <div className="flex flex-wrap items-center gap-2">
                 {user ? (
                   <>
                     {user.is_superadmin && (
@@ -245,10 +245,10 @@ export default function Layout() {
                   </>
                 ) : (
                   <>
-                    <Link to="/signin" className={authLinkClass}>
+                    <Link to="/signin" className={`${authLinkClass} whitespace-nowrap`}>
                       Sign In
                     </Link>
-                    <Link to="/register" className={authPrimaryClass}>
+                    <Link to="/register" className={`${authPrimaryClass} whitespace-nowrap`}>
                       Get Started
                     </Link>
                   </>
