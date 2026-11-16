@@ -886,7 +886,7 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 }
 @keyframes route-fade-slide {
   from { opacity: 0; transform: translateY(10px); filter: blur(4px); }
-  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+  to { opacity: 1; transform: none; filter: none; }
 }
 .reveal {
   opacity: 0;
@@ -1206,9 +1206,15 @@ header nav a[aria-current="page"]::after { transform: scaleX(1); opacity: 1; }
   opacity: 1;
   pointer-events: auto;
 }
+html:not(.lights-on) header,
+html:not(.lights-on) main,
+html:not(.lights-on) footer {
+  position: relative;
+  z-index: 1;
+}
 .lights-switch {
   position: relative;
-  z-index: 950;
+  z-index: 1000 !important;
 }
 html.lights-on .lights-blackout {
   animation: lights-reveal 5.5s ease forwards;
@@ -1229,9 +1235,16 @@ html.lights-on .lights-blackout {
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 1000 !important;
   color: #fff !important;
   background: rgba(8, 12, 18, 0.95) !important;
   border-color: var(--accent) !important;
   text-shadow: 0 1px 2px rgba(0,0,0,0.8) !important;
+}
+html:not(.lights-on) .lights-switch {
+  position: fixed !important;
+  left: 50% !important;
+  bottom: max(1.5rem, env(safe-area-inset-bottom)) !important;
+  transform: translateX(-50%) !important;
+  margin: 0 !important;
 }
