@@ -7,7 +7,7 @@ import ScrollProgress from '../components/ScrollProgress';
 
 // Karlin_ux design tokens: --accent, --accent-2, --accent-3
 const NETWORK_COLORS = ['#53F5B0', '#5C9DFF', '#9B85FF'];
-const NETWORK_COLORS_LIGHT = ['#76FF03', '#FFD400']; // lime green dots, yellow lines
+const NETWORK_COLORS_LIGHT = ['#B8860B', '#FFD400']; // dark yellow dots, yellow lines
 
 const navLinks = [
   { to: '/', label: 'Home' },

@@ -136,12 +136,12 @@
   --accent-soft: #FFF8CC;
   --accent-glow: rgba(255, 212, 0, 0.18);
 
-  --accent-2: #76FF03;
-  --accent-2-hover: #64DD17;
-  --accent-2-soft: #ECFFC7;
+  --accent-2: #B8860B;
+  --accent-2-hover: #A67700;
+  --accent-2-soft: #FFF3C4;
 
-  --accent-3: #76FF03;
-  --accent-3-soft: #ECFFC7;
+  --accent-3: #B8860B;
+  --accent-3-soft: #FFF3C4;
 
   --success: #2D8A5E;
   --success-soft: #D8EDE3;
@@ -156,7 +156,7 @@
   --shadow-md: 0 4px 12px rgba(90, 100, 20, 0.08);
   --shadow-lg: 0 8px 32px rgba(90, 100, 20, 0.10);
   --shadow-glow: 0 0 20px rgba(255, 212, 0, 0.16);
-  --shadow-glow-blue: 0 0 20px rgba(118, 255, 3, 0.14);
+  --shadow-glow-blue: 0 0 20px rgba(184, 134, 11, 0.16);
 }
 
 /* ============================================
@@ -615,10 +615,28 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 
 .light .neon-perimeter::before {
   opacity: 0.9;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    transparent 55%,
+    rgba(184, 134, 11, 0.25) 68%,
+    rgba(255, 212, 0, 0.95) 76%,
+    rgba(184, 134, 11, 0.9) 84%,
+    rgba(255, 212, 0, 0.45) 92%,
+    transparent 100%
+  );
 }
 
 .light .neon-perimeter::after {
   opacity: 0.75;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    transparent 60%,
+    rgba(255, 212, 0, 0.2) 78%,
+    rgba(184, 134, 11, 0.22) 86%,
+    transparent 100%
+  );
 }
 
 @media (prefers-reduced-motion: reduce) {
