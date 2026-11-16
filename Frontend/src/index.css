@@ -179,6 +179,19 @@ body {
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
   transition: background-color 0.3s ease, color 0.3s ease;
+  /* Site-wide neon text glow (keeps each element's existing color) */
+  text-shadow:
+    0 0 0.25em currentColor,
+    0 0 0.6em color-mix(in srgb, currentColor 45%, transparent),
+    0 0 1.2em color-mix(in srgb, currentColor 20%, transparent);
+}
+
+button,
+input,
+textarea,
+select,
+option {
+  text-shadow: inherit;
 }
 
 /* ============================================
@@ -280,7 +293,7 @@ h6 { font-size: 1rem; }
   background: rgba(8, 12, 18, 0.82);
   border: 1px solid currentColor;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25) inset;
-  text-shadow: none;
+  text-shadow: inherit;
 }
 
 .btn:hover,
