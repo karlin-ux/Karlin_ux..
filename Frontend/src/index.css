@@ -1226,9 +1226,6 @@ html.lights-on .lights-blackout {
 .lights-switch {
   opacity: 1 !important;
   visibility: visible !important;
-}
-html:not(.lights-on) .lights-blackout ~ .lights-switch,
-.lights-switch {
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
