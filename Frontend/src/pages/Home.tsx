@@ -137,8 +137,8 @@ function TypewriterOnView({
     if (!started || prefersReduced) return;
     if (count >= text.length) return;
     const id = window.setTimeout(() => {
-      setCount((c) => Math.min(text.length, c + 2));
-    }, 28);
+      setCount((c) => Math.min(text.length, c + 1));
+    }, 45);
     return () => window.clearTimeout(id);
   }, [started, count, prefersReduced, text.length]);
 
