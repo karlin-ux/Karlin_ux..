@@ -1232,7 +1232,12 @@ header nav a[aria-current="page"]::after { transform: scaleX(1); opacity: 1; }
 
 /* Hero CTA sizing helper */
 .hero-cta-btn {
-  min-width: 11rem;
+  min-width: 0;
+}
+@media (min-width: 640px) {
+  .hero-cta-btn {
+    min-width: 11rem;
+  }
 }
 
 /* Lights-on warm-up activation (flicker then stay on) */

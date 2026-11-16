@@ -194,15 +194,15 @@ export default function Layout() {
 
       {/* Top Navigation */}
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--bg)]/80 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex min-h-16 items-center justify-between gap-3 py-2">
             {/* Logo */}
-            <Link to="/" className="btn hero-cta-btn !min-w-0 flex items-center gap-2 font-bold text-xl px-3 py-2">
+            <Link to="/" className="btn hero-cta-btn !min-w-0 flex shrink-0 items-center gap-2 px-3 py-2 text-lg font-bold sm:text-xl">
               <span>Karlin_ux</span>
             </Link>
 
-            {/* Nav - visible on all screen sizes */}
-            <nav className="flex max-w-[45vw] items-center gap-1 overflow-x-auto sm:max-w-none md:overflow-visible">
+            {/* Desktop nav */}
+            <nav className="hidden items-center gap-1 md:flex">
               {navLinks.map((link) => (
                 <NavLink
                   key={link.to}
@@ -216,8 +216,8 @@ export default function Layout() {
             </nav>
 
             {/* Right side */}
-            <div className="flex flex-wrap items-center justify-end gap-2">
-              <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2">
+              <div className="hidden items-center gap-2 md:flex">
                 {user ? (
                   <>
                     {user.is_superadmin && (
@@ -247,8 +247,9 @@ export default function Layout() {
               {/* Mobile menu button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className={`${iconButtonClass} hidden`}
+                className={`${iconButtonClass} md:hidden`}
                 aria-label="Toggle menu"
+                aria-expanded={mobileMenuOpen}
               >
                 {mobileMenuOpen ? '✕' : '☰'}
               </button>
@@ -258,15 +259,15 @@ export default function Layout() {
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="hidden border-t border-[var(--border)] bg-[var(--bg)]">
-            <nav className="space-y-1 px-4 py-3">
+          <div className="border-t border-[var(--border)] bg-[var(--bg)] md:hidden">
+            <nav className="space-y-2 px-4 py-3">
               {navLinks.map((link) => (
                 <NavLink
                   key={link.to}
                   to={link.to}
                   end={link.to === '/'}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={({ isActive }) => `${navItemClass(isActive)} w-full`}
+                  className={({ isActive }) => `${navItemClass(isActive)} w-full justify-center`}
                 >
                   {link.label}
                 </NavLink>
@@ -279,7 +280,7 @@ export default function Layout() {
                   {user.is_superadmin && (
                     <Link
                       to="/superadmin"
-                      className={`${authLinkClass} w-full`}
+                      className={`${authLinkClass} w-full justify-center`}
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       Super Admin
@@ -287,7 +288,7 @@ export default function Layout() {
                   )}
                   <Link
                     to="/customer"
-                    className={`${authLinkClass} w-full`}
+                    className={`${authLinkClass} w-full justify-center`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Dashboard
@@ -297,7 +298,7 @@ export default function Layout() {
                       logout();
                       setMobileMenuOpen(false);
                     }}
-                    className={`${authLinkClass} w-full`}
+                    className={`${authLinkClass} w-full justify-center`}
                   >
                     Logout
                   </button>
@@ -306,14 +307,14 @@ export default function Layout() {
                 <>
                   <Link
                     to="/signin"
-                    className={`${authLinkClass} w-full`}
+                    className={`${authLinkClass} w-full justify-center`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Sign In
                   </Link>
                   <Link
                     to="/register"
-                    className={`${authPrimaryClass} w-full`}
+                    className={`${authPrimaryClass} w-full justify-center`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Get Started
