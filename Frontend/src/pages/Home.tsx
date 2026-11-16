@@ -192,10 +192,18 @@ export default function Home() {
   const journeyView = useInView<HTMLDivElement>();
   const [lightsOn, setLightsOn] = useState(false);
 
-  const turnLightsOn = () => {
-    if (lightsOn) return;
-    setLightsOn(true);
-    document.documentElement.classList.add('lights-on');
+  const toggleLights = () => {
+    const next = !lightsOn;
+    setLightsOn(next);
+    if (next) {
+      // Restart warm-up animation
+      document.documentElement.classList.remove('lights-on');
+      // force reflow so animation can restart when toggled back on
+      void document.documentElement.offsetHeight;
+      document.documentElement.classList.add('lights-on');
+    } else {
+      document.documentElement.classList.remove('lights-on');
+    }
   };
 
   return (
@@ -245,11 +253,11 @@ export default function Home() {
                 </a>
                 <button
                   type="button"
-                  onClick={turnLightsOn}
+                  onClick={toggleLights}
                   className="btn hero-cta-btn flash-green lights-switch motion-reduce:transition-none"
                   aria-pressed={lightsOn}
                 >
-                  {lightsOn ? 'Lights On' : 'Turn the lights on'}
+                  {lightsOn ? 'Turn the lights off' : 'Turn the lights on'}
                 </button>
                 <Link
                   to="/contact"
