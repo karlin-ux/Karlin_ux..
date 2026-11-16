@@ -121,10 +121,10 @@
   --bg-surface: #E9EBEE;
   --bg-overlay: rgba(242, 243, 245, 0.92);
 
-  --text: #F4F7FB;
-  --text-secondary: #A4B1C3;
-  --text-muted: #718096;
-  --text-inverse: #090D16;
+  --text: #111111;
+  --text-secondary: #2B2F36;
+  --text-muted: #4B5563;
+  --text-inverse: #FFFFFF;
 
   --border: #263449;
   --border-subtle: #1E2A3A;
@@ -255,7 +255,7 @@ h6 { font-size: 1rem; }
 }
 
 .light .card-glass {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(30, 34, 40, 0.08);
 }
 
 /* Buttons (unified neon CTA effects) */
