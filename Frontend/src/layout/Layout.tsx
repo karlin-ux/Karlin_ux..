@@ -45,6 +45,9 @@ export default function Layout() {
 
   useEffect(() => {
     const root = document.documentElement;
+    // Ensure lights start off on load
+    root.classList.remove('lights-on');
+    root.classList.remove('lights-ready');
     const update = () => setLightsOn(root.classList.contains('lights-on'));
     update();
     const obs = new MutationObserver(update);
@@ -164,7 +167,7 @@ export default function Layout() {
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="aurora-bg absolute inset-0" aria-hidden="true" />
         <div className="relative h-full w-full">
-          {lightsReady && (
+          {lightsOn && (
             <GeometricParticleNetwork
               colors={theme === 'light' ? NETWORK_COLORS_LIGHT : NETWORK_COLORS}
               className="absolute inset-0 h-full w-full"
@@ -175,6 +178,8 @@ export default function Layout() {
           )}
         </div>
       </div>
+      {/* Gradual reveal: hides everything (except lights switch) until lights warm up */}
+      <div className="lights-blackout fixed inset-0 bg-[var(--bg)]" aria-hidden="true" />
 
       {/* Top Navigation */}
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--bg)]/80 backdrop-blur-xl">
