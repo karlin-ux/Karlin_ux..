@@ -191,18 +191,30 @@ const featuredProject = {
 export default function Home() {
   const journeyView = useInView<HTMLDivElement>();
   const [lightsOn, setLightsOn] = useState(false);
+  const lightsReadyTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (lightsReadyTimer.current) window.clearTimeout(lightsReadyTimer.current);
+    };
+  }, []);
 
   const toggleLights = () => {
     const next = !lightsOn;
     setLightsOn(next);
+    if (lightsReadyTimer.current) {
+      window.clearTimeout(lightsReadyTimer.current);
+      lightsReadyTimer.current = null;
+    }
     if (next) {
-      // Restart warm-up animation
+      // Restart warm-up animation and gradual reveal
       document.documentElement.classList.remove('lights-on');
       // force reflow so animation can restart when toggled back on
       void document.documentElement.offsetHeight;
       document.documentElement.classList.add('lights-on');
     } else {
       document.documentElement.classList.remove('lights-on');
+      document.documentElement.classList.remove('lights-ready');
     }
   };
 

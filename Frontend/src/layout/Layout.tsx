@@ -39,13 +39,13 @@ export default function Layout() {
   const location = useLocation();
   const mainRef = useRef<HTMLElement | null>(null);
   const [routeKey, setRouteKey] = useState(location.pathname);
-  const [lightsReady, setLightsReady] = useState(
-    typeof document !== 'undefined' && document.documentElement.classList.contains('lights-ready')
+  const [lightsOn, setLightsOn] = useState(
+    typeof document !== 'undefined' && document.documentElement.classList.contains('lights-on')
   );
 
   useEffect(() => {
     const root = document.documentElement;
-    const update = () => setLightsReady(root.classList.contains('lights-ready'));
+    const update = () => setLightsOn(root.classList.contains('lights-on'));
     update();
     const obs = new MutationObserver(update);
     obs.observe(root, { attributes: true, attributeFilter: ['class'] });
@@ -164,13 +164,15 @@ export default function Layout() {
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="aurora-bg absolute inset-0" aria-hidden="true" />
         <div className="relative h-full w-full">
-          <GeometricParticleNetwork
-            colors={theme === 'light' ? NETWORK_COLORS_LIGHT : NETWORK_COLORS}
-            className="absolute inset-0 h-full w-full"
-            density={1}
-            opacity={theme === 'light' ? 0.85 : 0.9}
-            interactive
-          />
+          {lightsReady && (
+            <GeometricParticleNetwork
+              colors={theme === 'light' ? NETWORK_COLORS_LIGHT : NETWORK_COLORS}
+              className="absolute inset-0 h-full w-full"
+              density={1}
+              opacity={theme === 'light' ? 0.85 : 0.9}
+              interactive
+            />
+          )}
         </div>
       </div>
 
