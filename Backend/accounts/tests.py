@@ -250,12 +250,12 @@ class GoogleOAuthDisabledTests(TestCase):
         self.client = Client(enforce_csrf_checks=False)
 
     def test_google_login_disabled(self):
-        r = self.client.get("/api/auth/auth/google/")
+        r = self.client.get("/api/auth/google/")
         self.assertEqual(r.status_code, 501)
         self.assertIn("not available", r.json().get("detail", "").lower())
 
     def test_google_callback_disabled(self):
-        r = self.client.get("/api/auth/auth/google/callback/")
+        r = self.client.get("/api/auth/google/callback/")
         self.assertEqual(r.status_code, 501)
         self.assertIn("not available", r.json().get("detail", "").lower())
 

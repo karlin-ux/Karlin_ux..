@@ -68,9 +68,10 @@ class DonationDonationSerializer(serializers.ModelSerializer):
     class Meta:
         model = DonationDonation
         fields = [
-            "id", "reference", "product", "product_name", "amount_cents",
-            "amount_dollars", "payment_method", "payment_method_display",
-            "status", "status_display", "created_at", "updated_at"
+            "id", "reference", "product", "product_name", "user_email",
+            "amount_cents", "amount_dollars", "payment_method",
+            "payment_method_display", "status", "status_display",
+            "created_at", "updated_at"
         ]
         read_only_fields = [
             "reference", "amount_cents", "amount_dollars", "status",
