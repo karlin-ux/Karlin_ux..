@@ -55,6 +55,19 @@ export default function Layout() {
     return () => obs.disconnect();
   }, []);
 
+  const toggleLights = () => {
+    const root = document.documentElement;
+    const next = !root.classList.contains('lights-on');
+    if (next) {
+      root.classList.remove('lights-on');
+      void root.offsetHeight;
+      root.classList.add('lights-on');
+    } else {
+      root.classList.remove('lights-on');
+      root.classList.remove('lights-ready');
+    }
+  };
+
   useEffect(() => {
     setRouteKey(location.pathname);
     mainRef.current?.scrollTo?.({ top: 0, behavior: 'auto' });
@@ -170,6 +183,14 @@ export default function Layout() {
       </div>
       {/* Gradual reveal: hides everything (except lights switch) until lights warm up */}
       <div className="lights-blackout fixed inset-0 bg-[var(--bg)]" aria-hidden="true" />
+      <button
+        type="button"
+        onClick={toggleLights}
+        className="lights-switch btn hero-cta-btn flash-green fixed bottom-6 left-1/2 -translate-x-1/2 !min-w-0 px-5 py-3"
+        aria-pressed={lightsOn}
+      >
+        {lightsOn ? 'Turn the lights off' : 'Turn the lights on'}
+      </button>
 
       {/* Top Navigation */}
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--bg)]/80 backdrop-blur-xl">

@@ -190,31 +190,29 @@ const featuredProject = {
 
 export default function Home() {
   const journeyView = useInView<HTMLDivElement>();
-  const [lightsOn, setLightsOn] = useState(false);
-  const lightsReadyTimer = useRef<number | null>(null);
+  const [lightsOn, setLightsOn] = useState(
+    typeof document !== 'undefined' && document.documentElement.classList.contains('lights-on')
+  );
 
   useEffect(() => {
-    return () => {
-      if (lightsReadyTimer.current) window.clearTimeout(lightsReadyTimer.current);
-    };
+    const root = document.documentElement;
+    const update = () => setLightsOn(root.classList.contains('lights-on'));
+    update();
+    const obs = new MutationObserver(update);
+    obs.observe(root, { attributes: true, attributeFilter: ['class'] });
+    return () => obs.disconnect();
   }, []);
 
   const toggleLights = () => {
-    const next = !lightsOn;
-    setLightsOn(next);
-    if (lightsReadyTimer.current) {
-      window.clearTimeout(lightsReadyTimer.current);
-      lightsReadyTimer.current = null;
-    }
+    const root = document.documentElement;
+    const next = !root.classList.contains('lights-on');
     if (next) {
-      // Restart warm-up animation and gradual reveal
-      document.documentElement.classList.remove('lights-on');
-      // force reflow so animation can restart when toggled back on
-      void document.documentElement.offsetHeight;
-      document.documentElement.classList.add('lights-on');
+      root.classList.remove('lights-on');
+      void root.offsetHeight;
+      root.classList.add('lights-on');
     } else {
-      document.documentElement.classList.remove('lights-on');
-      document.documentElement.classList.remove('lights-ready');
+      root.classList.remove('lights-on');
+      root.classList.remove('lights-ready');
     }
   };
 
