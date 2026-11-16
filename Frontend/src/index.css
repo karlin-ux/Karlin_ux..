@@ -130,32 +130,32 @@
   --border-subtle: #EDE3E3;
   --border-strong: #D9B8B8;
 
-  --accent: #FF1744;
-  --accent-hover: #E0002F;
-  --accent-active: #B80026;
-  --accent-soft: #FFE6EC;
-  --accent-glow: rgba(255, 23, 68, 0.16);
+  --accent: #FFCC00;
+  --accent-hover: #E6B800;
+  --accent-active: #CCA300;
+  --accent-soft: #FFF8D6;
+  --accent-glow: rgba(255, 204, 0, 0.18);
 
   --accent-2: #FF4FA3;
   --accent-2-hover: #E63E90;
   --accent-2-soft: #FFE6F3;
 
-  --accent-3: #FF1744;
-  --accent-3-soft: #FFE6EC;
+  --accent-3: #FFCC00;
+  --accent-3-soft: #FFF8D6;
 
   --success: #2D8A5E;
   --success-soft: #D8EDE3;
   --warning: #E65100;
   --warning-soft: #FFE9D6;
-  --error: #FF1744;
-  --error-soft: #FFE6EC;
-  --info: #FF1744;
-  --info-soft: #FFE6EC;
+  --error: #FFCC00;
+  --error-soft: #FFF8D6;
+  --info: #FFCC00;
+  --info-soft: #FFF8D6;
 
-  --shadow-sm: 0 1px 2px rgba(120, 30, 30, 0.05);
-  --shadow-md: 0 4px 12px rgba(120, 30, 30, 0.08);
-  --shadow-lg: 0 8px 32px rgba(120, 30, 30, 0.10);
-  --shadow-glow: 0 0 20px rgba(255, 23, 68, 0.14);
+  --shadow-sm: 0 1px 2px rgba(120, 90, 20, 0.05);
+  --shadow-md: 0 4px 12px rgba(120, 90, 20, 0.08);
+  --shadow-lg: 0 8px 32px rgba(120, 90, 20, 0.10);
+  --shadow-glow: 0 0 20px rgba(255, 204, 0, 0.16);
   --shadow-glow-blue: 0 0 20px rgba(255, 79, 163, 0.12);
 }
 
