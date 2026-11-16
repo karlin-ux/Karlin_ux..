@@ -1200,38 +1200,24 @@ header nav a[aria-current="page"]::after { transform: scaleX(1); opacity: 1; }
   }
 }
 
-/* Lights-off mode: hide all colors except the lights switch */
-html:not(.lights-on),
-html:not(.lights-on) body {
-  background: var(--bg) !important;
+/* Lights-off blackout with gradual reveal on warm-up */
+.lights-blackout {
+  z-index: 900;
+  opacity: 1;
+  pointer-events: auto;
 }
-html:not(.lights-on) body *:not(.lights-switch):not(.lights-switch *) {
-  color: var(--bg) !important;
-  border-color: var(--bg) !important;
-  outline-color: var(--bg) !important;
-  text-decoration-color: var(--bg) !important;
-  caret-color: var(--bg) !important;
-  text-shadow: none !important;
-  box-shadow: none !important;
-  background-color: transparent !important;
-  background-image: none !important;
-  fill: var(--bg) !important;
-  stroke: var(--bg) !important;
+.lights-switch {
+  position: relative;
+  z-index: 950;
 }
-html:not(.lights-on) img,
-html:not(.lights-on) svg,
-html:not(.lights-on) video,
-html:not(.lights-on) canvas {
-  opacity: 0 !important;
+html.lights-on .lights-blackout {
+  animation: lights-reveal 5.5s ease forwards;
+  pointer-events: none;
 }
-html:not(.lights-on) .lights-switch,
-html:not(.lights-on) .lights-switch * {
-  color: var(--accent) !important;
-  border-color: currentColor !important;
-  fill: currentColor !important;
-  stroke: currentColor !important;
-  opacity: 1 !important;
-  text-shadow: 0 0 8px color-mix(in srgb, var(--accent) 70%, transparent), 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent) !important;
-  box-shadow: 0 0 0 1px rgba(0,0,0,0.25) inset, 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent), 0 0 22px color-mix(in srgb, var(--accent) 28%, transparent) !important;
-  background-color: rgba(8,12,18,0.82) !important;
+@keyframes lights-reveal {
+  0% { opacity: 1; }
+  20% { opacity: 0.95; }
+  45% { opacity: 0.6; }
+  70% { opacity: 0.2; }
+  100% { opacity: 0; visibility: hidden; }
 }
