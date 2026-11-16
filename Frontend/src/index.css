@@ -879,18 +879,20 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 .skills-marquee-item {
   flex: 0 0 auto;
   padding: 0.35rem 0.75rem;
-  border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 70%, transparent);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
   color: var(--accent);
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.01em;
-  text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 70%, transparent), 0 0 24px color-mix(in srgb, var(--accent) 40%, transparent);
+  filter: brightness(1.15) saturate(1.1);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 85%, transparent), 0 0 24px color-mix(in srgb, var(--accent) 55%, transparent), 0 0 40px color-mix(in srgb, var(--accent) 30%, transparent);
   box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--accent) 55%, transparent),
-    0 0 26px color-mix(in srgb, var(--accent) 65%, transparent),
-    0 0 46px color-mix(in srgb, var(--accent) 28%, transparent);
+    0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent),
+    0 0 30px color-mix(in srgb, var(--accent) 85%, transparent),
+    0 0 60px color-mix(in srgb, var(--accent) 45%, transparent),
+    0 0 90px color-mix(in srgb, var(--accent) 25%, transparent);
   position: relative;
   z-index: 2;
 }
