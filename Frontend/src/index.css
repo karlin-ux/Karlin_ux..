@@ -487,6 +487,20 @@ h6 { font-size: 1rem; }
   background: var(--text-muted);
 }
 
+/* Light theme: black scrollbars (including tech stack areas) */
+.light ::-webkit-scrollbar-thumb {
+  background: #000;
+}
+.light ::-webkit-scrollbar-thumb:hover {
+  background: #222;
+}
+.light ::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+.light {
+  scrollbar-color: #000 var(--bg-secondary);
+}
+
 /* Focus ring */
 *:focus-visible {
   outline: 2px solid var(--accent);

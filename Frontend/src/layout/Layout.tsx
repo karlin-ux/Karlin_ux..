@@ -204,14 +204,14 @@ export default function Layout() {
               <span>Karlin_ux</span>
             </Link>
 
-            {/* Desktop Nav */}
-            <nav className="hidden items-center gap-1 md:flex">
+            {/* Nav - visible on all screen sizes */}
+            <nav className="flex max-w-[45vw] items-center gap-1 overflow-x-auto sm:max-w-none md:overflow-visible">
               {navLinks.map((link) => (
                 <NavLink
                   key={link.to}
                   to={link.to}
                   end={link.to === '/'}
-                  className={({ isActive }) => navItemClass(isActive)}
+                  className={({ isActive }) => `${navItemClass(isActive)} whitespace-nowrap`}
                 >
                   {link.label}
                 </NavLink>
@@ -258,7 +258,7 @@ export default function Layout() {
               {/* Mobile menu button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className={`${iconButtonClass} md:hidden`}
+                className={`${iconButtonClass} hidden`}
                 aria-label="Toggle menu"
               >
                 {mobileMenuOpen ? '✕' : '☰'}
@@ -269,7 +269,7 @@ export default function Layout() {
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="border-t border-[var(--border)] bg-[var(--bg)] md:hidden">
+          <div className="hidden border-t border-[var(--border)] bg-[var(--bg)]">
             <nav className="space-y-1 px-4 py-3">
               {navLinks.map((link) => (
                 <NavLink
