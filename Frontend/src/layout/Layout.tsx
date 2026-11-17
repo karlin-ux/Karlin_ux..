@@ -28,12 +28,8 @@ const authLinkClass =
 const authPrimaryClass =
   'btn hero-cta-btn !min-w-0 inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold transition-colors';
 
-const iconButtonClass =
-  'btn hero-cta-btn !min-w-0 rounded-lg p-2 transition-colors';
-
 export default function Layout() {
   const { user, logout } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const mainRef = useRef<HTMLElement | null>(null);
   const [routeKey, setRouteKey] = useState(location.pathname);
@@ -196,135 +192,43 @@ export default function Layout() {
       {/* Top Navigation */}
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--bg)]/80 backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex min-h-16 flex-col items-center justify-center gap-2 py-2 md:gap-3">
-            <div className="flex w-full items-center justify-between md:justify-center">
-              {/* Logo */}
-              <Link to="/" className="btn hero-cta-btn !min-w-0 flex shrink-0 items-center gap-2 px-3 py-2 text-lg font-bold sm:text-xl">
-                <span>Karlin_ux</span>
-              </Link>
-
-              {/* Mobile menu button */}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className={`${iconButtonClass} md:hidden`}
-                aria-label="Toggle menu"
-                aria-expanded={mobileMenuOpen}
+          <nav className="flex min-h-16 w-full flex-wrap items-center justify-evenly gap-2 py-3 sm:gap-3" aria-label="Primary">
+            {navLinks.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                end={link.to === '/'}
+                className={({ isActive }) => `${navItemClass(isActive)} whitespace-nowrap`}
               >
-                {mobileMenuOpen ? '✕' : '☰'}
-              </button>
-            </div>
-
-            {/* Desktop nav + actions (symmetrical/centred) */}
-            <div className="hidden w-full flex-wrap items-center justify-center gap-2 md:flex">
-              <nav className="flex flex-wrap items-center justify-center gap-1">
-                {navLinks.map((link) => (
-                  <NavLink
-                    key={link.to}
-                    to={link.to}
-                    end={link.to === '/'}
-                    className={({ isActive }) => `${navItemClass(isActive)} whitespace-nowrap`}
-                  >
-                    {link.label}
-                  </NavLink>
-                ))}
-              </nav>
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                {user ? (
-                  <>
-                    {user.is_superadmin && (
-                      <Link to="/superadmin" className={authLinkClass}>
-                        Super Admin
-                      </Link>
-                    )}
-                    <Link to="/customer" className={authLinkClass}>
-                      Dashboard
-                    </Link>
-                    <button onClick={logout} className={authLinkClass}>
-                      Logout
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Link to="/signin" className={`${authLinkClass} whitespace-nowrap`}>
-                      Sign In
-                    </Link>
-                    <Link to="/register" className={`${authPrimaryClass} whitespace-nowrap`}>
-                      Get Started
-                    </Link>
-                  </>
+                {link.label}
+              </NavLink>
+            ))}
+            {user ? (
+              <>
+                {user.is_superadmin && (
+                  <Link to="/superadmin" className={`${authLinkClass} whitespace-nowrap`}>
+                    Super Admin
+                  </Link>
                 )}
-              </div>
-            </div>
-          </div>
+                <Link to="/customer" className={`${authLinkClass} whitespace-nowrap`}>
+                  Dashboard
+                </Link>
+                <button onClick={logout} className={`${authLinkClass} whitespace-nowrap`}>
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/signin" className={`${authLinkClass} whitespace-nowrap`}>
+                  Sign In
+                </Link>
+                <Link to="/register" className={`${authPrimaryClass} whitespace-nowrap`}>
+                  Get Started
+                </Link>
+              </>
+            )}
+          </nav>
         </div>
-
-        {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <div className="border-t border-[var(--border)] bg-[var(--bg)] md:hidden">
-            <nav className="space-y-2 px-4 py-3">
-              {navLinks.map((link) => (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  end={link.to === '/'}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={({ isActive }) => `${navItemClass(isActive)} w-full justify-center`}
-                >
-                  {link.label}
-                </NavLink>
-              ))}
-
-              <div className="my-2 border-t border-[var(--border)]" />
-
-              {user ? (
-                <>
-                  {user.is_superadmin && (
-                    <Link
-                      to="/superadmin"
-                      className={`${authLinkClass} w-full justify-center`}
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Super Admin
-                    </Link>
-                  )}
-                  <Link
-                    to="/customer"
-                    className={`${authLinkClass} w-full justify-center`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
-                  <button
-                    onClick={() => {
-                      logout();
-                      setMobileMenuOpen(false);
-                    }}
-                    className={`${authLinkClass} w-full justify-center`}
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link
-                    to="/signin"
-                    className={`${authLinkClass} w-full justify-center`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    to="/register"
-                    className={`${authPrimaryClass} w-full justify-center`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Get Started
-                  </Link>
-                </>
-              )}
-            </nav>
-          </div>
-        )}
       </header>
 
       {/* Main content */}
