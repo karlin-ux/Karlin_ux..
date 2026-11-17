@@ -67,15 +67,14 @@ class DemoProductViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
     serializer_class = DemoProductSerializer
 
     def _validate_media(self, ws, data):
-        from media.models import MediaAsset
-        for field in ("primary_image",):
+        for field in ("primary_image", "model_3d"):
             val = data.get(field)
-            if val is not None and val.workspace_id != ws.id:
+            if val is not None and getattr(val, "workspace_id", None) != ws.id:
                 raise serializers.ValidationError({field: "Media must belong to the same workspace."})
         gallery = data.get("gallery")
         if gallery is not None:
             for m in gallery:
-                if m.workspace_id != ws.id:
+                if getattr(m, "workspace_id", None) != ws.id:
                     raise serializers.ValidationError({"gallery": "Media must belong to the same workspace."})
 
     def perform_create(self, serializer):
@@ -99,9 +98,15 @@ class DemoOrderViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
     serializer_class = DemoOrderSerializer
 
     def perform_create(self, serializer):
+        # Financial/payment fields are server-authoritative; serializer enforces safe defaults.
         order = serializer.save(workspace=self.get_workspace())
         DemoOrderStatusEvent.objects.create(order=order, status=order.status, note="Created")
         DemoNotification.objects.create(workspace=order.workspace, recipient_type="admin", title="New order", message=f"Order {order.id} created")
+
+    def perform_update(self, serializer):
+        # Prevent client-controlled payment/total mutation through generic CRUD updates.
+        order = serializer.save()
+        DemoOrderStatusEvent.objects.create(order=order, status=order.status, note="Updated")
 
 
     def get_queryset(self):

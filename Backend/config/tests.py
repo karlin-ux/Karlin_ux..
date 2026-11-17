@@ -7,7 +7,7 @@ and that insecure configurations are rejected.
 import os
 from unittest import mock
 
-from django.test import TestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.core.exceptions import ImproperlyConfigured
 from django.test.utils import override_system_checks
 
@@ -365,6 +365,7 @@ class CrossOriginAuthConfigTests(TestCase):
             HTTP_X_CSRFTOKEN=csrftoken,
         )
         self.assertEqual(login.status_code, 200)
+        csrftoken = client.cookies["csrftoken"].value
 
         # Unsafe authenticated request without CSRF token must be rejected.
         r_forbidden = client.post(
@@ -400,6 +401,7 @@ class CrossOriginAuthConfigTests(TestCase):
             HTTP_X_CSRFTOKEN=csrftoken,
         )
         self.assertEqual(login.status_code, 200)
+        csrftoken = client.cookies["csrftoken"].value
         me = client.get("/api/auth/me/", HTTP_ORIGIN=self.FRONTEND_ORIGIN)
         self.assertEqual(me.status_code, 200)
         self.assertEqual(me.json().get("email"), "corsuser@example.com")
