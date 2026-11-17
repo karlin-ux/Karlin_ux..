@@ -1,4 +1,4 @@
-import os
+import logging
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -9,6 +9,8 @@ from rest_framework.throttling import ScopedRateThrottle
 
 from .models import ContactMessage
 from .serializers import ContactMessageSerializer
+
+logger = logging.getLogger("contact")
 
 
 @api_view(["POST"])
@@ -34,12 +36,28 @@ def contact_submit(request):
     try:
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [recipient], fail_silently=False)
         msg.email_sent = True
-        msg.save()
+        msg.save(update_fields=["email_sent"])
         return Response({"success": True, "detail": "Message sent successfully."}, status=status.HTTP_201_CREATED)
-    except Exception as e:
-        msg.email_error = str(e)[:500]
-        msg.save()
-        return Response({"success": False, "detail": f"Message saved but email delivery failed: {msg.email_error}"}, status=status.HTTP_502_BAD_GATEWAY)
+    except Exception as exc:
+        request_id = getattr(request, "request_id", "")
+        # Log only safe, non-sensitive context; never log exception text/args/traceback.
+        logger.error(
+            "Contact email delivery failed message_id=%s request_id=%s error_type=%s",
+            msg.id,
+            request_id,
+            type(exc).__name__,
+        )
+        # Preserve submitted message for operational follow-up without exposing internal error details.
+        msg.email_error = "delivery_failed"
+        msg.save(update_fields=["email_error"])
+        return Response(
+            {
+                "success": False,
+                "detail": "Your message was received, but email delivery failed. Please try again later.",
+                "message_id": msg.id,
+            },
+            status=status.HTTP_502_BAD_GATEWAY,
+        )
 
 
 def _ip(request):
@@ -47,4 +65,6 @@ def _ip(request):
     if xff:
         return xff.split(",")[0].strip()
     return request.META.get("REMOTE_ADDR")
+
+
 contact_submit.throttle_scope = "contact"

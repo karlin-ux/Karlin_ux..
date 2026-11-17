@@ -1,5 +1,5 @@
 from django.db.models import Count, Sum
-from rest_framework import viewsets, permissions, status, serializers
+from rest_framework import viewsets, permissions, status, serializers, exceptions
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.db import transaction, IntegrityError
@@ -34,10 +34,19 @@ class WorkspaceScopedMixin:
             return None
         return ws
 
+    def get_workspace_or_403(self):
+        ws = self.get_workspace()
+        if ws is None:
+            raise exceptions.PermissionDenied("No workspace.")
+        return ws
+
     def check_workspace(self):
-        if self.get_workspace() is None:
-            return False
-        return True
+        return self.get_workspace() is not None
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        # Fail closed for all workspace-scoped actions (including custom actions/mutations).
+        self.get_workspace_or_403()
 
     def get_queryset(self):
         ws = self.get_workspace()
@@ -46,8 +55,7 @@ class WorkspaceScopedMixin:
         return self.queryset.filter(workspace=ws)
 
     def perform_create(self, serializer):
-        ws = self.get_workspace()
-        serializer.save(workspace=ws)
+        serializer.save(workspace=self.get_workspace_or_403())
 
 
 class DemoCustomerViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
@@ -67,24 +75,23 @@ class DemoProductViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
     serializer_class = DemoProductSerializer
 
     def _validate_media(self, ws, data):
-        from media.models import MediaAsset
-        for field in ("primary_image",):
+        for field in ("primary_image", "model_3d"):
             val = data.get(field)
-            if val is not None and val.workspace_id != ws.id:
+            if val is not None and getattr(val, "workspace_id", None) != ws.id:
                 raise serializers.ValidationError({field: "Media must belong to the same workspace."})
         gallery = data.get("gallery")
         if gallery is not None:
             for m in gallery:
-                if m.workspace_id != ws.id:
+                if getattr(m, "workspace_id", None) != ws.id:
                     raise serializers.ValidationError({"gallery": "Media must belong to the same workspace."})
 
     def perform_create(self, serializer):
-        ws = self.get_workspace()
+        ws = self.get_workspace_or_403()
         self._validate_media(ws, serializer.validated_data)
         serializer.save(workspace=ws)
 
     def perform_update(self, serializer):
-        ws = self.get_workspace()
+        ws = self.get_workspace_or_403()
         self._validate_media(ws, serializer.validated_data)
         serializer.save()
 
@@ -99,9 +106,17 @@ class DemoOrderViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
     serializer_class = DemoOrderSerializer
 
     def perform_create(self, serializer):
-        order = serializer.save(workspace=self.get_workspace())
+        # Financial/payment fields are server-authoritative; serializer enforces safe defaults.
+        ws = self.get_workspace_or_403()
+        order = serializer.save(workspace=ws)
         DemoOrderStatusEvent.objects.create(order=order, status=order.status, note="Created")
         DemoNotification.objects.create(workspace=order.workspace, recipient_type="admin", title="New order", message=f"Order {order.id} created")
+
+    def perform_update(self, serializer):
+        # Prevent client-controlled payment/total mutation through generic CRUD updates.
+        self.get_workspace_or_403()
+        order = serializer.save()
+        DemoOrderStatusEvent.objects.create(order=order, status=order.status, note="Updated")
 
 
     def get_queryset(self):
@@ -164,7 +179,7 @@ class DemoBookingViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
                 raise serializers.ValidationError({"time": "Time slot overlaps an existing booking."})
 
     def perform_create(self, serializer):
-        ws = self.get_workspace()
+        ws = self.get_workspace_or_403()
         data = serializer.validated_data
         date = data.get("date")
         time = data.get("time")
@@ -179,7 +194,7 @@ class DemoBookingViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
             raise serializers.ValidationError({"time": "Time slot already booked."})
 
     def perform_update(self, serializer):
-        ws = self.get_workspace()
+        ws = self.get_workspace_or_403()
         instance = serializer.instance
         date = serializer.validated_data.get("date", instance.date)
         time = serializer.validated_data.get("time", instance.time)
@@ -217,10 +232,11 @@ class DemoPageViewSet(WorkspaceScopedMixin, viewsets.ModelViewSet):
     serializer_class = DemoPageSerializer
 
     def perform_create(self, serializer):
-        page = serializer.save(workspace=self.get_workspace())
+        page = serializer.save(workspace=self.get_workspace_or_403())
         DemoPageRevision.objects.create(page=page, title=page.title, content=page.content, is_published=page.is_published, created_by=self.request.user)
 
     def perform_update(self, serializer):
+        self.get_workspace_or_403()
         page = serializer.save()
         DemoPageRevision.objects.create(page=page, title=page.title, content=page.content, is_published=page.is_published, created_by=self.request.user)
 

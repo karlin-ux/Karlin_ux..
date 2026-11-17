@@ -161,7 +161,8 @@ class DemoApplication(WorkspaceOwned):
     assigned_to = models.CharField(max_length=120, blank=True)
     internal_notes = models.TextField(blank=True)
     attachment = models.CharField(max_length=255, blank=True)
-    attachments = models.ManyToManyField("media.MediaAsset", blank=True, related_name="application_attachments")
+    # Align with /demo/media/ (DemoMediaAsset) upload workflow used by frontend.
+    attachments = models.ManyToManyField("DemoMediaAsset", blank=True, related_name="application_attachments")
 
     class Meta:
         ordering = ["-created_at"]

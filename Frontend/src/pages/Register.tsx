@@ -1,16 +1,15 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 
 export default function Register() {
   const { register } = useAuth();
-  const nav = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [err, setErr] = useState('');
+  const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function submit(e: React.FormEvent) {
@@ -27,7 +26,7 @@ export default function Register() {
     setErr('');
     try {
       await register(email, password);
-      nav('/customer');
+      setSubmitted(true);
     } catch (e: any) {
       setErr(e?.response?.data?.detail || 'Registration failed. Please try again.');
     } finally {
@@ -48,6 +47,14 @@ export default function Register() {
               {err}
             </div>
           )}
+          {submitted ? (
+            <div className="space-y-4">
+              <div className="p-3 rounded-lg bg-[var(--success-soft,rgba(34,197,94,0.1))] border border-[var(--success,#22c55e)]/20 text-sm">
+                If registration is successful, you can sign in.
+              </div>
+              <a href="/signin" className="btn btn-primary w-full text-center">Go to Sign In</a>
+            </div>
+          ) : (
           <form onSubmit={submit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1.5 text-[var(--text-secondary)]">Email</label>
@@ -83,12 +90,10 @@ export default function Register() {
               {loading ? 'Creating account...' : 'Create Account'}
             </button>
           </form>
+          )}
           <p className="text-center text-sm text-[var(--text-muted)] mt-6">
-            Already have an account? <a href="/signin" className="text-[var(--accent)] hover:underline">Sign In</a></p>
-            <div className="grid grid-cols-2 gap-2 mt-4">
-              <button onClick={() => window.location.href="/auth/google/register"} className="btn-ghost w-full text-sm">Continue with Google</button>
-              <p className="text-xs text-[var(--text-muted)]">Google accounts with verified email are treated as verified</p>
-            </div>
+            Already have an account? <a href="/signin" className="text-[var(--accent)] hover:underline">Sign In</a>
+          </p>
         </div>
       </div>
     </div>

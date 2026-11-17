@@ -7,7 +7,7 @@ and that insecure configurations are rejected.
 import os
 from unittest import mock
 
-from django.test import TestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.core.exceptions import ImproperlyConfigured
 from django.test.utils import override_system_checks
 
@@ -221,3 +221,187 @@ class HealthEndpointTests(TestCase):
         self.assertNotEqual(r1.status_code, 403)
         self.assertNotEqual(r2.status_code, 401)
         self.assertNotEqual(r2.status_code, 403)
+
+class CrossOriginAuthConfigTests(TestCase):
+    """Regression tests for cross-origin cookie/CORS/CSRF/session authentication."""
+
+    FRONTEND_ORIGIN = "https://karlin-ux-frontend.onrender.com"
+    OTHER_ORIGIN = "https://evil.example.com"
+
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        self.user = User.objects.create_user(email="corsuser@example.com", password="TestPass123!")
+
+    @override_settings(
+        SESSION_COOKIE_SECURE=True,
+        CSRF_COOKIE_SECURE=True,
+        SESSION_COOKIE_HTTPONLY=True,
+        CSRF_COOKIE_HTTPONLY=False,
+        SESSION_COOKIE_SAMESITE="None",
+        CSRF_COOKIE_SAMESITE="None",
+        CORS_ALLOW_CREDENTIALS=True,
+        CORS_ALLOWED_ORIGINS=["https://karlin-ux-frontend.onrender.com"],
+        CSRF_TRUSTED_ORIGINS=["https://karlin-ux-frontend.onrender.com"],
+    )
+    def test_csrf_cookie_attributes_for_cross_site_https(self):
+        client = Client(enforce_csrf_checks=False)
+        r = client.get("/api/auth/csrf/", HTTP_ORIGIN=self.FRONTEND_ORIGIN)
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("csrftoken", r.cookies)
+        c = r.cookies["csrftoken"]
+        self.assertEqual(c["samesite"], "None")
+        self.assertTrue(c["secure"])
+        # CSRF cookie is intentionally readable by JS for header-based double-submit patterns.
+        self.assertIn(c["httponly"], ("", False))
+
+    @override_settings(
+        SESSION_COOKIE_SECURE=True,
+        CSRF_COOKIE_SECURE=True,
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE="None",
+        CSRF_COOKIE_SAMESITE="None",
+        CORS_ALLOW_CREDENTIALS=True,
+        CORS_ALLOWED_ORIGINS=["https://karlin-ux-frontend.onrender.com"],
+        CSRF_TRUSTED_ORIGINS=["https://karlin-ux-frontend.onrender.com"],
+    )
+    def test_session_cookie_attributes_for_cross_site_https(self):
+        client = Client(enforce_csrf_checks=False)
+        r = client.post(
+            "/api/auth/login/",
+            {"email": "corsuser@example.com", "password": "TestPass123!"},
+            content_type="application/json",
+            HTTP_ORIGIN=self.FRONTEND_ORIGIN,
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("sessionid", r.cookies)
+        c = r.cookies["sessionid"]
+        self.assertEqual(c["samesite"], "None")
+        self.assertTrue(c["secure"])
+        self.assertTrue(c["httponly"])
+
+    @override_settings(
+        SESSION_COOKIE_SECURE=False,
+        CSRF_COOKIE_SECURE=False,
+        SESSION_COOKIE_SAMESITE="Lax",
+        CSRF_COOKIE_SAMESITE="Lax",
+        CORS_ALLOWED_ORIGINS=["http://localhost:5173"],
+        CSRF_TRUSTED_ORIGINS=["http://localhost:5173"],
+    )
+    def test_local_development_cookie_settings_supported(self):
+        client = Client(enforce_csrf_checks=False)
+        r = client.get("/api/auth/csrf/", HTTP_ORIGIN="http://localhost:5173")
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("csrftoken", r.cookies)
+        c = r.cookies["csrftoken"]
+        self.assertEqual(c["samesite"], "Lax")
+        self.assertIn(c["secure"], ("", False))
+
+    @override_settings(
+        CORS_ALLOW_CREDENTIALS=True,
+        CORS_ALLOWED_ORIGINS=["https://karlin-ux-frontend.onrender.com"],
+        CSRF_TRUSTED_ORIGINS=["https://karlin-ux-frontend.onrender.com"],
+    )
+    def test_cors_preflight_allows_exact_frontend_origin_with_credentials(self):
+        client = Client()
+        r = client.options(
+            "/api/auth/login/",
+            HTTP_ORIGIN=self.FRONTEND_ORIGIN,
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="POST",
+            HTTP_ACCESS_CONTROL_REQUEST_HEADERS="content-type,x-csrftoken",
+        )
+        self.assertIn(r.status_code, (200, 204))
+        self.assertEqual(r.get("Access-Control-Allow-Origin"), self.FRONTEND_ORIGIN)
+        self.assertEqual(r.get("Access-Control-Allow-Credentials"), "true")
+
+    @override_settings(
+        CORS_ALLOW_CREDENTIALS=True,
+        CORS_ALLOWED_ORIGINS=["https://karlin-ux-frontend.onrender.com"],
+        CSRF_TRUSTED_ORIGINS=["https://karlin-ux-frontend.onrender.com"],
+    )
+    def test_cors_rejects_disallowed_origin(self):
+        client = Client()
+        r = client.options(
+            "/api/auth/login/",
+            HTTP_ORIGIN=self.OTHER_ORIGIN,
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="POST",
+            HTTP_ACCESS_CONTROL_REQUEST_HEADERS="content-type,x-csrftoken",
+        )
+        self.assertNotEqual(r.get("Access-Control-Allow-Origin"), self.OTHER_ORIGIN)
+        # Disallowed origins must not receive credentialed allow-origin for that origin.
+        self.assertNotEqual(r.get("Access-Control-Allow-Credentials"), "true" if r.get("Access-Control-Allow-Origin") == self.OTHER_ORIGIN else "unexpected")
+
+    @override_settings(
+        CORS_ALLOW_CREDENTIALS=True,
+        CORS_ALLOWED_ORIGINS=["https://karlin-ux-frontend.onrender.com"],
+        CSRF_TRUSTED_ORIGINS=["https://karlin-ux-frontend.onrender.com"],
+    )
+    def test_credentialed_response_only_for_exact_frontend_origin(self):
+        client = Client(enforce_csrf_checks=False)
+        r_ok = client.get("/api/auth/csrf/", HTTP_ORIGIN=self.FRONTEND_ORIGIN)
+        self.assertEqual(r_ok.get("Access-Control-Allow-Origin"), self.FRONTEND_ORIGIN)
+        self.assertEqual(r_ok.get("Access-Control-Allow-Credentials"), "true")
+
+        r_bad = client.get("/api/auth/csrf/", HTTP_ORIGIN=self.OTHER_ORIGIN)
+        self.assertNotEqual(r_bad.get("Access-Control-Allow-Origin"), self.OTHER_ORIGIN)
+        self.assertNotEqual(r_bad.get("Access-Control-Allow-Credentials"), "true")
+
+    @override_settings(
+        CORS_ALLOW_CREDENTIALS=True,
+        CORS_ALLOWED_ORIGINS=["https://karlin-ux-frontend.onrender.com"],
+        CSRF_TRUSTED_ORIGINS=["https://karlin-ux-frontend.onrender.com"],
+    )
+    def test_csrf_validation_enforced_for_session_authenticated_requests(self):
+        client = Client(enforce_csrf_checks=True)
+        # Obtain CSRF cookie and authenticate
+        r = client.get("/api/auth/csrf/", HTTP_ORIGIN=self.FRONTEND_ORIGIN)
+        self.assertEqual(r.status_code, 200)
+        csrftoken = r.cookies.get("csrftoken").value
+        login = client.post(
+            "/api/auth/login/",
+            {"email": "corsuser@example.com", "password": "TestPass123!"},
+            content_type="application/json",
+            HTTP_ORIGIN=self.FRONTEND_ORIGIN,
+            HTTP_X_CSRFTOKEN=csrftoken,
+        )
+        self.assertEqual(login.status_code, 200)
+        csrftoken = client.cookies["csrftoken"].value
+
+        # Unsafe authenticated request without CSRF token must be rejected.
+        r_forbidden = client.post(
+            "/api/auth/logout/",
+            content_type="application/json",
+            HTTP_ORIGIN=self.FRONTEND_ORIGIN,
+        )
+        self.assertEqual(r_forbidden.status_code, 403)
+
+        # Unsafe authenticated request with valid CSRF token must succeed.
+        r_ok = client.post(
+            "/api/auth/logout/",
+            content_type="application/json",
+            HTTP_ORIGIN=self.FRONTEND_ORIGIN,
+            HTTP_X_CSRFTOKEN=csrftoken,
+        )
+        self.assertEqual(r_ok.status_code, 200)
+
+    @override_settings(
+        CORS_ALLOW_CREDENTIALS=True,
+        CORS_ALLOWED_ORIGINS=["https://karlin-ux-frontend.onrender.com"],
+        CSRF_TRUSTED_ORIGINS=["https://karlin-ux-frontend.onrender.com"],
+    )
+    def test_session_authentication_with_credentials(self):
+        client = Client(enforce_csrf_checks=True)
+        r = client.get("/api/auth/csrf/", HTTP_ORIGIN=self.FRONTEND_ORIGIN)
+        csrftoken = r.cookies.get("csrftoken").value
+        login = client.post(
+            "/api/auth/login/",
+            {"email": "corsuser@example.com", "password": "TestPass123!"},
+            content_type="application/json",
+            HTTP_ORIGIN=self.FRONTEND_ORIGIN,
+            HTTP_X_CSRFTOKEN=csrftoken,
+        )
+        self.assertEqual(login.status_code, 200)
+        csrftoken = client.cookies["csrftoken"].value
+        me = client.get("/api/auth/me/", HTTP_ORIGIN=self.FRONTEND_ORIGIN)
+        self.assertEqual(me.status_code, 200)
+        self.assertEqual(me.json().get("email"), "corsuser@example.com")

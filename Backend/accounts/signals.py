@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 @receiver(post_save, sender=User)
-def bootstrap_user_workspace(sender, instance, created, **kwargs):
-    if not created:
+def bootstrap_user_workspace(sender, instance, created, raw=False, **kwargs):
+    if raw or not created:
         return
     # Customer profile for everyone
     CustomerProfile.objects.get_or_create(user=instance, defaults={"display_name": instance.email.split("@")[0]})

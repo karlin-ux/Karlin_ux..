@@ -1,21 +1,16 @@
 import json
 import urllib.parse
 import urllib.request
-from datetime import datetime, timedelta, timezone
 
 import jwt  # PyJWT
 from django.conf import settings
 from django.contrib import auth
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.backends import BaseBackend, BaseUserModelBackend
-from django.contrib.auth.models import User as DjangoUser
-from django.core.exceptions import PermissionDenied, SuspiciousOperation
-from django.http import HttpRequest, HttpResponse
-from django.shortcuts import redirect
-from django.urls import reverse
+from django.contrib.auth.backends import BaseBackend
+from django.contrib.auth import get_user_model
+from django.http import HttpRequest
 from django.utils import timezone as dj_timezone
 
-from .models import User
+User = get_user_model()
 
 
 def _ip(request: HttpRequest) -> str:
@@ -34,7 +29,7 @@ class GoogleOAuthBackend(BaseBackend):
     """
 
     def authenticate(self, request: HttpRequest, credential: str = None, code: str = None,
-                     state: str = None) -> DjangoUser | None:
+                     state: str = None):
         """Authenticate a user using a Google ID token or authorization code.
 
         Args:
@@ -56,7 +51,7 @@ class GoogleOAuthBackend(BaseBackend):
 
         return None
 
-    def _authenticate_with_id_token(self, credential: str) -> DjangoUser | None:
+    def _authenticate_with_id_token(self, credential: str):
         """Authenticate using a Google ID token.
 
         Validates:
@@ -96,30 +91,26 @@ class GoogleOAuthBackend(BaseBackend):
                 return None
 
             # Get or create the user
-            email = unverified_claims.get("email", "")
+            email = User.objects.canonicalize_email(unverified_claims.get("email", "") or "")
             if not email:
                 return None
 
-            # Try to find existing user by email
+            # Try to find existing user by email (case-insensitively for canonicalized addresses).
             try:
-                user = DjangoUser.objects.get(email=email)
+                user = User.objects.get(email__iexact=email)
                 # Verify the user is still active
                 if not user.is_active:
                     return None
                 # Update last login
                 auth.login(request, user, backend="django.contrib.auth.backends.ModelBackend")
                 return user
-            except DjangoUser.DoesNotExist:
-                # Create a new unverified account - will need email verification
-                # But for Google accounts with email_verified=true, we can treat as verified
+            except User.DoesNotExist:
+                # Create a new account for a verified Google identity (OAuth endpoints remain unavailable).
                 try:
-                    user = DjangoUser.objects.create_user(
+                    user = User.objects.create_user(
                         email=email,
                         password=auth.generate_password(None),  # Random password, not used for Google login
                     )
-                    # For Google-authenticated users with email_verified=true, mark as verified
-                    # The User model doesn't have an "email_verified" field by default,
-                    # but we can use is_active and additional marking
                     user.is_active = True
                     user.save(update_fields=["is_active"])
                     auth.login(request, user, backend="django.contrib.auth.backends.ModelBackend")
@@ -132,7 +123,7 @@ class GoogleOAuthBackend(BaseBackend):
         except Exception:
             return None
 
-    def _authenticate_with_code(self, code: str, request: HttpRequest) -> DjangoUser | None:
+    def _authenticate_with_code(self, code: str, request: HttpRequest):
         """Authenticate using the Google authorization code flow.
 
         Exchanges the code for tokens, validates the ID token, and gets or creates
@@ -150,7 +141,7 @@ class GoogleOAuthBackend(BaseBackend):
             }
 
             req = urllib.request.Request(token_url, data=urllib.parse.urlencode(payload).encode())
-            with urllib.request.urlopen(req, timeout=10) as response:
+            with urllib.request.urlopen(req, timeout=10) as response:  # nosec B310: URL is a fixed Google HTTPS endpoint.
                 token_data = json.loads(response.read().decode())
 
             access_token = token_data.get("access_token", "")
@@ -167,7 +158,7 @@ class GoogleOAuthBackend(BaseBackend):
         except Exception:
             return None
 
-    def _authenticate_with_access_token(self, access_token: str, request: HttpRequest) -> DjangoUser | None:
+    def _authenticate_with_access_token(self, access_token: str, request: HttpRequest):
         """Authenticate using Google OAuth access token via the People API."""
         try:
             # Get user info from Google People API
@@ -176,7 +167,7 @@ class GoogleOAuthBackend(BaseBackend):
             req.add_header("Authorization", f"Bearer {access_token}")
             req.add_header("Accept", "application/json")
 
-            with urllib.request.urlopen(req, timeout=10) as response:
+            with urllib.request.urlopen(req, timeout=10) as response:  # nosec B310: URL is a fixed Google HTTPS endpoint.
                 person_data = json.loads(response.read().decode())
 
             # Extract email and name from the response
@@ -184,20 +175,20 @@ class GoogleOAuthBackend(BaseBackend):
             if not email_entries:
                 return None
 
-            email = email_entries[0].get("value", "")
+            email = User.objects.canonicalize_email(email_entries[0].get("value", "") or "")
             if not email:
                 return None
 
             # Find or create user
             try:
-                user = DjangoUser.objects.get(email=email)
+                user = User.objects.get(email__iexact=email)
                 if not user.is_active:
                     return None
                 auth.login(request, user, backend="django.contrib.auth.backends.ModelBackend")
                 return user
-            except DjangoUser.DoesNotExist:
+            except User.DoesNotExist:
                 try:
-                    user = DjangoUser.objects.create_user(
+                    user = User.objects.create_user(
                         email=email,
                         password=auth.generate_password(None),
                     )
@@ -211,11 +202,11 @@ class GoogleOAuthBackend(BaseBackend):
         except Exception:
             return None
 
-    def get_user(self, user_id: int) -> DjangoUser | None:
+    def get_user(self, user_id: int):
         """Get a user by ID for session persistence."""
         try:
-            return DjangoUser.objects.get(pk=user_id)
-        except DjangoUser.DoesNotExist:
+            return User.objects.get(pk=user_id)
+        except User.DoesNotExist:
             return None
 
 

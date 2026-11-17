@@ -11,13 +11,15 @@ urlpatterns = [
     path("change-password/", views.ChangePasswordView.as_view(), name="change-password"),
     path("profile/", views.UpdateProfileView.as_view(), name="profile"),
     path("request-deletion/", views.AccountDeletionRequestView.as_view(), name="request-deletion"),
-    # Google OAuth
-    path("auth/google/", views.GoogleOAuthLoginView.as_view(), name="google_login"),
-    path("auth/google/callback/", views.GoogleOAuthCallbackView.as_view(), name="google_callback"),
+    # Google OAuth (disabled - unfinished/insecure path removed from functional use)
+    path("google/", views.GoogleOAuthLoginView.as_view(), name="google_login"),
+    path("google/callback/", views.GoogleOAuthCallbackView.as_view(), name="google_callback"),
+
     # Email verification
-    path("auth/verify-email/", views.EmailVerificationRequestView.as_view(), name="verify_email"),
-    path("auth/verify-email/<str:token>/", views.EmailVerificationRequestView.as_view(), name="verify_email_confirm"),
-    path("auth/resend-verification/", views.ResendVerificationView.as_view(), name="resend_verification"),
+    path("verify-email/", views.EmailVerificationRequestView.as_view(), name="verify_email_request"),
+    path("verify-email/confirm/", views.EmailVerificationConfirmView.as_view(), name="verify_email_confirm"),
+    path("verify-email/<str:token>/", views.EmailVerificationConfirmView.as_view(), name="verify_email_confirm_token"),
+    path("resend-verification/", views.ResendVerificationView.as_view(), name="resend_verification"),
     # Donation catalogue
     path("donations/products/", views.DonationProductListView.as_view(), name="donation_products"),
     path("donations/", views.DonationCreateView.as_view(), name="donation_create"),
