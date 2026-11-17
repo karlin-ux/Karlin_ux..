@@ -245,8 +245,10 @@ SESSION_COOKIE_SECURE = env_bool("DJANGO_SECURE_COOKIES", default=False)
 CSRF_COOKIE_SECURE = env_bool("DJANGO_SECURE_COOKIES", default=False)
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = False
-SESSION_COOKIE_SAMESITE = "Lax"
-CSRF_COOKIE_SAMESITE = "Lax"
+# Cross-origin auth (e.g. frontend/backend on different origins) requires SameSite=None + Secure.
+# Controlled via env vars; defaults keep local HTTP development working.
+SESSION_COOKIE_SAMESITE = os.environ.get("DJANGO_SESSION_COOKIE_SAMESITE", "Lax")
+CSRF_COOKIE_SAMESITE = os.environ.get("DJANGO_CSRF_COOKIE_SAMESITE", "Lax")
 X_FRAME_OPTIONS = "DENY"
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "same-origin"
@@ -254,10 +256,13 @@ SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_SECURE_HSTS_SECONDS", "0") or 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_HSTS_SECONDS > 0
 SECURE_HSTS_PRELOAD = env_bool("DJANGO_SECURE_HSTS_PRELOAD", default=False)
 
-# Proxy SSL header — needed when running behind a reverse proxy (Caddy, nginx, etc.)
-# Set DJANGO_SECURE_PROXY_SSL_HEADER=True in production behind a proxy.
+# Proxy SSL header — needed when running behind a reverse proxy (Caddy, nginx, Render, etc.)
+# Set DJANGO_SECURE_PROXY_SSL_HEADER=True in production behind a trusted proxy.
 if env_bool("DJANGO_SECURE_PROXY_SSL_HEADER", default=False):
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Trust only explicitly configured forwarded host handling (disabled by default).
+USE_X_FORWARDED_HOST = env_bool("DJANGO_USE_X_FORWARDED_HOST", default=False)
 
 # Content Security Policy (manual header via middleware not added; configure in proxy too)
 CSP_DEFAULT_SRC = ("'self'",)
