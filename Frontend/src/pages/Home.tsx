@@ -227,7 +227,7 @@ export default function Home() {
       {/* ============================================
           HERO
           ============================================ */}
-      <section className="relative overflow-hidden pb-12 pt-14 sm:pb-16 sm:pt-20">
+      <section className="relative overflow-hidden pb-8 pt-10 sm:pb-10 sm:pt-14">
         <div className="parallax-slow pointer-events-none absolute -right-24 -top-40 h-[520px] w-[520px] rounded-full bg-[var(--accent)] opacity-[0.06] blur-[160px]" data-parallax-speed="0.06" />
         <div className="parallax-slow pointer-events-none absolute -left-24 top-32 h-[360px] w-[360px] rounded-full bg-[var(--accent-2)] opacity-[0.05] blur-[140px]" data-parallax-speed="0.1" />
 
@@ -284,28 +284,31 @@ export default function Home() {
                 </Link>
               </div>
 
-              <Reveal delay={460}><div className="skills-marquee" aria-label="Skills and technologies">
-                <div className="skills-marquee-viewport">
-                  <div className="skills-marquee-track">
-                    {[...skillsTicker, ...skillsTicker].map((skill, i) => (
-                      <span key={`${skill}-${i}`} className="skills-marquee-item" style={{ ['--glint-delay' as any]: `${(i * 0.37) % 5.5}s` }}>
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div></Reveal>
             </div>
 
 
           </div>
         </div>
+
+        <Reveal delay={460}>
+          <div className="skills-marquee skills-marquee--full" aria-label="Skills and technologies">
+            <div className="skills-marquee-viewport">
+              <div className="skills-marquee-track">
+                {[...skillsTicker, ...skillsTicker].map((skill, i) => (
+                  <span key={`${skill}-${i}`} className="skills-marquee-item" style={{ ['--glint-delay' as any]: `${(i * 0.37) % 5.5}s` }}>
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Reveal>
       </section>
 
       {/* ============================================
           TECHNOLOGIES AND SKILLS
           ============================================ */}
-      <section className="relative bg-transparent py-14 sm:py-16">
+      <section className="relative bg-transparent py-8 sm:py-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center gap-4 text-center">
             <div>
@@ -365,7 +368,7 @@ export default function Home() {
       {/* ============================================
           ABOUT ME
           ============================================ */}
-      <section id="about" className="relative py-14 sm:py-16">
+      <section id="about" className="relative py-8 sm:py-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <article className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)]/85">
             <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-12 lg:gap-10">
@@ -455,7 +458,7 @@ export default function Home() {
       {/* ============================================
           SELECTED WORK
           ============================================ */}
-      <section className="relative py-14 sm:py-16">
+      <section className="relative py-8 sm:py-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center gap-4 text-center">
             <div>
@@ -541,7 +544,7 @@ export default function Home() {
       {/* ============================================
           CONTACT CTA
           ============================================ */}
-      <section className="relative pb-16 sm:pb-20">
+      <section className="relative pb-10 pt-8 sm:pb-12 sm:pt-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Reveal><div className="sheen spotlight-card relative overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--bg-elevated)]/85 px-6 py-12 text-center sm:px-12 sm:py-16">
             <div
