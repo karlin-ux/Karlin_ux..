@@ -43,7 +43,7 @@ def forwards(apps, schema_editor):
         source_q = qn(source_name)
 
         cursor.execute(
-            f"SELECT id, demoapplication_id, mediaasset_id FROM {source_q} ORDER BY id"
+            f"SELECT id, demoapplication_id, mediaasset_id FROM {source_q} ORDER BY id"  # nosec B608: identifiers are quoted and values use database parameters.
         )
         rows = cursor.fetchall()
         if not rows:
@@ -57,7 +57,7 @@ def forwards(apps, schema_editor):
         if app_ids:
             app_placeholders = ",".join(["%s"] * len(app_ids))
             cursor.execute(
-                f"SELECT id, workspace_id FROM {app_t} WHERE id IN ({app_placeholders})",
+                f"SELECT id, workspace_id FROM {app_t} WHERE id IN ({app_placeholders})",  # nosec B608: identifiers are quoted and values use database parameters.
                 list(app_ids),
             )
             app_ws = {r[0]: r[1] for r in cursor.fetchall()}
@@ -66,12 +66,9 @@ def forwards(apps, schema_editor):
         if media_ids:
             media_placeholders = ",".join(["%s"] * len(media_ids))
             cursor.execute(
-                f"""
-                SELECT id, workspace_id, storage_path, original_filename, mime_type,
-                       file_size, alt_text, description
-                FROM {media_t}
-                WHERE id IN ({media_placeholders})
-                """,
+                f"SELECT id, workspace_id, storage_path, original_filename, mime_type, "
+                f"file_size, alt_text, description FROM {media_t} "
+                f"WHERE id IN ({media_placeholders})",  # nosec B608: identifiers are quoted and values use database parameters.
                 media_ids,
             )
             media_by_id = {str(m[0]): m for m in cursor.fetchall()}
@@ -102,12 +99,10 @@ def forwards(apps, schema_editor):
             _mid, workspace_id, storage_path, original_filename, mime_type, file_size, alt_text, description = m
             if connection.vendor == "postgresql":
                 cursor.execute(
-                    f"""
-                    INSERT INTO {demo_media_t}
-                        (created_at, updated_at, workspace_id, file, original_name, mime_type, size, alt_text, description, folder)
-                    VALUES (NOW(), NOW(), %s, %s, %s, %s, %s, %s, %s, %s)
-                    RETURNING id
-                    """,
+                    f"INSERT INTO {demo_media_t} "
+                    "(created_at, updated_at, workspace_id, file, original_name, mime_type, size, alt_text, description, folder) "
+                    "VALUES (NOW(), NOW(), %s, %s, %s, %s, %s, %s, %s, %s) "
+                    "RETURNING id",  # nosec B608: identifiers are quoted and values use database parameters.
                     [
                         workspace_id,
                         storage_path or "",
@@ -122,11 +117,9 @@ def forwards(apps, schema_editor):
                 new_id = cursor.fetchone()[0]
             else:
                 cursor.execute(
-                    f"""
-                    INSERT INTO {demo_media_t}
-                        (created_at, updated_at, workspace_id, file, original_name, mime_type, size, alt_text, description, folder)
-                    VALUES (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, %s, %s, %s, %s, %s, %s, %s, %s)
-                    """,
+                    f"INSERT INTO {demo_media_t} "
+                    "(created_at, updated_at, workspace_id, file, original_name, mime_type, size, alt_text, description, folder) "
+                    "VALUES (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, %s, %s, %s, %s, %s, %s, %s, %s)",  # nosec B608: identifiers are quoted and values use database parameters.
                     [
                         workspace_id,
                         storage_path or "",
@@ -151,7 +144,7 @@ def forwards(apps, schema_editor):
                 continue
             seen.add(pair)
             cursor.execute(
-                f"INSERT INTO {new_through} (demoapplication_id, demomediaasset_id) VALUES (%s, %s)",
+                f"INSERT INTO {new_through} (demoapplication_id, demomediaasset_id) VALUES (%s, %s)",  # nosec B608: identifiers are quoted and values use database parameters.
                 [app_id, new_media_id],
             )
 

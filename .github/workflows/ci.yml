@@ -213,9 +213,16 @@ jobs:
           format: table
           exit-code: "0"
 
-      - name: Upload Trivy SARIF
+      - name: Upload Trivy filesystem SARIF
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: trivy-sarif
-          category: trivy
+          sarif_file: trivy-sarif/fs.sarif
+          category: trivy-filesystem
+
+      - name: Upload Trivy backend image SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-sarif/backend.sarif
+          category: trivy-backend-image

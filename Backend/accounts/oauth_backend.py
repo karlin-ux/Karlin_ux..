@@ -150,7 +150,7 @@ class GoogleOAuthBackend(BaseBackend):
             }
 
             req = urllib.request.Request(token_url, data=urllib.parse.urlencode(payload).encode())
-            with urllib.request.urlopen(req, timeout=10) as response:
+            with urllib.request.urlopen(req, timeout=10) as response:  # nosec B310: URL is a fixed Google HTTPS endpoint.
                 token_data = json.loads(response.read().decode())
 
             access_token = token_data.get("access_token", "")
@@ -176,7 +176,7 @@ class GoogleOAuthBackend(BaseBackend):
             req.add_header("Authorization", f"Bearer {access_token}")
             req.add_header("Accept", "application/json")
 
-            with urllib.request.urlopen(req, timeout=10) as response:
+            with urllib.request.urlopen(req, timeout=10) as response:  # nosec B310: URL is a fixed Google HTTPS endpoint.
                 person_data = json.loads(response.read().decode())
 
             # Extract email and name from the response

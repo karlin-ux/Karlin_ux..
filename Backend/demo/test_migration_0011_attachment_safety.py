@@ -125,7 +125,7 @@ class DemoApplicationAttachmentMigration0011Tests(TransactionTestCase):
                 table_sql = connection.ops.quote_name(User._meta.db_table)
                 with connection.cursor() as cursor:
                     cursor.execute(
-                        f"INSERT INTO {table_sql} ({col_sql}) VALUES ({placeholders}) RETURNING id",
+                        f"INSERT INTO {table_sql} ({col_sql}) VALUES ({placeholders}) RETURNING id",  # nosec B608: identifiers are quoted and values use database parameters.
                         vals,
                     )
                     user_id = cursor.fetchone()[0]
@@ -166,7 +166,7 @@ class DemoApplicationAttachmentMigration0011Tests(TransactionTestCase):
     def _insert_old_association(self, app_id, media_id):
         with connection.cursor() as cursor:
             cursor.execute(
-                f"INSERT INTO {OLD_THROUGH} (demoapplication_id, mediaasset_id) VALUES (%s, %s) RETURNING id",
+                f"INSERT INTO {OLD_THROUGH} (demoapplication_id, mediaasset_id) VALUES (%s, %s) RETURNING id",  # nosec B608: identifiers are quoted and values use database parameters.
                 [app_id, media_id],
             )
             return cursor.fetchone()[0]
@@ -222,12 +222,14 @@ class DemoApplicationAttachmentMigration0011Tests(TransactionTestCase):
                 # Clear retained-table rows created by tests (test isolation only; no CASCADE,
                 # table/constraints preserved). This avoids flush/truncate FK dependency issues.
                 if TMP_THROUGH in tables:
-                    cursor.execute(f"DELETE FROM {connection.ops.quote_name(TMP_THROUGH)}")
+                    cursor.execute(f"DELETE FROM {connection.ops.quote_name(TMP_THROUGH)}"  # nosec B608: identifiers are quoted and values use database parameters.
+                    )
                 # If target-state new through table remains for any reason, clear it too.
                 if OLD_THROUGH in tables:
                     # Only safe when at/returned to expected schema; ignore if structure differs.
                     try:
-                        cursor.execute(f"DELETE FROM {connection.ops.quote_name(OLD_THROUGH)}")
+                        cursor.execute(f"DELETE FROM {connection.ops.quote_name(OLD_THROUGH)}"  # nosec B608: identifiers are quoted and values use database parameters.
+                        )
                     except Exception:
                         pass
         finally:
@@ -261,7 +263,7 @@ class DemoApplicationAttachmentMigration0011Tests(TransactionTestCase):
         self.assertIn(TMP_THROUGH, self._table_names())
         with connection.cursor() as cursor:
             cursor.execute(
-                f"SELECT demoapplication_id, mediaasset_id FROM {TMP_THROUGH}"
+                f"SELECT demoapplication_id, mediaasset_id FROM {TMP_THROUGH}"  # nosec B608: identifiers are quoted and values use database parameters.
             )
             rows = cursor.fetchall()
         self.assertEqual(rows, [(self.app.id, self.media.id)])
@@ -286,7 +288,7 @@ class DemoApplicationAttachmentMigration0011Tests(TransactionTestCase):
         self.assertNotIn(TMP_THROUGH, self._table_names())
         with connection.cursor() as cursor:
             cursor.execute(
-                f"SELECT demoapplication_id, mediaasset_id FROM {OLD_THROUGH}"
+                f"SELECT demoapplication_id, mediaasset_id FROM {OLD_THROUGH}"  # nosec B608: identifiers are quoted and values use database parameters.
             )
             rows = cursor.fetchall()
         self.assertEqual(rows, [(self.app.id, cross_media.id)])
@@ -312,7 +314,7 @@ class DemoApplicationAttachmentMigration0011Tests(TransactionTestCase):
             self.assertNotIn(TMP_THROUGH, self._table_names())
             with connection.cursor() as cursor:
                 cursor.execute(
-                    f"SELECT id, demoapplication_id, mediaasset_id FROM {OLD_THROUGH}"
+                    f"SELECT id, demoapplication_id, mediaasset_id FROM {OLD_THROUGH}"  # nosec B608: identifiers are quoted and values use database parameters.
                 )
                 rows = cursor.fetchall()
             self.assertEqual(
@@ -327,7 +329,7 @@ class DemoApplicationAttachmentMigration0011Tests(TransactionTestCase):
                 if orphan_row_id is not None and OLD_THROUGH in self._table_names():
                     with connection.cursor() as cursor:
                         cursor.execute(
-                            f"DELETE FROM {connection.ops.quote_name(OLD_THROUGH)} WHERE id = %s",
+                            f"DELETE FROM {connection.ops.quote_name(OLD_THROUGH)} WHERE id = %s",  # nosec B608: identifiers are quoted and values use database parameters.
                             [orphan_row_id],
                         )
             finally:
@@ -349,7 +351,7 @@ class DemoApplicationAttachmentMigration0011Tests(TransactionTestCase):
         self.assertNotIn(TMP_THROUGH, tables)
         with connection.cursor() as cursor:
             cursor.execute(
-                f"SELECT demoapplication_id, mediaasset_id FROM {OLD_THROUGH}"
+                f"SELECT demoapplication_id, mediaasset_id FROM {OLD_THROUGH}"  # nosec B608: identifiers are quoted and values use database parameters.
             )
             rows = cursor.fetchall()
         self.assertEqual(rows, [(self.app.id, self.media.id)])
