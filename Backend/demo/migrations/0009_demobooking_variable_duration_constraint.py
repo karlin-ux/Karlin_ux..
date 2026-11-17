@@ -27,9 +27,10 @@ class Migration(migrations.Migration):
         # Step 1: Create the btree_gist GiST index extension.
         # This must run before the constraint because the constraint references the GiST operator
         # class for the UUID workspace_id column.
+        # Reverse is a no-op: btree_gist may be shared by other database objects and must not be dropped.
         migrations.RunSQL(
             "CREATE EXTENSION IF NOT EXISTS btree_gist;",
-            "DROP EXTENSION btree_gist;",
+            migrations.RunSQL.noop,
         ),
 
         # Step 2: Add the variable-duration exclusion constraint.

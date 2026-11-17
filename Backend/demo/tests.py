@@ -667,3 +667,360 @@ class DemoBookingIntegrityRegressionTests(TestCase):
             content_type="application/json",
         )
         self.assertEqual(again.status_code, 201)
+
+
+class DemoBookingPostgresConstraintTests(TestCase):
+    """PostgreSQL-only verification for booking exclusion constraint (migrations 0008-0010)."""
+
+    @classmethod
+    def setUpClass(cls):
+        from django.db import connection
+        if connection.vendor != "postgresql":
+            from unittest import SkipTest
+            raise SkipTest("PostgreSQL-only booking constraint tests require PostgreSQL.")
+        super().setUpClass()
+
+    def setUp(self):
+        self.c1 = Client(enforce_csrf_checks=False)
+        self.c2 = Client(enforce_csrf_checks=False)
+        self.c1.post(
+            "/api/auth/register/",
+            {"email": "pgbook1@b.com", "password": "TestPass123!", "password_confirm": "TestPass123!"},
+            content_type="application/json",
+        )
+        self.c2.post(
+            "/api/auth/register/",
+            {"email": "pgbook2@b.com", "password": "TestPass123!", "password_confirm": "TestPass123!"},
+            content_type="application/json",
+        )
+        from accounts.models import Workspace
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        self.ws1 = Workspace.objects.get(owner=User.objects.get(email="pgbook1@b.com"))
+        self.ws2 = Workspace.objects.get(owner=User.objects.get(email="pgbook2@b.com"))
+
+        r = self.c1.post(
+            "/api/demo/services/",
+            {"name": "PG Svc 60", "duration_minutes": 60, "operating_start": "09:00", "operating_end": "17:00", "slot_interval_minutes": 30, "is_active": True},
+            content_type="application/json",
+        )
+        self.assertEqual(r.status_code, 201)
+        self.service1_id = r.json()["id"]
+
+        r2 = self.c2.post(
+            "/api/demo/services/",
+            {"name": "PG Svc 60", "duration_minutes": 60, "operating_start": "09:00", "operating_end": "17:00", "slot_interval_minutes": 30, "is_active": True},
+            content_type="application/json",
+        )
+        self.assertEqual(r2.status_code, 201)
+        self.service2_id = r2.json()["id"]
+
+    def test_btree_gist_extension_and_exclusion_constraint_exist(self):
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1 FROM pg_extension WHERE extname = 'btree_gist';")
+            self.assertIsNotNone(cursor.fetchone(), "btree_gist extension must be available")
+
+            cursor.execute(
+                """
+                SELECT conname, pg_get_constraintdef(c.oid)
+                FROM pg_constraint c
+                JOIN pg_class t ON t.oid = c.conrelid
+                WHERE t.relname = 'demo_demobooking' AND c.conname = 'no_booking_overlap_var';
+                """
+            )
+            row = cursor.fetchone()
+        self.assertIsNotNone(row, "no_booking_overlap_var exclusion constraint must exist")
+        condef = row[1]
+        self.assertIn("EXCLUDE", condef.upper())
+        self.assertIn("workspace_id", condef)
+        self.assertIn("duration_minutes", condef)
+        self.assertIn("status", condef)
+
+    def test_variable_duration_overlap_rejected_and_non_cancelled_protected(self):
+        import datetime
+        d = (datetime.date.today() + datetime.timedelta(days=20)).isoformat()
+        # 60-minute booking 09:00-10:00
+        r1 = self.c1.post(
+            "/api/demo/bookings/",
+            {"service": self.service1_id, "service_name": "PG Svc 60", "date": d, "time": "09:00:00"},
+            content_type="application/json",
+        )
+        self.assertEqual(r1.status_code, 201)
+        # Overlapping inside variable duration (09:30) must be rejected by server/DB protection.
+        r2 = self.c1.post(
+            "/api/demo/bookings/",
+            {"service": self.service1_id, "service_name": "PG Svc 60", "date": d, "time": "09:30:00"},
+            content_type="application/json",
+        )
+        self.assertEqual(r2.status_code, 400)
+        # Adjacent slot at 10:00 should be allowed for 60-min blocks ([) semantics).
+        r3 = self.c1.post(
+            "/api/demo/bookings/",
+            {"service": self.service1_id, "service_name": "PG Svc 60", "date": d, "time": "10:00:00"},
+            content_type="application/json",
+        )
+        self.assertEqual(r3.status_code, 201)
+
+    def test_cancelled_booking_does_not_block_and_workspace_isolation_holds(self):
+        import datetime
+        d = (datetime.date.today() + datetime.timedelta(days=21)).isoformat()
+        r1 = self.c1.post(
+            "/api/demo/bookings/",
+            {"service": self.service1_id, "service_name": "PG Svc 60", "date": d, "time": "11:00:00"},
+            content_type="application/json",
+        )
+        self.assertEqual(r1.status_code, 201)
+        bid = r1.json()["id"]
+        cancel = self.c1.patch(f"/api/demo/bookings/{bid}/", {"status": "cancelled"}, content_type="application/json")
+        self.assertEqual(cancel.status_code, 200)
+        # Same workspace/time should be bookable after cancellation.
+        r2 = self.c1.post(
+            "/api/demo/bookings/",
+            {"service": self.service1_id, "service_name": "PG Svc 60", "date": d, "time": "11:00:00"},
+            content_type="application/json",
+        )
+        self.assertEqual(r2.status_code, 201)
+        # Different workspace can book same date/time independently.
+        r3 = self.c2.post(
+            "/api/demo/bookings/",
+            {"service": self.service2_id, "service_name": "PG Svc 60", "date": d, "time": "11:00:00"},
+            content_type="application/json",
+        )
+        self.assertEqual(r3.status_code, 201)
+
+    def test_db_exclusion_constraint_rejects_overlapping_insert_bypassing_api(self):
+        """DB-level proof: PostgreSQL exclusion constraint blocks overlap independent of API validation."""
+        import datetime
+        from django.db import IntegrityError, transaction
+        from .models import DemoBooking, DemoService
+
+        service = DemoService.objects.get(id=self.service1_id, workspace=self.ws1)
+        d = datetime.date.today() + datetime.timedelta(days=22)
+        start = datetime.time(9, 0)
+        overlap_start = datetime.time(9, 30)
+
+        DemoBooking.objects.create(
+            workspace=self.ws1,
+            service=service,
+            service_name=service.name,
+            date=d,
+            time=start,
+            status="pending",
+            duration_minutes=60,
+        )
+
+        with self.assertRaises(IntegrityError) as ctx:
+            with transaction.atomic():
+                # Direct ORM insert bypasses view/serializer validation; DB constraint must reject.
+                DemoBooking.objects.create(
+                    workspace=self.ws1,
+                    service=service,
+                    service_name=service.name,
+                    date=d,
+                    time=overlap_start,
+                    status="pending",
+                    duration_minutes=60,
+                )
+
+        exc_text = str(ctx.exception)
+        cause_text = str(getattr(ctx.exception, "__cause__", "") or "")
+        diag = getattr(getattr(ctx.exception, "__cause__", None), "diag", None)
+        constraint_name = getattr(diag, "constraint_name", "") if diag else ""
+        self.assertTrue(
+            "no_booking_overlap_var" in exc_text
+            or "no_booking_overlap_var" in cause_text
+            or constraint_name == "no_booking_overlap_var",
+            f"Expected IntegrityError from no_booking_overlap_var, got: {ctx.exception!r} / cause={getattr(ctx.exception, '__cause__', None)!r}",
+        )
+
+        # Failed insert must be rolled back by savepoint and leave transaction usable.
+        self.assertTrue(
+            DemoBooking.objects.filter(
+                workspace=self.ws1, date=d, time=start, status="pending"
+            ).exists()
+        )
+        self.assertFalse(
+            DemoBooking.objects.filter(
+                workspace=self.ws1, date=d, time=overlap_start
+            ).exists()
+        )
+
+
+class WorkspaceResolutionFailClosedTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+        from accounts.models import Workspace
+        from .models import DemoCustomer, DemoNotification
+
+        User = get_user_model()
+        # Valid workspace owner/user.
+        self.owner_client = Client(enforce_csrf_checks=False)
+        self.owner_client.post(
+            "/api/auth/register/",
+            {"email": "ws-owner@example.com", "password": "TestPass123!", "password_confirm": "TestPass123!"},
+            content_type="application/json",
+        )
+        self.owner = User.objects.get(email="ws-owner@example.com")
+        self.owner_ws = Workspace.objects.get(owner=self.owner)
+        self.owner_customer = DemoCustomer.objects.create(
+            workspace=self.owner_ws, name="Owner Customer", email="owner-customer@example.com"
+        )
+        self.owner_notification = DemoNotification.objects.create(
+            workspace=self.owner_ws,
+            recipient_type="admin",
+            title="Owner note",
+            message="hello",
+            is_read=False,
+        )
+
+        # Create an authenticated user without a workspace for fail-closed tests.
+        # Normal account creation bootstraps a workspace, so disconnect only
+        # that receiver during this controlled test-fixture creation.
+        from django.db.models.signals import post_save
+        from accounts.signals import bootstrap_user_workspace
+
+        post_save.disconnect(
+            receiver=bootstrap_user_workspace,
+            sender=User,
+        )
+        try:
+            self.noworkspace_user = User.objects.create_user(
+                email="noworkspace@example.com", password="TestPass123!"
+            )
+        finally:
+            post_save.connect(
+                receiver=bootstrap_user_workspace,
+                sender=User,
+            )
+
+        self.assertFalse(Workspace.objects.filter(owner=self.noworkspace_user).exists())
+        self.no_ws_client = Client(enforce_csrf_checks=False)
+        login = self.no_ws_client.post(
+            "/api/auth/login/",
+            {"email": "noworkspace@example.com", "password": "TestPass123!"},
+            content_type="application/json",
+        )
+        self.assertEqual(login.status_code, 200)
+
+    def test_authenticated_user_without_workspace_cannot_create_demo_resource(self):
+        from .models import DemoCustomer
+
+        before = DemoCustomer.objects.count()
+        r = self.no_ws_client.post(
+            "/api/demo/customers/",
+            {"name": "No WS Create", "email": "nowstest@example.com"},
+            content_type="application/json",
+        )
+        self.assertEqual(r.status_code, 403)
+        self.assertEqual(DemoCustomer.objects.count(), before)
+
+    def test_authenticated_user_without_workspace_cannot_access_workspace_scoped_resources(self):
+        r_list = self.no_ws_client.get("/api/demo/customers/")
+        self.assertEqual(r_list.status_code, 403)
+        r_detail = self.no_ws_client.get(f"/api/demo/customers/{self.owner_customer.id}/")
+        self.assertEqual(r_detail.status_code, 403)
+
+    def test_authenticated_user_without_workspace_cannot_update_or_delete_workspace_scoped_resources(self):
+        from .models import DemoCustomer
+
+        r_patch = self.no_ws_client.patch(
+            f"/api/demo/customers/{self.owner_customer.id}/",
+            {"name": "Hacked"},
+            content_type="application/json",
+        )
+        self.assertEqual(r_patch.status_code, 403)
+        r_delete = self.no_ws_client.delete(f"/api/demo/customers/{self.owner_customer.id}/")
+        self.assertEqual(r_delete.status_code, 403)
+        self.owner_customer.refresh_from_db()
+        self.assertEqual(self.owner_customer.name, "Owner Customer")
+        self.assertTrue(DemoCustomer.objects.filter(id=self.owner_customer.id).exists())
+
+    def test_client_supplied_workspace_id_cannot_override_owner_workspace(self):
+        from django.contrib.auth import get_user_model
+        from accounts.models import Workspace
+        from .models import DemoCustomer
+
+        # Use a separate owner so the no-workspace test user remains unchanged.
+        OtherUser = get_user_model()
+        other_owner = OtherUser.objects.create_user(
+            email="injected-workspace-owner@example.com",
+            password="TestPass123!",
+        )
+        injected_workspace = Workspace.objects.create(
+            owner=other_owner,
+            name="Injected Workspace",
+            slug="injected-workspace",
+        )
+
+        before = DemoCustomer.objects.count()
+        r = self.owner_client.post(
+            "/api/demo/customers/",
+            {
+                "name": "Workspace Injection",
+                "email": "workspace-injection@example.com",
+                "workspace": str(injected_workspace.id),
+            },
+            content_type="application/json",
+        )
+
+        self.assertEqual(r.status_code, 201, r.content)
+        customer = DemoCustomer.objects.get(email="workspace-injection@example.com")
+        self.assertEqual(customer.workspace_id, self.owner_ws.id)
+        self.assertNotEqual(customer.workspace_id, injected_workspace.id)
+        self.assertEqual(DemoCustomer.objects.count(), before + 1)
+
+    def test_custom_actions_and_mutation_paths_fail_closed_without_workspace(self):
+        from .models import DemoCustomer, DemoNotification
+
+        r_toggle = self.no_ws_client.post(f"/api/demo/customers/{self.owner_customer.id}/toggle_active/")
+        self.assertEqual(r_toggle.status_code, 403)
+        self.owner_customer.refresh_from_db()
+        self.assertTrue(self.owner_customer.is_active)
+
+        r_mark_read = self.no_ws_client.post(f"/api/demo/notifications/{self.owner_notification.id}/mark_read/")
+        self.assertEqual(r_mark_read.status_code, 403)
+        self.owner_notification.refresh_from_db()
+        self.assertFalse(self.owner_notification.is_read)
+
+    def test_user_with_valid_workspace_can_still_create_and_manage_resources(self):
+        from .models import DemoCustomer
+
+        create = self.owner_client.post(
+            "/api/demo/customers/",
+            {"name": "Valid WS User", "email": "valid-ws@example.com"},
+            content_type="application/json",
+        )
+        self.assertEqual(create.status_code, 201)
+        cid = create.json()["id"]
+        obj = DemoCustomer.objects.get(id=cid)
+        self.assertEqual(obj.workspace_id, self.owner_ws.id)
+
+        update = self.owner_client.patch(
+            f"/api/demo/customers/{cid}/",
+            {"name": "Valid WS User Updated"},
+            content_type="application/json",
+        )
+        self.assertEqual(update.status_code, 200)
+        obj.refresh_from_db()
+        self.assertEqual(obj.name, "Valid WS User Updated")
+
+        toggle = self.owner_client.post(f"/api/demo/customers/{cid}/toggle_active/")
+        self.assertEqual(toggle.status_code, 200)
+
+    def test_user_cannot_access_another_workspaces_resources(self):
+        # Independent focused check: valid-workspace user cannot access another workspace's resource.
+        other_client = Client(enforce_csrf_checks=False)
+        other_client.post(
+            "/api/auth/register/",
+            {"email": "ws-other@example.com", "password": "TestPass123!", "password_confirm": "TestPass123!"},
+            content_type="application/json",
+        )
+        r = other_client.get(f"/api/demo/customers/{self.owner_customer.id}/")
+        self.assertEqual(r.status_code, 404)
+        r_patch = other_client.patch(
+            f"/api/demo/customers/{self.owner_customer.id}/",
+            {"name": "Cross"},
+            content_type="application/json",
+        )
+        self.assertEqual(r_patch.status_code, 404)
