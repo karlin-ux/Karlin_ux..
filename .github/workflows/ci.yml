@@ -162,6 +162,10 @@ jobs:
           exit-code: "1"
           format: table
 
+      - name: Prepare Trivy SARIF directory
+        if: always()
+        run: mkdir -p trivy-sarif
+
       # Reports: all severities, never blocking. These keep existing findings
       # visible instead of silently ignoring them.
       - name: Trivy filesystem report (all severities, SARIF)

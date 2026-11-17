@@ -855,13 +855,12 @@ class WorkspaceResolutionFailClosedTests(TestCase):
 
         User = get_user_model()
         # Valid workspace owner/user.
-        self.owner_client = Client(enforce_csrf_checks=False)
-        self.owner_client.post(
-            "/api/auth/register/",
-            {"email": "ws-owner@example.com", "password": "TestPass123!", "password_confirm": "TestPass123!"},
-            content_type="application/json",
+        self.owner = User.objects.create_user(
+            email="ws-owner@example.com",
+            password="TestPass123!",
         )
-        self.owner = User.objects.get(email="ws-owner@example.com")
+        self.owner_client = Client(enforce_csrf_checks=False)
+        self.owner_client.force_login(self.owner)
         self.owner_ws = Workspace.objects.get(owner=self.owner)
         self.owner_customer = DemoCustomer.objects.create(
             workspace=self.owner_ws, name="Owner Customer", email="owner-customer@example.com"
@@ -896,12 +895,7 @@ class WorkspaceResolutionFailClosedTests(TestCase):
 
         self.assertFalse(Workspace.objects.filter(owner=self.noworkspace_user).exists())
         self.no_ws_client = Client(enforce_csrf_checks=False)
-        login = self.no_ws_client.post(
-            "/api/auth/login/",
-            {"email": "noworkspace@example.com", "password": "TestPass123!"},
-            content_type="application/json",
-        )
-        self.assertEqual(login.status_code, 200)
+        self.no_ws_client.force_login(self.noworkspace_user)
 
     def test_authenticated_user_without_workspace_cannot_create_demo_resource(self):
         from .models import DemoCustomer
@@ -1010,12 +1004,15 @@ class WorkspaceResolutionFailClosedTests(TestCase):
 
     def test_user_cannot_access_another_workspaces_resources(self):
         # Independent focused check: valid-workspace user cannot access another workspace's resource.
-        other_client = Client(enforce_csrf_checks=False)
-        other_client.post(
-            "/api/auth/register/",
-            {"email": "ws-other@example.com", "password": "TestPass123!", "password_confirm": "TestPass123!"},
-            content_type="application/json",
+        from django.contrib.auth import get_user_model
+
+        other_user = get_user_model().objects.create_user(
+            email="ws-other@example.com",
+            password="TestPass123!",
         )
+        other_client = Client(enforce_csrf_checks=False)
+        other_client.force_login(other_user)
+
         r = other_client.get(f"/api/demo/customers/{self.owner_customer.id}/")
         self.assertEqual(r.status_code, 404)
         r_patch = other_client.patch(

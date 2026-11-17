@@ -1,5 +1,6 @@
 import io
 
+from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.test.client import Client
@@ -17,11 +18,23 @@ def make_image_bytes(fmt="PNG", size=(10, 10)):
 
 class MediaPermissionTests(TestCase):
     def setUp(self):
+        User = get_user_model()
+
+        self.user1 = User.objects.create_user(
+            email="m1@b.com",
+            password="TestPass123!",
+        )
+        self.user2 = User.objects.create_user(
+            email="m2@b.com",
+            password="TestPass123!",
+        )
+
         self.c1 = Client(enforce_csrf_checks=False)
         self.c2 = Client(enforce_csrf_checks=False)
-        self.c1.post("/api/auth/register/", {"email": "m1@b.com", "password": "TestPass123!", "password_confirm": "TestPass123!"}, content_type="application/json")
-        self.c2.post("/api/auth/register/", {"email": "m2@b.com", "password": "TestPass123!", "password_confirm": "TestPass123!"}, content_type="application/json")
-        # anonymous client
+        self.c1.force_login(self.user1)
+        self.c2.force_login(self.user2)
+
+        # Anonymous client
         self.anon = Client(enforce_csrf_checks=False)
 
     def test_anonymous_cannot_upload(self):
