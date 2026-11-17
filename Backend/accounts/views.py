@@ -1,18 +1,34 @@
+import hashlib
+import logging
+
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.hashers import make_password
+from django.core.cache import cache
 from django.core.mail import send_mail
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.middleware.csrf import get_token
 from django.utils import timezone as dj_timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
-from rest_framework.throttling import ScopedRateThrottle
+from rest_framework.throttling import ScopedRateThrottle, SimpleRateThrottle
 from rest_framework.views import APIView
+
+logger = logging.getLogger(__name__)
 
 from .models import User, CustomerProfile, Workspace, AccountSecurityEvent, DonationProduct, DonationDonation, EmailVerificationToken
 from .serializers import CustomerProfileSerializer, RegisterSerializer, UserSerializer, WorkspaceSerializer, DonationProductSerializer, DonationDonationSerializer
+
+
+def _reduce_registration_timing_difference(raw_password: str) -> None:
+    """Perform dummy password hashing to reduce duplicate/success timing side-channel differences.
+
+    Uses Django's configured password hasher. This reduces (but cannot guarantee elimination of)
+    timing differences and must not be treated as constant-time behavior.
+    """
+    make_password(raw_password)
 
 
 class CsrfView(APIView):
@@ -30,10 +46,42 @@ class RegisterView(APIView):
 
     def post(self, request):
         ser = RegisterSerializer(data=request.data)
-        ser.is_valid(raise_exception=True)
-        user = ser.save()
-        login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+        generic_detail = {"detail": "If registration is successful, you can sign in."}
+        generic_error = {"detail": "Registration could not be completed. Please try again later."}
+        # Validate input (syntax/password/confirmation) without any account-existence checks.
+        # Validation failures must not reveal whether the submitted email exists.
+        if not ser.is_valid():
+            return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        canonical_email = ser.validated_data["email"]
+        raw_password = ser.validated_data["password"]
+        try:
+            with transaction.atomic():
+                # Rely on DB/app uniqueness for duplicates; no distinguishable duplicate response.
+                if User.objects.filter(email__iexact=canonical_email).exists():
+                    # Reduce (not eliminate) timing side-channel differences vs successful registration.
+                    _reduce_registration_timing_difference(raw_password)
+                    return Response(generic_detail, status=status.HTTP_200_OK)
+                ser.save()
+        except IntegrityError:
+            # Transaction rolled back. Distinguish genuine duplicate-email conflict from unrelated failures.
+            try:
+                duplicate_exists = User.objects.filter(email__iexact=canonical_email).exists()
+            except Exception:
+                logger.exception("Registration integrity handling failed during duplicate check.")
+                return Response(generic_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            if duplicate_exists:
+                # Reduce (not eliminate) timing side-channel differences vs successful registration.
+                _reduce_registration_timing_difference(raw_password)
+                return Response(generic_detail, status=status.HTTP_200_OK)
+            logger.exception("Unexpected registration integrity failure.")
+            return Response(generic_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception:
+            logger.exception("Unexpected registration failure.")
+            return Response(generic_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Do not establish an authenticated session for registration responses.
+        return Response(generic_detail, status=status.HTTP_200_OK)
 
 
 class LoginView(APIView):
@@ -174,6 +222,79 @@ def _send_verification_email(user, raw_token: str) -> None:
     )
 
 
+def _normalized_email_value(email) -> str:
+    if not isinstance(email, str):
+        return ""
+    raw = email.strip()
+    if not raw:
+        return ""
+    try:
+        return User.objects.normalize_email(raw).lower()
+    except Exception:
+        return raw.lower()
+
+
+def _email_cooldown_cache_key(email: str) -> str:
+    """Cache key for normalized-email cooldown (SHA-256 of normalized value)."""
+    normalized = _normalized_email_value(email)
+    digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+    return f"accounts:email-verification-cooldown:{digest}"
+
+
+def _email_verification_in_cooldown(email: str, ttl_seconds: int = 60) -> bool:
+    """Per-submitted-email cooldown control (uniform for existing/nonexistent emails).
+
+    Uses atomic cache.add() to claim cooldown (no get/set race). Returns True when the
+    email is already in cooldown, False when cooldown was successfully claimed.
+    Atomicity is only as strong as the configured cache backend (local-memory cache is
+    not distributed/production-safe across workers).
+    """
+    normalized = _normalized_email_value(email)
+    # Invalid/empty input must not create arbitrary cooldown entries.
+    if not normalized:
+        return False
+    key = _email_cooldown_cache_key(normalized)
+    # cache.add is atomic on supported backends: True if added (not in cooldown), False if exists.
+    added = cache.add(key, True, ttl_seconds)
+    return not added
+
+
+class EmailVerificationRequestScopedThrottle(ScopedRateThrottle):
+    scope = "email_verify_request"
+
+
+class EmailVerificationRequestIPThrottle(SimpleRateThrottle):
+    scope = "email_verify_request_ip"
+
+    def get_cache_key(self, request, view):
+        ident = self.get_ident(request)
+        return self.cache_format % {"scope": self.scope, "ident": ident} if ident else None
+
+
+class EmailVerificationConfirmScopedThrottle(ScopedRateThrottle):
+    scope = "email_verify_confirm"
+
+
+class EmailVerificationConfirmIPThrottle(SimpleRateThrottle):
+    scope = "email_verify_confirm_ip"
+
+    def get_cache_key(self, request, view):
+        ident = self.get_ident(request)
+        return self.cache_format % {"scope": self.scope, "ident": ident} if ident else None
+
+
+class EmailVerificationResendScopedThrottle(ScopedRateThrottle):
+    scope = "email_verify_resend"
+
+
+class EmailVerificationResendIPThrottle(SimpleRateThrottle):
+    scope = "email_verify_resend_ip"
+
+    def get_cache_key(self, request, view):
+        ident = self.get_ident(request)
+        return self.cache_format % {"scope": self.scope, "ident": ident} if ident else None
+
+
 class EmailVerificationRequestView(APIView):
     """Request/send an email verification token.
 
@@ -183,10 +304,11 @@ class EmailVerificationRequestView(APIView):
     - Responses avoid confirming whether an account exists.
     """
     permission_classes = [permissions.AllowAny]
-    throttle_classes = [ScopedRateThrottle]
-    throttle_scope = "login"
+    throttle_classes = [EmailVerificationRequestScopedThrottle, EmailVerificationRequestIPThrottle]
+    throttle_scope = "email_verify_request"
 
     def post(self, request, token=None):
+        generic_detail = {"detail": "If the request is valid, a verification email will be sent."}
         # Dedicated confirm endpoint handles token confirmation.
         if token is not None:
             return Response({"detail": "Use the verification confirmation endpoint."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -194,48 +316,81 @@ class EmailVerificationRequestView(APIView):
         email = request.data.get("email")
 
         # Legacy/compat path: registration payload -> create unverified user and send token.
+        # Must not reveal account existence via validation, status, body, or session behavior.
         if request.data.get("password") is not None and request.data.get("password_confirm") is not None:
             ser = RegisterSerializer(data=request.data)
-            ser.is_valid(raise_exception=True)
-            with transaction.atomic():
-                user = ser.save()
-                if user.is_verified:
-                    # Preserve consistent state if customized; do not lock out.
-                    user.is_verified = False
-                    user.email_verified_at = None
-                    user.save(update_fields=["is_verified", "email_verified_at", "updated_at"])
-                EmailVerificationToken.objects.filter(user=user, used=False).update(used=True)
-                raw_token, _ = EmailVerificationToken.issue_for_user(user)
+            if not ser.is_valid():
+                # Input validation failures (syntax/password/confirmation) only; no existence checks.
+                return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            canonical_email = ser.validated_data["email"]
+            raw_password = ser.validated_data["password"]
+            normalized_email = _normalized_email_value(canonical_email)
+            if _email_verification_in_cooldown(normalized_email):
+                return Response(generic_detail, status=status.HTTP_200_OK)
+            try:
+                with transaction.atomic():
+                    existing = User.objects.filter(email__iexact=canonical_email).first()
+                    if existing is not None:
+                        # Reduce (not eliminate) timing side-channel differences vs successful registration.
+                        _reduce_registration_timing_difference(raw_password)
+                        # Duplicate registration attempt: indistinguishable generic response.
+                        return Response(generic_detail, status=status.HTTP_200_OK)
+                    user = ser.save()
+                    if user.is_verified:
+                        # Preserve consistent state if customized; do not lock out.
+                        user.is_verified = False
+                        user.email_verified_at = None
+                        user.save(update_fields=["is_verified", "email_verified_at", "updated_at"])
+                    EmailVerificationToken.objects.filter(user=user, used=False).update(used=True)
+                    raw_token, _ = EmailVerificationToken.issue_for_user(user)
+            except IntegrityError:
+                # Transaction rolled back. Distinguish genuine duplicate-email conflict from unrelated failures.
+                try:
+                    duplicate_exists = User.objects.filter(email__iexact=canonical_email).exists()
+                except Exception:
+                    logger.exception("Verification-registration integrity handling failed during duplicate check.")
+                    return Response({"detail": "The request could not be completed. Please try again later."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                if duplicate_exists:
+                    # Reduce (not eliminate) timing side-channel differences vs successful registration.
+                    _reduce_registration_timing_difference(raw_password)
+                    return Response(generic_detail, status=status.HTTP_200_OK)
+                logger.exception("Unexpected verification-registration integrity failure.")
+                return Response({"detail": "The request could not be completed. Please try again later."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            except Exception:
+                logger.exception("Unexpected verification-registration failure.")
+                return Response({"detail": "The request could not be completed. Please try again later."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             try:
                 _send_verification_email(user, raw_token)
             except Exception:
-                return Response({"detail": "If the request is valid, a verification email will be sent."}, status=status.HTTP_200_OK)
-            return Response(
-                {"detail": "If the request is valid, a verification email will be sent.", "user": UserSerializer(user).data},
-                status=status.HTTP_201_CREATED,
-            )
+                # Do not leak delivery/internal errors.
+                pass
+            # Non-enumerating response for registration+verification flow (success/duplicate indistinguishable).
+            return Response(generic_detail, status=status.HTTP_200_OK)
 
         # Safe request-by-email path (no account enumeration).
-        if email:
-            try:
-                user = User.objects.get(email__iexact=email, is_active=True, is_verified=False)
-            except User.DoesNotExist:
-                user = None
-            if user is not None:
-                EmailVerificationToken.objects.filter(user=user, used=False).update(used=True)
-                raw_token, _ = EmailVerificationToken.issue_for_user(user)
+        if not _email_verification_in_cooldown(email):
+            normalized_email = _normalized_email_value(email)
+            if normalized_email:
                 try:
-                    _send_verification_email(user, raw_token)
-                except Exception:
-                    pass
-        return Response({"detail": "If the request is valid, a verification email will be sent."}, status=status.HTTP_200_OK)
+                    user = User.objects.get(email__iexact=normalized_email, is_active=True, is_verified=False)
+                except User.DoesNotExist:
+                    user = None
+                if user is not None:
+                    EmailVerificationToken.objects.filter(user=user, used=False).update(used=True)
+                    raw_token, _ = EmailVerificationToken.issue_for_user(user)
+                    try:
+                        _send_verification_email(user, raw_token)
+                    except Exception:
+                        pass
+        return Response(generic_detail, status=status.HTTP_200_OK)
 
 
 class EmailVerificationConfirmView(APIView):
     """Confirm email verification with a single-use, expiring, hashed token."""
     permission_classes = [permissions.AllowAny]
-    throttle_classes = [ScopedRateThrottle]
-    throttle_scope = "login"
+    throttle_classes = [EmailVerificationConfirmScopedThrottle, EmailVerificationConfirmIPThrottle]
+    throttle_scope = "email_verify_confirm"
 
     def post(self, request, token=None):
         raw_token = token or request.data.get("token")
@@ -263,14 +418,22 @@ class EmailVerificationConfirmView(APIView):
 class ResendVerificationView(APIView):
     """Resend verification email safely (no account enumeration)."""
     permission_classes = [permissions.AllowAny]
-    throttle_classes = [ScopedRateThrottle]
-    throttle_scope = "login"
+    throttle_classes = [EmailVerificationResendScopedThrottle, EmailVerificationResendIPThrottle]
+    throttle_scope = "email_verify_resend"
 
     def post(self, request):
         email = request.data.get("email", "")
         generic_detail = {"detail": "If the request is valid, a verification email will be sent."}
+
+        if _email_verification_in_cooldown(email):
+            return Response(generic_detail, status=status.HTTP_200_OK)
+
+        normalized_email = _normalized_email_value(email)
+        if not normalized_email:
+            return Response(generic_detail, status=status.HTTP_200_OK)
+
         try:
-            user = User.objects.get(email__iexact=email, is_active=True, is_verified=False)
+            user = User.objects.get(email__iexact=normalized_email, is_active=True, is_verified=False)
         except User.DoesNotExist:
             return Response(generic_detail, status=status.HTTP_200_OK)
 

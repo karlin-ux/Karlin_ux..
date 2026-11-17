@@ -8,6 +8,7 @@ class DemoWorkflowTests(TestCase):
     def setUp(self):
         self.c = Client(enforce_csrf_checks=False)
         self.c.post("/api/auth/register/", {"email": "dw@b.com", "password": "TestPass123!", "password_confirm": "TestPass123!"}, content_type="application/json")
+        self.c.post("/api/auth/login/", {"email": "dw@b.com", "password": "TestPass123!"}, content_type="application/json")
         # create product
         r = self.c.post("/api/demo/products/", {"name": "Widget", "price": "10.00", "stock": 5, "is_published": True, "is_active": True}, content_type="application/json")
         self.pid = r.json()["id"]
@@ -54,6 +55,7 @@ class BookingRescheduleTests(TestCase):
     def setUp(self):
         self.c = Client(enforce_csrf_checks=False)
         self.c.post("/api/auth/register/", {"email": "br@b.com", "password": "TestPass123!", "password_confirm": "TestPass123!"}, content_type="application/json")
+        self.c.post("/api/auth/login/", {"email": "br@b.com", "password": "TestPass123!"}, content_type="application/json")
 
     def test_reschedule_conflict_rejected(self):
         import datetime
@@ -73,6 +75,7 @@ class PageDraftPrivacyTests(TestCase):
     def setUp(self):
         self.c = Client(enforce_csrf_checks=False)
         self.c.post("/api/auth/register/", {"email": "pg@b.com", "password": "TestPass123!", "password_confirm": "TestPass123!"}, content_type="application/json")
+        self.c.post("/api/auth/login/", {"email": "pg@b.com", "password": "TestPass123!"}, content_type="application/json")
 
     def test_draft_page_created(self):
         r = self.c.post("/api/demo/pages/", {"title": "Draft", "slug": "draft", "content": "secret", "is_published": False}, content_type="application/json")
@@ -84,6 +87,7 @@ class BookingAvailabilityTests(TestCase):
     def setUp(self):
         self.c = Client(enforce_csrf_checks=False)
         self.c.post("/api/auth/register/", {"email": "ba@b.com", "password": "TestPass123!", "password_confirm": "TestPass123!"}, content_type="application/json")
+        self.c.post("/api/auth/login/", {"email": "ba@b.com", "password": "TestPass123!"}, content_type="application/json")
         # create service with operating hours
         r = self.c.post("/api/demo/services/", {"name": "Svc", "duration_minutes": 30, "operating_start": "09:00", "operating_end": "12:00", "slot_interval_minutes": 30, "is_active": True}, content_type="application/json")
         self.service_id = r.json()["id"]
@@ -121,6 +125,7 @@ class PageRevisionTests(TestCase):
     def setUp(self):
         self.c = Client(enforce_csrf_checks=False)
         self.c.post("/api/auth/register/", {"email": "rv@b.com", "password": "TestPass123!", "password_confirm": "TestPass123!"}, content_type="application/json")
+        self.c.post("/api/auth/login/", {"email": "rv@b.com", "password": "TestPass123!"}, content_type="application/json")
 
     def test_revision_created_on_update(self):
         r = self.c.post("/api/demo/pages/", {"title": "P", "slug": "p", "content": "v1", "is_published": False}, content_type="application/json")
@@ -136,6 +141,7 @@ class PageRevisionTests(TestCase):
         # second user
         c2 = Client(enforce_csrf_checks=False)
         c2.post("/api/auth/register/", {"email": "rv2@b.com", "password": "TestPass123!", "password_confirm": "TestPass123!"}, content_type="application/json")
+        c2.post("/api/auth/login/", {"email": "rv2@b.com", "password": "TestPass123!"}, content_type="application/json")
         r2 = c2.get(f"/api/demo/page-revisions/")
         # should not include first user's page revisions
         revs = r2.json().get("results", [])
@@ -147,6 +153,7 @@ class BookingConcurrencyTests(TestCase):
     def setUp(self):
         self.c = Client(enforce_csrf_checks=False)
         self.c.post("/api/auth/register/", {"email": "bc@b.com", "password": "TestPass123!", "password_confirm": "TestPass123!"}, content_type="application/json")
+        self.c.post("/api/auth/login/", {"email": "bc@b.com", "password": "TestPass123!"}, content_type="application/json")
         r = self.c.post("/api/demo/services/", {"name": "Svc2", "duration_minutes": 30, "operating_start": "09:00", "operating_end": "12:00", "slot_interval_minutes": 30, "is_active": True}, content_type="application/json")
         self.service_id = r.json()["id"]
 
@@ -179,6 +186,7 @@ class GenuineConcurrencyTests(TransactionTestCase):
     def setUp(self):
         self.c = Client(enforce_csrf_checks=False)
         self.c.post("/api/auth/register/", {"email": "gcc@b.com", "password": "TestPass123!", "password_confirm": "TestPass123!"}, content_type="application/json")
+        self.c.post("/api/auth/login/", {"email": "gcc@b.com", "password": "TestPass123!"}, content_type="application/json")
         r = self.c.post("/api/demo/services/", {"name": "SvcG", "duration_minutes": 30, "operating_start": "09:00", "operating_end": "12:00", "slot_interval_minutes": 30, "is_active": True}, content_type="application/json")
         self.service_id = r.json()["id"]
 
@@ -210,7 +218,9 @@ class DemoSecurityRegressionTests(TestCase):
         self.c1 = Client(enforce_csrf_checks=False)
         self.c2 = Client(enforce_csrf_checks=False)
         self.c1.post("/api/auth/register/", {"email": "sec1@b.com", "password": "TestPass123!", "password_confirm": "TestPass123!"}, content_type="application/json")
+        self.c1.post("/api/auth/login/", {"email": "sec1@b.com", "password": "TestPass123!"}, content_type="application/json")
         self.c2.post("/api/auth/register/", {"email": "sec2@b.com", "password": "TestPass123!", "password_confirm": "TestPass123!"}, content_type="application/json")
+        self.c2.post("/api/auth/login/", {"email": "sec2@b.com", "password": "TestPass123!"}, content_type="application/json")
 
         from accounts.models import Workspace
         from django.contrib.auth import get_user_model

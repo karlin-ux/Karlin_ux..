@@ -8,10 +8,33 @@ from django.db import models
 class UserManager(BaseUserManager):
     use_injections = True
 
+    @staticmethod
+    def canonicalize_email(email: str) -> str:
+        """Consistent canonical form for application-level comparisons/storage of new users."""
+        email = BaseUserManager.normalize_email(email or "")
+        return email.strip().lower()
+
+    def _canonicalize_extra(self, extra_fields):
+        extra = dict(extra_fields or {})
+        # Ensure direct create paths cannot bypass canonicalization.
+        email = extra.get("email")
+        if email is not None:
+            extra["email"] = self.canonicalize_email(email)
+        username = extra.get("username")
+        if isinstance(username, str) and "@" in username:
+            extra["username"] = self.canonicalize_email(username)
+        return extra
+
+    def create(self, **kwargs):
+        kwargs = self._canonicalize_extra(kwargs)
+        return super().create(**kwargs)
+
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError("Email is required")
-        email = self.normalize_email(email)
+        email = self.canonicalize_email(email)
+        extra_fields = self._canonicalize_extra(extra_fields)
+        extra_fields.pop("email", None)
         extra_fields.setdefault("username", email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
@@ -55,6 +78,11 @@ class User(AbstractUser):
         return self.role == self.ROLE_SUPERADMIN
 
     def save(self, *args, **kwargs):
+        # Canonicalize new accounts only; never rewrite existing stored emails/usernames automatically.
+        if self._state.adding and self.email:
+            self.email = User.objects.canonicalize_email(self.email)
+            if not self.username or self.username == self.email or (isinstance(self.username, str) and "@" in self.username):
+                self.username = self.email
         if not self.username:
             self.username = self.email
         super().save(*args, **kwargs)

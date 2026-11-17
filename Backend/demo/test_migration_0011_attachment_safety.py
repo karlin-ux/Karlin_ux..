@@ -203,37 +203,113 @@ class DemoApplicationAttachmentMigration0011Tests(TransactionTestCase):
                 f"ADD CONSTRAINT {connection.ops.quote_name(constraint_name)} {definition}"
             )
 
+    def _retained_through_fks(self, table_name):
+        """Return [(name, definition)] for FKs on retained/through tables that may block cleanup."""
+        sql = """
+            SELECT con.conname, pg_get_constraintdef(con.oid)
+            FROM pg_constraint con
+            JOIN pg_class rel ON rel.oid = con.conrelid
+            JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
+            WHERE rel.relname = %s
+              AND nsp.nspname = current_schema()
+              AND con.contype = 'f'
+        """
+        with connection.cursor() as cursor:
+            cursor.execute(sql, [table_name])
+            return list(cursor.fetchall())
+
     def _fixture_teardown(self):
         # Migration tests may leave schema/data in non-standard states and retain
-        # TMP_THROUGH (intentional production rollback-safety table). Ensure a clean,
-        # isolated state for Django's TransactionTestCase cleanup without dropping the
-        # retained table or weakening/removing its production foreign keys.
+        # TMP_THROUGH/OLD_THROUGH artifacts (intentional rollback-safety behavior must be preserved).
+        # Cleanup must be safe/targeted, never drop retained tables, never permanently remove/weaken FKs,
+        # never use TRUNCATE CASCADE or DB-wide constraint disabling, and never silently swallow rollback errors.
+        cleanup_errors = []
         try:
-            # Return to pre-0011 schema where possible so expected tables/state exist.
-            executor = MigrationExecutor(connection)
-            executor.loader.build_graph()
-            try:
-                executor.migrate(MIGRATE_FROM)
-            except Exception:
-                pass
+            # Identify only test-created rows/associations for targeted cleanup.
+            app_ids = [aid for aid in [getattr(self, "app", None) and self.app.id] if aid is not None]
+            app_id_placeholders = ",".join(["%s"] * len(app_ids)) if app_ids else None
 
-            with connection.cursor() as cursor:
-                tables = set(connection.introspection.table_names(cursor))
-                # Clear retained-table rows created by tests (test isolation only; no CASCADE,
-                # table/constraints preserved). This avoids flush/truncate FK dependency issues.
-                if TMP_THROUGH in tables:
-                    cursor.execute(f"DELETE FROM {connection.ops.quote_name(TMP_THROUGH)}"  # nosec B608: identifiers are quoted and values use database parameters.
-                    )
-                # If target-state new through table remains for any reason, clear it too.
-                if OLD_THROUGH in tables:
-                    # Only safe when at/returned to expected schema; ignore if structure differs.
-                    try:
-                        cursor.execute(f"DELETE FROM {connection.ops.quote_name(OLD_THROUGH)}"  # nosec B608: identifiers are quoted and values use database parameters.
+            def targeted_delete(table_name):
+                """Delete only this test's rows in a retained/through table (if applicable)."""
+                with connection.cursor() as cursor:
+                    tables = set(connection.introspection.table_names(cursor))
+                if table_name not in tables or not app_ids:
+                    return
+                qtable = connection.ops.quote_name(table_name)
+                # Through tables for demo application attachments have demoapplication_id.
+                sql = f"DELETE FROM {qtable} WHERE demoapplication_id IN ({app_id_placeholders})"  # nosec B608: identifiers/values are quoted/parameterized.
+                with connection.cursor() as cursor:
+                    cursor.execute(sql, app_ids)
+
+            def cleanup_retained_tables_with_temporary_fks_if_needed(table_name):
+                with connection.cursor() as cursor:
+                    tables = set(connection.introspection.table_names(cursor))
+                if table_name not in tables or not app_ids:
+                    return
+                # Prefer direct targeted delete. If FK dependencies block cleanup in the current state,
+                # temporarily remove only necessary FKs on this table and restore exact definitions in finally.
+                try:
+                    targeted_delete(table_name)
+                    return
+                except Exception:
+                    pass
+
+                captured = self._retained_through_fks(table_name)
+                dropped = []
+                try:
+                    # Remove only necessary constraints temporarily (those present) on this specific table.
+                    for fk_name, _fk_def in captured:
+                        self._drop_constraint(table_name, fk_name)
+                        dropped.append((fk_name, _fk_def))
+                    targeted_delete(table_name)
+                finally:
+                    # Restore exact captured constraints in guaranteed finally (reverse order), even on failure.
+                    restore_errors = []
+                    existing_names = {name for name, _ in self._retained_through_fks(table_name)} if table_name in set(connection.introspection.table_names(connection.cursor())) else set()
+                    for fk_name, fk_def in reversed(dropped):
+                        try:
+                            if fk_name not in existing_names and table_name in set(connection.introspection.table_names(connection.cursor())):
+                                self._add_constraint(table_name, fk_name, fk_def)
+                                existing_names.add(fk_name)
+                        except Exception as e:
+                            restore_errors.append(f"restore {table_name}.{fk_name}: {e!r}")
+                    if restore_errors:
+                        raise RuntimeError(
+                            "Failed to restore temporary test-cleanup foreign key constraint(s): "
+                            + "; ".join(restore_errors)
                         )
-                    except Exception:
-                        pass
+
+            # Return to pre-0011 schema where possible so expected tables/state exist for base cleanup.
+            rollback_error = None
+            try:
+                executor = MigrationExecutor(connection)
+                executor.loader.build_graph()
+                executor.migrate(MIGRATE_FROM)
+            except Exception as e:
+                rollback_error = e
+
+            # Clean only test-created rows in retained/through artifacts in any relevant state.
+            # Handle both TMP_THROUGH (retained old table in target state) and OLD_THROUGH name.
+            for tbl in (TMP_THROUGH, OLD_THROUGH):
+                try:
+                    cleanup_retained_tables_with_temporary_fks_if_needed(tbl)
+                except Exception as e:
+                    cleanup_errors.append(f"cleanup {tbl}: {e!r}")
+
+            if rollback_error is not None:
+                # Do not silently swallow migration rollback errors; report clearly.
+                cleanup_errors.insert(0, f"migration rollback to {MIGRATE_FROM}: {rollback_error!r}")
         finally:
-            super()._fixture_teardown()
+            base_error = None
+            try:
+                super()._fixture_teardown()
+            except Exception as e:
+                base_error = e
+            if cleanup_errors or base_error is not None:
+                parts = list(cleanup_errors)
+                if base_error is not None:
+                    parts.append(f"super()._fixture_teardown: {base_error!r}")
+                raise RuntimeError("Migration 0011 test cleanup failed: " + " | ".join(parts))
 
     def _table_names(self):
         with connection.cursor() as cursor:

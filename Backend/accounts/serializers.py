@@ -17,15 +17,14 @@ class RegisterSerializer(serializers.Serializer):
 
     def validate_email(self, value):
         from .models import User
-        # Generic message to reduce account enumeration; still prevents duplicate account creation.
-        if User.objects.filter(email__iexact=value).exists():
-            raise serializers.ValidationError("Registration could not be completed with this email address.")
-        return value
+        # Canonicalize for consistent handling, but do not perform account-existence checks here
+        # (would enable enumeration, especially when combined with other validation errors).
+        return User.objects.canonicalize_email(value)
 
-    def validate(self, data):
-        if data["password"] != data["password_confirm"]:
+    def validate(self, attrs):
+        if attrs["password"] != attrs["password_confirm"]:
             raise serializers.ValidationError({"password_confirm": "Passwords do not match."})
-        return data
+        return attrs
 
     def create(self, validated_data):
         from .models import User

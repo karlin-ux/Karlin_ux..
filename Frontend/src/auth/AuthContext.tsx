@@ -46,10 +46,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(r.data);
   }
 
-  async function register(email: string, password: string) {
+  async function register(email: string, password: string): Promise<void> {
     await ensureCsrf();
-    const r = await api.post('/auth/register/', { email, password, password_confirm: password });
-    setUser(r.data);
+    // Registration never establishes an authenticated session; response is intentionally generic.
+    await api.post('/auth/register/', { email, password, password_confirm: password });
   }
 
   async function logout() {

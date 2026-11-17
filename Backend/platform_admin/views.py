@@ -4,7 +4,7 @@ from django.utils.dateparse import parse_datetime
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework.throttling import AnonRateThrottle, ScopedRateThrottle
+from rest_framework.throttling import ScopedRateThrottle, SimpleRateThrottle
 
 from accounts.models import User
 from .models import GlobalSetting, PlatformAnalyticsEvent, PlatformAuditLog, PlatformNotification, SecurityEvent
@@ -194,14 +194,28 @@ class ContactMessageViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ContactMessageReadSerializer
 
 
-class TrackEventThrottle(AnonRateThrottle):
+class TrackEventScopedThrottle(ScopedRateThrottle):
+    """Applies per-user throttling for authenticated requests and per-IP for anonymous requests."""
+
     scope = "track"
-    rate = "60/min"
+
+
+class TrackEventIPThrottle(SimpleRateThrottle):
+    """Additional IP-based throttle for all requests to reduce multi-account/session-rotation abuse."""
+
+    scope = "track_ip"
+
+    def get_cache_key(self, request, view):
+        ident = self.get_ident(request)
+        if ident is None:
+            return None
+        return self.cache_format % {"scope": self.scope, "ident": ident}
 
 
 class TrackEventView(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
-    throttle_classes = [TrackEventThrottle]
+    throttle_classes = [TrackEventScopedThrottle, TrackEventIPThrottle]
+    throttle_scope = "track"
 
     ALLOWED_EVENT_TYPES = {"page_view"}
     MAX_PATH_LENGTH = 300

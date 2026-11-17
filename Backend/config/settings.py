@@ -225,6 +225,13 @@ REST_FRAMEWORK = {
         "login": "100/min",
         "contact": "100/hour",
         "track": "60/min",
+        "track_ip": "60/min",
+        "email_verify_request": "5/min",
+        "email_verify_confirm": "10/min",
+        "email_verify_resend": "3/min",
+        "email_verify_request_ip": "10/min",
+        "email_verify_confirm_ip": "20/min",
+        "email_verify_resend_ip": "10/min",
     },
 }
 
@@ -294,6 +301,114 @@ try:
     from . import checks  # noqa: F401
 except ImportError:
     pass
+
+# Cache
+# Email verification cooldown and DRF throttles require a shared cache for correctness in
+# multi-worker/multi-instance production deployments. Local-memory cache is process-local.
+_CACHE_BACKEND = os.environ.get("DJANGO_CACHE_BACKEND", "django.core.cache.backends.locmem.LocMemCache").strip()
+_CACHE_LOCATION = os.environ.get("DJANGO_CACHE_LOCATION", "").strip()
+_CACHE_TIMEOUT_RAW = os.environ.get("DJANGO_CACHE_TIMEOUT", "").strip()
+
+_SUPPORTED_SHARED_CACHE_BACKENDS = {
+    "django.core.cache.backends.redis.RedisCache",
+    "django.core.cache.backends.memcached.PyMemcacheCache",
+    "django.core.cache.backends.memcached.PyLibMCCache",
+    "django.core.cache.backends.db.DatabaseCache",
+}
+_LOCAL_DEV_CACHE_BACKENDS = {
+    "django.core.cache.backends.locmem.LocMemCache",
+    "django.core.cache.backends.filebased.FileBasedCache",
+}
+_REJECTED_CACHE_BACKENDS = {
+    "django.core.cache.backends.dummy.DummyCache",
+}
+
+if _CACHE_BACKEND == "django.core.cache.backends.locmem.LocMemCache":
+    CACHES = {
+        "default": {
+            "BACKEND": _CACHE_BACKEND,
+            "LOCATION": _CACHE_LOCATION or "karlin-ux",
+        }
+    }
+elif _CACHE_BACKEND == "django.core.cache.backends.filebased.FileBasedCache":
+    _cache_cfg = {"BACKEND": _CACHE_BACKEND}
+    if _CACHE_LOCATION:
+        _cache_cfg["LOCATION"] = _CACHE_LOCATION
+    CACHES = {"default": _cache_cfg}
+else:
+    _cache_cfg = {"BACKEND": _CACHE_BACKEND}
+    if _CACHE_LOCATION:
+        # For Redis/Memcached/DB backends this is typically a URL, server list, or table name.
+        _cache_cfg["LOCATION"] = _CACHE_LOCATION
+    if _CACHE_TIMEOUT_RAW:
+        try:
+            _cache_cfg["TIMEOUT"] = int(_CACHE_TIMEOUT_RAW)
+        except ValueError:
+            pass
+    CACHES = {"default": _cache_cfg}
+
+# Production cache safety: cooldown/throttles are security-relevant controls.
+if not DEBUG:
+    _require_shared_cache = env_bool("DJANGO_REQUIRE_SHARED_CACHE", default=True)
+    _cache_backend = CACHES["default"]["BACKEND"]
+    _cache_location = (CACHES["default"].get("LOCATION") or "").strip() if isinstance(CACHES["default"].get("LOCATION"), str) else CACHES["default"].get("LOCATION")
+
+    if _cache_backend in _REJECTED_CACHE_BACKENDS:
+        raise ImproperlyConfigured(
+            "Production cache validation failed:\n"
+            "  - DJANGO_CACHE_BACKEND uses DummyCache, which is unsupported for production throttling/cooldown controls."
+        )
+
+    if _require_shared_cache:
+        if _cache_backend in _SUPPORTED_SHARED_CACHE_BACKENDS:
+            if not _cache_location:
+                raise ImproperlyConfigured(
+                    "Production cache validation failed:\n"
+                    "  - DJANGO_CACHE_LOCATION is required for the selected shared cache backend."
+                )
+        elif _cache_backend == "django.core.cache.backends.locmem.LocMemCache":
+            raise ImproperlyConfigured(
+                "Production cache validation failed:\n"
+                "  - DJANGO_CACHE_BACKEND is local-memory cache, which is not shared across workers/instances. "
+                "Configure a supported shared cache (Redis/Memcached/Database cache) for email cooldown and throttling, "
+                "or set DJANGO_REQUIRE_SHARED_CACHE=false only if you explicitly accept degraded control behavior."
+            )
+        elif _cache_backend == "django.core.cache.backends.filebased.FileBasedCache":
+            raise ImproperlyConfigured(
+                "Production cache validation failed:\n"
+                "  - DJANGO_CACHE_BACKEND uses file-based cache, which is not an explicitly supported shared backend for "
+                "production throttling/cooldown controls. Configure a supported shared cache or set "
+                "DJANGO_REQUIRE_SHARED_CACHE=false only if you explicitly accept degraded control behavior."
+            )
+        else:
+            raise ImproperlyConfigured(
+                "Production cache validation failed:\n"
+                "  - DJANGO_CACHE_BACKEND is not an explicitly supported shared production cache backend. "
+                "Use Redis/Memcached/Database cache with valid configuration, or set DJANGO_REQUIRE_SHARED_CACHE=false "
+                "only if you explicitly accept degraded control behavior."
+            )
+    else:
+        # Explicit degraded-mode opt-out: allow local-memory cache only; still reject DummyCache and unknown/unsupported backends.
+        if _cache_backend == "django.core.cache.backends.locmem.LocMemCache":
+            pass
+        elif _cache_backend in _SUPPORTED_SHARED_CACHE_BACKENDS:
+            if not _cache_location:
+                raise ImproperlyConfigured(
+                    "Production cache validation failed:\n"
+                    "  - DJANGO_CACHE_LOCATION is required for the selected shared cache backend."
+                )
+        elif _cache_backend in _LOCAL_DEV_CACHE_BACKENDS:
+            raise ImproperlyConfigured(
+                "Production cache validation failed:\n"
+                "  - DJANGO_CACHE_BACKEND is not supported for degraded production mode. "
+                "Use local-memory cache with DJANGO_REQUIRE_SHARED_CACHE=false, or configure a supported shared cache."
+            )
+        else:
+            raise ImproperlyConfigured(
+                "Production cache validation failed:\n"
+                "  - DJANGO_CACHE_BACKEND is unsupported for production. "
+                "Use a supported shared cache with valid configuration or explicit degraded-mode local-memory cache."
+            )
 
 # Logging
 _LOG_LEVEL = os.environ.get("DJANGO_LOG_LEVEL", "INFO").upper()
