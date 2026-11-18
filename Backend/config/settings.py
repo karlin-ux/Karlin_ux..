@@ -223,6 +223,8 @@ REST_FRAMEWORK = {
         "anon": "60/min",
         "user": "300/min",
         "login": "100/min",
+        "google_auth": "30/min",
+        "google_auth_ip": "30/min",
         "contact": "100/hour",
         "track": "60/min",
         "track_ip": "60/min",
@@ -232,6 +234,10 @@ REST_FRAMEWORK = {
         "email_verify_request_ip": "10/min",
         "email_verify_confirm_ip": "20/min",
         "email_verify_resend_ip": "10/min",
+        "password_reset_request": "5/min",
+        "password_reset_request_ip": "10/min",
+        "password_reset_confirm": "10/min",
+        "password_reset_confirm_ip": "20/min",
     },
 }
 
@@ -295,6 +301,11 @@ CONTACT_RECIPIENT_EMAIL = os.environ.get("CONTACT_RECIPIENT_EMAIL", "contact@loc
 
 # Frontend / verification
 FRONTEND_BASE_URL = os.environ.get("FRONTEND_BASE_URL", "http://localhost:5173")
+
+# Google OAuth (ID token credential flow for SPA)
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "").strip()
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "").strip()
+GOOGLE_REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI", "").strip()
 
 # Import production security checks (registers with Django's check framework)
 try:

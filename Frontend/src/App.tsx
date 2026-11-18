@@ -10,6 +10,9 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import SignIn from './pages/SignIn';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import VerifyEmail from './pages/VerifyEmail';
 import CustomerHome from './pages/CustomerHome';
 import AdminDashboard from './pages/AdminDashboard';
 import MediaLibrary from './pages/MediaLibrary';
@@ -33,6 +36,9 @@ export default function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/customer/*" element={<RequireAuth><CustomerHome /></RequireAuth>} />
           <Route path="/admin/*" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
           <Route path="/media" element={<RequireAuth><MediaLibrary /></RequireAuth>} />

@@ -229,6 +229,64 @@ class EmailVerificationToken(models.Model):
         self.used = True
         self.save(update_fields=["used"])
 
+
+class PasswordResetToken(models.Model):
+    """Single-use, expiring, hashed password reset tokens."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="password_reset_tokens")
+    token = models.CharField(max_length=128, unique=True)  # Stores hashed token (hex digest)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["-created_at"]),
+            models.Index(fields=["user", "used", "expires_at"]),
+        ]
+
+    def __str__(self):
+        return f"Password reset token for {self.user.email} (expires {self.expires_at})"
+
+    @staticmethod
+    def hash_token(raw_token: str) -> str:
+        import hashlib
+
+        return hashlib.sha256((raw_token or "").encode("utf-8")).hexdigest()
+
+    @classmethod
+    def issue_for_user(cls, user, ttl_minutes: int = 60):
+        """Create and return (raw_token, token_instance) for a user."""
+        import secrets
+
+        raw_token = secrets.token_urlsafe(32)
+        token_hash = cls.hash_token(raw_token)
+        instance = cls.objects.create(
+            user=user,
+            token=token_hash,
+            expires_at=dj_timezone.now() + dj_timezone.timedelta(minutes=ttl_minutes),
+        )
+        return raw_token, instance
+
+    @classmethod
+    def find_valid_for_raw_token(cls, raw_token: str):
+        token_hash = cls.hash_token(raw_token)
+        now = dj_timezone.now()
+        return (
+            cls.objects.select_related("user")
+            .filter(token=token_hash, used=False, expires_at__gt=now)
+            .first()
+        )
+
+    def is_expired(self) -> bool:
+        return dj_timezone.now() > self.expires_at
+
+    def mark_used(self) -> None:
+        self.used = True
+        self.save(update_fields=["used"])
+
+
 class DonationProduct(models.Model):
     """Donation product catalogue - maximum 5 products.
 

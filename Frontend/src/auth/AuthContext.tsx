@@ -15,6 +15,7 @@ interface AuthCtx {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (credential: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -46,6 +47,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(r.data);
   }
 
+  async function loginWithGoogle(credential: string) {
+    await ensureCsrf();
+    const r = await api.post('/auth/google/', { credential });
+    setUser(r.data);
+  }
+
   async function register(email: string, password: string): Promise<void> {
     await ensureCsrf();
     // Registration never establishes an authenticated session; response is intentionally generic.
@@ -57,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }
 
-  return <Ctx.Provider value={{ user, loading, login, register, logout, refresh }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ user, loading, login, loginWithGoogle, register, logout, refresh }}>{children}</Ctx.Provider>;
 }
 
 export function useAuth() {

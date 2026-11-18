@@ -18,8 +18,28 @@ from rest_framework.views import APIView
 
 logger = logging.getLogger(__name__)
 
-from .models import User, CustomerProfile, Workspace, AccountSecurityEvent, DonationProduct, DonationDonation, EmailVerificationToken
-from .serializers import CustomerProfileSerializer, RegisterSerializer, UserSerializer, WorkspaceSerializer, DonationProductSerializer, DonationDonationSerializer
+from .models import (
+    User,
+    CustomerProfile,
+    Workspace,
+    AccountSecurityEvent,
+    DonationProduct,
+    DonationDonation,
+    EmailVerificationToken,
+    PasswordResetToken,
+)
+from .serializers import (
+    CustomerProfileSerializer,
+    RegisterSerializer,
+    UserSerializer,
+    WorkspaceSerializer,
+    DonationProductSerializer,
+    DonationDonationSerializer,
+    GoogleCredentialAuthSerializer,
+    PasswordResetRequestSerializer,
+    PasswordResetConfirmSerializer,
+)
+from .oauth_backend import verify_google_id_token_credential
 
 
 def _reduce_registration_timing_difference(raw_password: str) -> None:
@@ -62,7 +82,14 @@ class RegisterView(APIView):
                     # Reduce (not eliminate) timing side-channel differences vs successful registration.
                     _reduce_registration_timing_difference(raw_password)
                     return Response(generic_detail, status=status.HTTP_200_OK)
-                ser.save()
+                user = ser.save()
+                # Email/password registration (non-Google): issue verification email.
+                # Keep generic non-enumerating response and do not create a session.
+                if not getattr(user, "is_verified", False):
+                    EmailVerificationToken.objects.filter(user=user, used=False).update(used=True)
+                    raw_token, _ = EmailVerificationToken.issue_for_user(user)
+                else:
+                    raw_token = None
         except IntegrityError:
             # Transaction rolled back. Distinguish genuine duplicate-email conflict from unrelated failures.
             try:
@@ -79,6 +106,13 @@ class RegisterView(APIView):
         except Exception:
             logger.exception("Unexpected registration failure.")
             return Response(generic_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        if raw_token:
+            try:
+                _send_verification_email(user, raw_token)
+            except Exception:
+                # Do not leak delivery/internal errors.
+                logger.warning("Verification email could not be sent after registration.")
 
         # Do not establish an authenticated session for registration responses.
         return Response(generic_detail, status=status.HTTP_200_OK)
@@ -175,35 +209,146 @@ class ChangePasswordView(APIView):
         return Response({"detail": "Password changed."})
 
 
-# Google OAuth (disabled until safely and fully implemented/configured)
-class GoogleOAuthUnavailableMixin:
+class GoogleAuthScopedThrottle(ScopedRateThrottle):
+    scope = "google_auth"
+
+
+class GoogleAuthIPThrottle(SimpleRateThrottle):
+    scope = "google_auth_ip"
+
+    def get_cache_key(self, request, view):
+        ident = self.get_ident(request)
+        return self.cache_format % {"scope": self.scope, "ident": ident} if ident else None
+
+
+class PasswordResetRequestScopedThrottle(ScopedRateThrottle):
+    scope = "password_reset_request"
+
+
+class PasswordResetRequestIPThrottle(SimpleRateThrottle):
+    scope = "password_reset_request_ip"
+
+    def get_cache_key(self, request, view):
+        ident = self.get_ident(request)
+        return self.cache_format % {"scope": self.scope, "ident": ident} if ident else None
+
+
+class PasswordResetConfirmScopedThrottle(ScopedRateThrottle):
+    scope = "password_reset_confirm"
+
+
+class PasswordResetConfirmIPThrottle(SimpleRateThrottle):
+    scope = "password_reset_confirm_ip"
+
+    def get_cache_key(self, request, view):
+        ident = self.get_ident(request)
+        return self.cache_format % {"scope": self.scope, "ident": ident} if ident else None
+
+
+class AuthConfigView(APIView):
+    """Expose public auth configuration for the frontend."""
+
     permission_classes = [permissions.AllowAny]
 
-    def _unavailable(self, request=None):
+    def get(self, request):
+        client_id = (getattr(settings, "GOOGLE_CLIENT_ID", "") or "").strip()
         return Response(
-            {"detail": "Google sign-in is not available."},
-            status=status.HTTP_501_NOT_IMPLEMENTED,
+            {
+                "google_client_id": client_id,
+                "google_enabled": bool(client_id),
+            }
         )
 
 
-class GoogleOAuthLoginView(GoogleOAuthUnavailableMixin, APIView):
-    """Disabled: unfinished/insecure Google OAuth path must not be exposed as functional."""
+class GoogleOAuthLoginView(APIView):
+    """Sign in or register using a Google Identity Services ID token credential."""
 
-    def get(self, request):
-        return self._unavailable(request)
-
-    def post(self, request):
-        return self._unavailable(request)
-
-
-class GoogleOAuthCallbackView(GoogleOAuthUnavailableMixin, APIView):
-    """Disabled: unfinished/insecure Google OAuth path must not be exposed as functional."""
-
-    def get(self, request):
-        return self._unavailable(request)
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [GoogleAuthScopedThrottle, GoogleAuthIPThrottle]
 
     def post(self, request):
-        return self._unavailable(request)
+        if not (getattr(settings, "GOOGLE_CLIENT_ID", "") or "").strip():
+            return Response({"detail": "Google sign-in is not configured."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+        ser = GoogleCredentialAuthSerializer(data=request.data)
+        if not ser.is_valid():
+            return Response({"detail": "Invalid Google credential."}, status=status.HTTP_400_BAD_REQUEST)
+
+        payload = verify_google_id_token_credential(ser.validated_data["credential"])
+        if not payload:
+            return Response({"detail": "Google sign-in could not be verified."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        email = User.objects.canonicalize_email(payload.get("email", "") or "")
+        if not email:
+            return Response({"detail": "Google sign-in could not be verified."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            user = User.objects.filter(email__iexact=email).first()
+            created = False
+            if user is None:
+                # Create account for verified Google identity.
+                user = User.objects.create_user(email=email, password=None)
+                created = True
+
+            if not user.is_active:
+                return Response({"detail": "Account is disabled."}, status=status.HTTP_403_FORBIDDEN)
+
+            # Google has verified the email address for this credential.
+            updates = []
+            if not user.is_verified:
+                user.is_verified = True
+                updates.append("is_verified")
+            if not user.email_verified_at:
+                user.email_verified_at = dj_timezone.now()
+                updates.append("email_verified_at")
+            if updates:
+                updates.append("updated_at")
+                user.save(update_fields=updates)
+
+            login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+
+            try:
+                from platform_admin.models import SecurityEvent
+
+                SecurityEvent.objects.create(
+                    event_type="google_login_success" if not created else "google_register_success",
+                    user=user,
+                    ip_address=_ip(request),
+                    user_agent=request.META.get("HTTP_USER_AGENT", ""),
+                )
+            except Exception:
+                pass
+            try:
+                AccountSecurityEvent.objects.create(
+                    user=user,
+                    event_type=AccountSecurityEvent.EVENT_LOGIN_SUCCESS,
+                    ip_address=_ip(request),
+                    user_agent=request.META.get("HTTP_USER_AGENT", ""),
+                    metadata={"provider": "google", "created": created},
+                )
+            except Exception:
+                pass
+
+            return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
+        except Exception:
+            logger.exception("Google authentication failed.")
+            return Response({"detail": "Google sign-in could not be completed."}, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request):
+        # Legacy GET disabled; keep a clear non-enumerating response.
+        return Response({"detail": "Use POST with a Google credential."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+class GoogleOAuthCallbackView(APIView):
+    """Legacy callback endpoint (not used for GIS credential flow)."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        return Response({"detail": "Google callback is not required for this sign-in method."}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request):
+        return Response({"detail": "Google callback is not required for this sign-in method."}, status=status.HTTP_400_BAD_REQUEST)
 
 
 def _verification_frontend_url(raw_token: str) -> str:
@@ -215,7 +360,32 @@ def _send_verification_email(user, raw_token: str) -> None:
     verification_url = _verification_frontend_url(raw_token)
     send_mail(
         subject="Verify your email address",
-        message=f"Please verify your email address by visiting: {verification_url}",
+        message=(
+            "Please verify your email address by visiting the link below:\n\n"
+            f"{verification_url}\n\n"
+            "If you did not request this, you can ignore this email."
+        ),
+        from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@localhost"),
+        recipient_list=[user.email],
+        fail_silently=False,
+    )
+
+
+def _password_reset_frontend_url(raw_token: str) -> str:
+    base = getattr(settings, "FRONTEND_BASE_URL", "http://localhost:5173").rstrip("/")
+    return f"{base}/reset-password?token={raw_token}"
+
+
+def _send_password_reset_email(user, raw_token: str) -> None:
+    reset_url = _password_reset_frontend_url(raw_token)
+    send_mail(
+        subject="Reset your password",
+        message=(
+            "A password reset was requested for your account. "
+            "Reset your password using the link below:\n\n"
+            f"{reset_url}\n\n"
+            "If you did not request this, you can ignore this email."
+        ),
         from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@localhost"),
         recipient_list=[user.email],
         fail_silently=False,
@@ -445,6 +615,87 @@ class ResendVerificationView(APIView):
             # Do not leak delivery/internal errors.
             pass
         return Response(generic_detail, status=status.HTTP_200_OK)
+
+
+class PasswordResetRequestView(APIView):
+    """Request a password reset email (non-enumerating)."""
+
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [PasswordResetRequestScopedThrottle, PasswordResetRequestIPThrottle]
+
+    def post(self, request):
+        generic_detail = {"detail": "If the request is valid, a password reset email will be sent."}
+        ser = PasswordResetRequestSerializer(data=request.data)
+        # Validate email format; do not reveal account existence.
+        if not ser.is_valid():
+            return Response(generic_detail, status=status.HTTP_200_OK)
+
+        email = User.objects.canonicalize_email(ser.validated_data["email"])
+        try:
+            user = User.objects.filter(email__iexact=email, is_active=True).first()
+        except Exception:
+            user = None
+
+        if user is not None:
+            try:
+                PasswordResetToken.objects.filter(user=user, used=False).update(used=True)
+                raw_token, _ = PasswordResetToken.issue_for_user(user)
+                _send_password_reset_email(user, raw_token)
+            except Exception:
+                # Do not leak delivery/internal errors or account existence.
+                logger.warning("Password reset email could not be sent.")
+
+        return Response(generic_detail, status=status.HTTP_200_OK)
+
+
+class PasswordResetConfirmView(APIView):
+    """Confirm password reset with a single-use, expiring token."""
+
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [PasswordResetConfirmScopedThrottle, PasswordResetConfirmIPThrottle]
+
+    def post(self, request):
+        ser = PasswordResetConfirmSerializer(data=request.data)
+        if not ser.is_valid():
+            # Generic invalid token response for token issues; field errors for password mismatch/validation where appropriate.
+            errors = ser.errors
+            if "token" in errors and "new_password" not in errors and "new_password_confirm" not in errors and "non_field_errors" not in errors:
+                return Response({"detail": "Invalid or expired reset token."}, status=status.HTTP_400_BAD_REQUEST)
+            # If token is valid-shaped but password invalid, still need to avoid leaking token validity? 
+            # We'll validate token first when possible by checking presence; detailed validation below handles.
+            token_errs = errors.get("token")
+            if token_errs:
+                return Response({"detail": "Invalid or expired reset token."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+
+        raw_token = ser.validated_data["token"]
+        new_password = ser.validated_data["new_password"]
+
+        with transaction.atomic():
+            token_obj = PasswordResetToken.find_valid_for_raw_token(raw_token)
+            if token_obj is None:
+                return Response({"detail": "Invalid or expired reset token."}, status=status.HTTP_400_BAD_REQUEST)
+
+            user = token_obj.user
+            token_obj.mark_used()
+            # Invalidate any other outstanding reset tokens for this user.
+            PasswordResetToken.objects.filter(user=user, used=False).exclude(pk=token_obj.pk).update(used=True)
+
+            user.set_password(new_password)
+            user.save(update_fields=["password", "updated_at"])
+
+            try:
+                AccountSecurityEvent.objects.create(
+                    user=user,
+                    event_type=AccountSecurityEvent.EVENT_PASSWORD_CHANGED,
+                    ip_address=_ip(request),
+                    user_agent=request.META.get("HTTP_USER_AGENT", ""),
+                    metadata={"via": "password_reset"},
+                )
+            except Exception:
+                pass
+
+        return Response({"detail": "Password has been reset successfully."}, status=status.HTTP_200_OK)
 
 
 # Donation Product List

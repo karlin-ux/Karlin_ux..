@@ -247,23 +247,37 @@ export default function GeometricParticleNetwork({
       // Use same line color as constellation lines
       const lineColor = palette.length === 2 ? palette[1] : (palette[1] ?? palette[0] ?? parseColor("#53F5B0"));
 
+      // Cursor "tunnel" node: 170% larger ring with transparent center
+      const cursorRadius = 2.4 * 1.7;
+      const ringWidth = Math.max(1.5, cursorRadius * 0.38);
+      const ringOuter = cursorRadius + ringWidth / 2;
+
       for (let i = 0; i < particles.length; i++) {
         const dx = screenX[i] - pointer.x;
         const dy = screenY[i] - pointer.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist <= ringOuter) continue; // don't draw lines inside/through the ring
+
         const maxDist = Math.max(width, height) * 0.9;
         const fade = clamp(1 - dist / maxDist, 0.15, 1);
+        const ux = dx / dist;
+        const uy = dy / dist;
+        const edgeX = pointer.x + ux * ringOuter;
+        const edgeY = pointer.y + uy * ringOuter;
+
         ctx.strokeStyle = toRgba(lineColor, opacity * (0.18 + fade * 0.5));
         ctx.lineWidth = 0.7 + fade * 0.8;
         ctx.beginPath();
         ctx.moveTo(screenX[i], screenY[i]);
-        ctx.lineTo(pointer.x, pointer.y);
+        ctx.lineTo(edgeX, edgeY);
         ctx.stroke();
       }
+
       ctx.beginPath();
-      ctx.arc(pointer.x, pointer.y, 2.4, 0, Math.PI * 2);
-      ctx.fillStyle = toRgba(lineColor, opacity * 0.8);
-      ctx.fill();
+      ctx.arc(pointer.x, pointer.y, cursorRadius, 0, Math.PI * 2);
+      ctx.strokeStyle = toRgba(lineColor, opacity * 0.9);
+      ctx.lineWidth = ringWidth;
+      ctx.stroke();
     };
 
     const renderParticles = (palette: RGB[], time: number) => {

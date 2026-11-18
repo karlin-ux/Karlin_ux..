@@ -1,6 +1,16 @@
 from rest_framework import serializers
 
-from .models import User, CustomerProfile, Workspace, DonationProduct, DonationDonation, EmailVerificationToken
+from django.contrib.auth.password_validation import validate_password
+
+from .models import (
+    User,
+    CustomerProfile,
+    Workspace,
+    DonationProduct,
+    DonationDonation,
+    EmailVerificationToken,
+    PasswordResetToken,
+)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -42,6 +52,45 @@ class WorkspaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Workspace
         fields = ["id", "name", "slug", "settings", "created_at"]
+
+
+class GoogleCredentialAuthSerializer(serializers.Serializer):
+    credential = serializers.CharField(trim_whitespace=True)
+
+    def validate_credential(self, value):
+        if not value or len(value) > 4096:
+            raise serializers.ValidationError("Invalid credential.")
+        return value
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    token = serializers.CharField(trim_whitespace=True)
+    new_password = serializers.CharField(write_only=True, trim_whitespace=False)
+    new_password_confirm = serializers.CharField(write_only=True, trim_whitespace=False)
+
+    def validate_token(self, value):
+        if not value or len(value) > 512:
+            raise serializers.ValidationError("Invalid reset token.")
+        return value
+
+    def validate(self, attrs):
+        if attrs.get("new_password") != attrs.get("new_password_confirm"):
+            raise serializers.ValidationError({"new_password_confirm": "Passwords do not match."})
+        # Run Django's configured password validators
+        try:
+            validate_password(attrs.get("new_password") or "")
+        except Exception as e:
+            # Normalize validation errors
+            from django.core.exceptions import ValidationError as DjangoValidationError
+
+            if isinstance(e, DjangoValidationError):
+                raise serializers.ValidationError({"new_password": list(e.messages)})
+            raise serializers.ValidationError({"new_password": ["Invalid password."]})
+        return attrs
 
 # Donation Serializers
 class DonationProductSerializer(serializers.ModelSerializer):
